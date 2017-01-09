@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#CD5B55</color>
+    <color name="colorPrimaryDark">@color/colorPrimary</color>
+    <color name="colorAccent">#FF4081</color>
+    <color name="background_color">#f6f6f6</color>
+    <color name="dark_background_color">#22242a</color>
+    <color name="list_background_color">#d8d8d8</color>
+    <color name="line_color">#16181f</color>
+    <color name="dark_tab_bar_color">#22242a</color>
+    <color name="dark_status_bar_color">#22242a</color>
+
+    <!-- Addition color -->
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="dark_gray">#484848</color>
+    <color name="deep_dark_gray">#323232</color>
+    <color name="light_gray">#dcdcdc</color>
+    <color name="light_gray2">#f6f6f6</color>
+    <color name="half_transparent">#99000000</color>
+    <color name="transparent">#CD000000</color>
+    <color name="linecolor">#bebebe</color>
+    <color name="transparency">#00000000</color>
+    <color name="snackbar_color">@color/black</color>
+
+    <color name="pastel_blue">#5850f7</color>
+
+    <!-- ptr -->
+    <color name="red">#FFC93437</color>
+    <color name="blue">#FF375BF1</color>
+    <color name="yellow">#FFF7D23E</color>
+    <color name="green">#FF34A350</color>
+    <!--========================-->
+
+
+    <!-- Floating Action Button -->
+    <color name="half_black">#808080</color>
+    <color name="pink">#FF4081</color>
+    <color name="pink_pressed">#ec407a</color>
+    <!-- white -->
+    <color name="white_pressed">#f1f1f1</color>
+    <!--========================-->
+
+    <!-- rank color -->
+    <color name="rank01">#ff0000</color>
+    <color name="rank02">#fb3c3c</color>
+    <color name="rank03">#fc6c6c</color>
+    <color name="rank04">#fc9393</color>
+    <color name="rank05">#fcbdbd</color>
+    <color name="rank06">#fde1e1</color>
+
+
+    <color name="facebook_blue">#3b5998</color>
+
+</resources>

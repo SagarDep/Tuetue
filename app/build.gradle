@@ -1,0 +1,69 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 25
+    buildToolsVersion "25.0.2"
+    defaultConfig {
+        def versionPropsFile = file('version.properties') // version.properties 파일에서 버전 정보를 관리합니다
+        if (versionPropsFile.canRead()) {
+            def Properties versionProps = new Properties()
+            versionProps.load(new FileInputStream(versionPropsFile))
+            def code = versionProps['VERSION_CODE'].toInteger() + 1 // Gradle이 실행될 때 버전 코드 증가
+            versionProps['VERSION_CODE'] = code.toString()
+            versionProps.store(versionPropsFile.newWriter(), null)
+            defaultConfig {
+                applicationId "tk.twpooi.tuetue"
+                minSdkVersion 16
+                targetSdkVersion 25
+                versionCode code
+                versionName "1.0.0"
+                testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+                versionName "1.0.0"// + code
+            }
+        } else {
+            throw new GradleException("Could not read version.properties!") // version.properties를 읽어올 수 없을 때
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    })
+    compile 'com.android.support:appcompat-v7:25.1.0'
+    compile 'com.android.support:design:25.1.0'
+    compile 'com.android.support:support-v4:25.+'
+    testCompile 'junit:junit:4.12'
+    compile 'com.squareup.picasso:picasso:2.5.2'
+    // circle crop image
+    compile 'jp.wasabeef:picasso-transformations:2.1.0'
+    // 알림창
+    compile 'cn.pedant.sweetalert:library:1.3'
+    // Tabbar
+    compile 'com.github.devlight.navigationtabbar:navigationtabbar:1.2.3'
+    compile 'com.github.ksoichiro:android-observablescrollview:1.6.0'
+    compile 'com.nineoldandroids:library:2.4.0'
+    // shine button
+    compile 'com.sackcentury:shinebutton:0.1.5'
+    // floating button
+    compile 'com.getbase:floatingactionbutton:1.10.1'
+    // edit text
+    compile 'com.rengwuxian.materialedittext:library:2.1.4'
+    // refresh
+    compile 'in.srain.cube:ultra-ptr:1.0.11'
+    // Progressbar
+    compile 'com.akexorcist:RoundCornerProgressBar:2.0.3'
+    // alert
+    compile 'com.flyco.dialog:FlycoDialog_Lib:1.3.2@aar'
+
+    compile 'com.flaviofaria:kenburnsview:1.0.7'
+    // Facebook
+    compile 'com.facebook.android:facebook-android-sdk:[4,5)'
+}

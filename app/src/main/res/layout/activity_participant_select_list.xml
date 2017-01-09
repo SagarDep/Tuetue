@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/activity_participant_list"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/transparent"
+    tools:context="tk.twpooi.tuetue.StartActivity"
+    >
+
+    <RelativeLayout
+        android:layout_width="320dp"
+        android:layout_height="500dp"
+        android:layout_gravity="center"
+        android:background="@drawable/profile_background"
+        >
+
+        <RelativeLayout
+            android:id="@+id/topbar"
+            android:layout_width="match_parent"
+            android:layout_height="20dp"
+            android:background="@drawable/profile_top_background"
+            >
+
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:id="@+id/rv_root"
+            android:layout_below="@+id/topbar"
+            android:layout_above="@+id/rl_completeBtn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            >
+
+            <android.support.v7.widget.RecyclerView
+                android:layout_height="match_parent"
+                android:layout_width="match_parent"
+                android:id="@+id/rv"
+                >
+            </android.support.v7.widget.RecyclerView>
+
+
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:id="@+id/rl_completeBtn"
+            android:layout_width="match_parent"
+            android:layout_height="30dp"
+            android:layout_alignParentBottom="true"
+            android:background="@drawable/profile_bottom_background"
+            >
+
+            <Button
+                android:id="@+id/completeBtn"
+                android:layout_centerInParent="true"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="선택하기"
+                android:gravity="center"
+                android:textColor="@color/white"
+                android:background="@color/transparency"
+                />
+
+        </RelativeLayout>
+
+    </RelativeLayout>
+
+</FrameLayout>

@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/activity_start_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="tk.twpooi.tuetue.StartActivity"
+    android:background="@color/background_color">
+
+    <LinearLayout
+        android:id="@+id/li_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        >
+
+
+
+        <android.support.v7.widget.Toolbar
+            android:id="@+id/toolbar"
+            app:contentInsetStart="0dp"
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:minHeight="?attr/actionBarSize"
+            android:background="@color/colorPrimary"
+            >
+
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize">
+
+
+                <TextView
+                    android:id="@+id/toolbar_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="재능기부"
+                    android:textColor="@color/white"
+                    android:textSize="20sp"
+                    android:layout_centerInParent="true"
+                    />
+
+            </RelativeLayout>
+
+
+
+        </android.support.v7.widget.Toolbar>
+
+
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_above="@+id/addBtn"
+        android:layout_below="@+id/li_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="10dp"
+            android:orientation="vertical"
+            >
+
+            <Button
+                android:id="@+id/category"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:background="@color/dark_gray"
+                android:text="카테고리를 선택하세요."
+                android:textColor="@color/white"
+                />
+
+            <com.rengwuxian.materialedittext.MaterialEditText
+                android:id="@+id/cost"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="5dp"
+                android:layout_marginBottom="10dp"
+                android:layout_centerHorizontal="true"
+                android:hint="비용"
+                android:inputType="number"
+                android:textCursorDrawable="@drawable/text_cursor_cyan"
+                app:met_baseColor="@color/dark_gray"
+                app:met_floatingLabel="highlight"
+                app:met_primaryColor="@color/dark_gray"
+                app:met_singleLineEllipsis="false"
+                />
+
+            <!--<com.rengwuxian.materialedittext.MaterialEditText-->
+                <!--android:id="@+id/count"-->
+                <!--android:layout_width="match_parent"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:padding="5dp"-->
+                <!--android:layout_marginBottom="10dp"-->
+                <!--android:layout_centerHorizontal="true"-->
+                <!--android:hint="정원"-->
+                <!--android:inputType="number"-->
+                <!--android:textCursorDrawable="@drawable/text_cursor_cyan"-->
+                <!--app:met_baseColor="@color/dark_gray"-->
+                <!--app:met_floatingLabel="highlight"-->
+                <!--app:met_maxCharacters="20"-->
+                <!--app:met_primaryColor="@color/dark_gray"-->
+                <!--app:met_singleLineEllipsis="false"-->
+                <!--/>-->
+
+
+            <!--<com.rengwuxian.materialedittext.MaterialEditText-->
+                <!--android:id="@+id/limit"-->
+                <!--android:layout_width="match_parent"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:padding="5dp"-->
+                <!--android:layout_marginBottom="10dp"-->
+                <!--android:layout_centerHorizontal="true"-->
+                <!--android:hint="모집기한"-->
+                <!--android:inputType="date"-->
+                <!--android:textCursorDrawable="@drawable/text_cursor_cyan"-->
+                <!--app:met_baseColor="@color/dark_gray"-->
+                <!--app:met_floatingLabel="highlight"-->
+                <!--app:met_maxCharacters="20"-->
+                <!--app:met_primaryColor="@color/dark_gray"-->
+                <!--app:met_singleLineEllipsis="false"-->
+                <!--/>-->
+
+
+            <com.rengwuxian.materialedittext.MaterialEditText
+                android:id="@+id/time"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="5dp"
+                android:layout_marginBottom="10dp"
+                android:layout_centerHorizontal="true"
+                android:hint="시간"
+                android:textCursorDrawable="@drawable/text_cursor_cyan"
+                app:met_baseColor="@color/dark_gray"
+                app:met_floatingLabel="highlight"
+                app:met_maxCharacters="20"
+                app:met_primaryColor="@color/dark_gray"
+                app:met_singleLineEllipsis="false"
+                />
+
+            <com.rengwuxian.materialedittext.MaterialEditText
+                android:id="@+id/contents"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="5dp"
+                android:layout_marginBottom="10dp"
+                android:layout_centerHorizontal="true"
+                android:hint="내용"
+                android:textCursorDrawable="@drawable/text_cursor_cyan"
+                app:met_baseColor="@color/dark_gray"
+                app:met_floatingLabel="highlight"
+                app:met_maxCharacters="20"
+                app:met_primaryColor="@color/dark_gray"
+                app:met_singleLineEllipsis="false"
+                />
+
+        </LinearLayout>
+
+    </ScrollView>
+
+
+    <Button
+        android:id="@+id/addBtn"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:layout_alignParentBottom="true"
+        android:background="@color/red_btn_bg_color"
+        android:text="기부등록하기"
+        android:textColor="@color/white"
+        />
+
+
+</RelativeLayout>
