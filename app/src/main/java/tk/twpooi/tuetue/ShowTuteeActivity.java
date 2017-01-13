@@ -135,7 +135,7 @@ public class ShowTuteeActivity extends AppCompatActivity {
 
 
 
-        if(participant.contains(StartActivity.USER_FACEBOOK_ID)){
+        if(participant.contains(StartActivity.USER_ID)){
             setButton(false);
         }else{
             setButton(true);
@@ -175,7 +175,7 @@ public class ShowTuteeActivity extends AppCompatActivity {
 
     private void setButton(boolean check){
 
-        if(userId.equals(StartActivity.USER_FACEBOOK_ID)){
+        if(userId.equals(StartActivity.USER_ID)){
             jo_cost.setVisibility(View.GONE);
             jo_join.setText("선택하기");
             rl_join.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.facebook_blue));
@@ -201,7 +201,7 @@ public class ShowTuteeActivity extends AppCompatActivity {
                 rl_join.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        participant.add(StartActivity.USER_FACEBOOK_ID);
+                        participant.add(StartActivity.USER_ID);
                         String p = "";
                         for(int i=0; i<participant.size(); i++){
                             p += participant.get(i);
@@ -240,7 +240,7 @@ public class ShowTuteeActivity extends AppCompatActivity {
                 rl_join.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        participant.remove(StartActivity.USER_FACEBOOK_ID);
+                        participant.remove(StartActivity.USER_ID);
                         String p = "";
                         for(int i=0; i<participant.size(); i++){
                             p += participant.get(i);

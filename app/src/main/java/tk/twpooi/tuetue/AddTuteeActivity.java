@@ -134,7 +134,7 @@ public class AddTuteeActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
 
-                GetUserInfo gui = new GetUserInfo(StartActivity.USER_FACEBOOK_ID);
+                GetUserInfo gui = new GetUserInfo(StartActivity.USER_ID);
                 gui.start();
                 try{
                     gui.join();
@@ -143,7 +143,7 @@ public class AddTuteeActivity extends AppCompatActivity {
                 }
 
                 String id = getID();
-                String userId = StartActivity.USER_FACEBOOK_ID;
+                String userId = StartActivity.USER_ID;
                 String img = gui.getReturnList().get(0).get("img");
                 String nickname = gui.getReturnList().get(0).get("nickname");
 

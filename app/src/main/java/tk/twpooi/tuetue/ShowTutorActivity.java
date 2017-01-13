@@ -131,7 +131,7 @@ public class ShowTutorActivity extends AppCompatActivity {
                 .into(profileImg);
 
 
-        if(participant.contains(StartActivity.USER_FACEBOOK_ID)){
+        if(participant.contains(StartActivity.USER_ID)){
             setButton(false);
         }else{
             setButton(true);
@@ -176,7 +176,7 @@ public class ShowTutorActivity extends AppCompatActivity {
             return;
         }
 
-        if (userId.equals(StartActivity.USER_FACEBOOK_ID)) {
+        if (userId.equals(StartActivity.USER_ID)) {
 
             jo_cost.setVisibility(View.GONE);
             jo_join.setText("마감하기");
@@ -215,7 +215,7 @@ public class ShowTutorActivity extends AppCompatActivity {
                 rl_join.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        participant.add(StartActivity.USER_FACEBOOK_ID);
+                        participant.add(StartActivity.USER_ID);
                         String p = "";
                         for(int i=0; i<participant.size(); i++){
                             p += participant.get(i);
@@ -253,7 +253,8 @@ public class ShowTutorActivity extends AppCompatActivity {
                 rl_join.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        participant.remove(StartActivity.USER_FACEBOOK_ID);
+                        participant.remove(StartActivity.USER_ID
+                        );
                         String p = "";
                         for(int i=0; i<participant.size(); i++){
                             p += participant.get(i);
