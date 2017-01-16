@@ -23,21 +23,8 @@
 
         <activity
             android:name=".WtInfoActivity"
-            android:label="Contents"
             android:theme="@style/AppTheme"
             android:windowSoftInputMode="adjustPan"
-            android:configChanges="orientation|keyboardHidden|screenSize">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="tk.twpooi.tuetue" />
-            </intent-filter>
-        </activity>
-
-        <activity
-            android:name=".MainActivity"
-            android:label="Contents"
-            android:theme="@style/AppTheme"
             android:configChanges="orientation|keyboardHidden|screenSize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -49,7 +36,6 @@
 
         <activity
             android:name=".ShowTutorActivity"
-            android:label="Contents"
             android:theme="@style/AppTheme"
             android:configChanges="orientation|keyboardHidden|screenSize">
             <intent-filter>
@@ -61,7 +47,6 @@
 
         <activity
             android:name=".ShowTuteeActivity"
-            android:label="Contents"
             android:theme="@style/AppTheme"
             android:configChanges="orientation|keyboardHidden|screenSize">
             <intent-filter>
@@ -84,7 +69,6 @@
 
         <activity
             android:name=".ParticipantListActivity"
-            android:label="Contents"
             android:theme="@style/AppTheme"
             android:configChanges="orientation|keyboardHidden|screenSize">
             <intent-filter>
@@ -96,7 +80,6 @@
 
         <activity
             android:name=".ParticipantSelectListActivity"
-            android:label="Contents"
             android:theme="@style/AppTheme"
             android:configChanges="orientation|keyboardHidden|screenSize">
             <intent-filter>
@@ -108,7 +91,6 @@
 
         <activity
             android:name=".AddTutorActivity"
-            android:label="Contents"
             android:theme="@style/AppTheme"
             android:windowSoftInputMode="adjustPan"
             android:configChanges="orientation|keyboardHidden|screenSize">
@@ -121,7 +103,6 @@
 
         <activity
             android:name=".AddTuteeActivity"
-            android:label="Contents"
             android:theme="@style/AppTheme"
             android:windowSoftInputMode="adjustPan"
             android:configChanges="orientation|keyboardHidden|screenSize">
@@ -134,8 +115,19 @@
 
         <activity
             android:name=".SelectInterestActivity"
-            android:label="Contents"
             android:theme="@style/AppTheme"
+            android:windowSoftInputMode="adjustPan"
+            android:configChanges="orientation|keyboardHidden|screenSize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="tk.twpooi.tuetue" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".Main2Activity"
+            android:theme="@style/AccountsDark"
             android:windowSoftInputMode="adjustPan"
             android:configChanges="orientation|keyboardHidden|screenSize">
             <intent-filter>

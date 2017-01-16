@@ -74,6 +74,8 @@ public class StartActivity extends AppCompatActivity implements FacebookLoginSup
     private final int MSG_MESSAGE_SUCCESS = 501;
     private final int MSG_MESSAGE_FAIL_FB = 502;
     private final int MSG_MESSAGE_FAIL_NAVER = 503;
+    private final int MSG_MESSAGE_FACEBOOK_EMPTY = 504;
+    private final int MSG_MESSAGE_NAVER_EMPTY = 505;
 
     private SharedPreferences setting;
     private SharedPreferences.Editor editor;
@@ -96,6 +98,12 @@ public class StartActivity extends AppCompatActivity implements FacebookLoginSup
     public static String USER_ID = "";
     public static String[] CATEGORY_LIST;
     public static HashMap<String, Object> USER_DATA = new HashMap<>();
+
+    // ToWtInfo
+    private String wt_id;
+    private String wt_email;
+    private String wt_img;
+    private String wt_name;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -133,21 +141,6 @@ public class StartActivity extends AppCompatActivity implements FacebookLoginSup
             @Override
             public void onClick(View v) {
                 facebookLogin.login();
-            }
-        });
-
-        Button fbLoout = (Button)findViewById(R.id.fb_logout);
-        fbLoout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                facebookLogin.logout();
-            }
-        });
-        Button nvLogout = (Button)findViewById(R.id.naver_logout);
-        nvLogout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                naverLogin.logout();
             }
         });
 
@@ -208,21 +201,7 @@ public class StartActivity extends AppCompatActivity implements FacebookLoginSup
                 if(facebookLogin.isAlreadyLogin()){
 
                     USER_ID = facebookLogin.getID();
-//                    redirectMainActivity();
-                    HashMap<String, String> map = new HashMap<>();
-                    map.put("service", "getUserInfo");
-                    map.put("id", USER_ID);
-                    new ParsePHP(Information.MAIN_SERVER_ADDRESS, map){
-                        @Override
-                        protected void afterThreadFinish(String data) {
-                            USER_DATA = AdditionalFunc.getUserInfo(data);
-                            if(USER_DATA.isEmpty()){
-                                handler.sendMessage(handler.obtainMessage(MSG_MESSAGE_FAIL_FB));
-                            }else{
-                                handler.sendMessage(handler.obtainMessage(MSG_MESSAGE_SUCCESS));
-                            }
-                        }
-                    }.start();
+                    checkFBLogin(MSG_MESSAGE_SUCCESS, MSG_MESSAGE_FAIL_FB);
 
                     return;
 
@@ -234,21 +213,7 @@ public class StartActivity extends AppCompatActivity implements FacebookLoginSup
                 if(!data.isEmpty()){
 
                     USER_ID = data.get("id");
-//                    redirectMainActivity();
-                    HashMap<String, String> map = new HashMap<>();
-                    map.put("service", "getUserInfo");
-                    map.put("id", USER_ID);
-                    new ParsePHP(Information.MAIN_SERVER_ADDRESS, map){
-                        @Override
-                        protected void afterThreadFinish(String data) {
-                            USER_DATA = AdditionalFunc.getUserInfo(data);
-                            if(USER_DATA.isEmpty()){
-                                handler.sendMessage(handler.obtainMessage(MSG_MESSAGE_FAIL_NAVER));
-                            }else{
-                                handler.sendMessage(handler.obtainMessage(MSG_MESSAGE_SUCCESS));
-                            }
-                        }
-                    }.start();
+                    checkFBLogin(MSG_MESSAGE_SUCCESS, MSG_MESSAGE_FAIL_NAVER);
 
                     return;
 
@@ -262,14 +227,52 @@ public class StartActivity extends AppCompatActivity implements FacebookLoginSup
 
     }
 
+    private void checkFBLogin(final int success, final int fail){
+        HashMap<String, String> map = new HashMap<>();
+        map.put("service", "getUserInfo");
+        map.put("id", USER_ID);
+        new ParsePHP(Information.MAIN_SERVER_ADDRESS, map){
+            @Override
+            protected void afterThreadFinish(String data) {
+                USER_DATA = AdditionalFunc.getUserInfo(data);
+                if(USER_DATA.isEmpty()){
+                    handler.sendMessage(handler.obtainMessage(fail));
+                }else{
+                    handler.sendMessage(handler.obtainMessage(success));
+                }
+            }
+        }.start();
+    }
+    private void checkNaverLogin(final int success, final int fail){
+        HashMap<String, String> map = new HashMap<>();
+        map.put("service", "getUserInfo");
+        map.put("id", USER_ID);
+        new ParsePHP(Information.MAIN_SERVER_ADDRESS, map){
+            @Override
+            protected void afterThreadFinish(String data) {
+                USER_DATA = AdditionalFunc.getUserInfo(data);
+                if(USER_DATA.isEmpty()){
+                    handler.sendMessage(handler.obtainMessage(fail));
+                }else{
+                    handler.sendMessage(handler.obtainMessage(success));
+                }
+            }
+        }.start();
+    }
+
     public void redirectMainActivity() {
 //        handler.sendMessage(handler.obtainMessage(MSG_MESSAGE_SHOW_LOGIN));
-        Intent intent = new Intent(this, MainActivity.class);
+        Intent intent = new Intent(this, Main2Activity.class);
         startActivity(intent);
         finish();
     }
 
-    public void redirectWtInfoActivity(Intent intent) {
+    public void redirectWtInfoActivity() {
+        Intent intent = new Intent(this, WtInfoActivity.class);
+        intent.putExtra("id", wt_id);
+        intent.putExtra("img", wt_img);
+        intent.putExtra("email", wt_email);
+        intent.putExtra("name", wt_name);
 //        handler.sendMessage(handler.obtainMessage(MSG_MESSAGE_SHOW_LOGIN));
         startActivity(intent);
         finish();
@@ -294,6 +297,12 @@ public class StartActivity extends AppCompatActivity implements FacebookLoginSup
                 case MSG_MESSAGE_FAIL_NAVER:
                     naverLogin.login();
                     break;
+                case MSG_MESSAGE_FACEBOOK_EMPTY:
+                    redirectWtInfoActivity();
+                    break;
+                case MSG_MESSAGE_NAVER_EMPTY:
+                    redirectWtInfoActivity();
+                    break;
                 default:
                     break;
             }
@@ -308,16 +317,17 @@ public class StartActivity extends AppCompatActivity implements FacebookLoginSup
 
     @Override
     public void afterFBLoginSuccess(Profile profile, HashMap<String, String> data) {
-        showSnackbar("Facebook 로그인 성공");
+//        showSnackbar("Facebook 로그인 성공");
         editor.putString("login", "facebook");
         editor.commit();
+        USER_ID = profile.getId();
 
-        Intent intent = new Intent(this, WtInfoActivity.class);
-        intent.putExtra("id", profile.getId());
-        intent.putExtra("img", profile.getProfilePictureUri(500, 500).toString());
-        intent.putExtra("email", data.get("email"));
-        intent.putExtra("name", profile.getName());
-        redirectWtInfoActivity(intent);
+        wt_id = profile.getId();
+        wt_img = profile.getProfilePictureUri(500, 500).toString();
+        wt_email = data.get("email");
+        wt_name = profile.getName();
+
+        checkFBLogin(MSG_MESSAGE_SUCCESS, MSG_MESSAGE_FACEBOOK_EMPTY);
     }
 
     @Override
@@ -337,16 +347,17 @@ public class StartActivity extends AppCompatActivity implements FacebookLoginSup
 
     @Override
     public void afterNaverLoginSuccess(HashMap<String, String> data) {
-        showSnackbar("네이버 로그인 성공");
+//        showSnackbar("네이버 로그인 성공");
         editor.putString("login", "naver");
         editor.commit();
+        USER_ID = data.get("id");
 
-        Intent intent = new Intent(this, WtInfoActivity.class);
-        intent.putExtra("id", data.get("id"));
-        intent.putExtra("img", data.get("img"));
-        intent.putExtra("email", data.get("email"));
-        intent.putExtra("name", data.get("name"));
-        redirectWtInfoActivity(intent);
+        wt_id = data.get("id");
+        wt_img = data.get("img");
+        wt_email = data.get("email");
+        wt_name = data.get("name");
+
+        checkNaverLogin(MSG_MESSAGE_SUCCESS, MSG_MESSAGE_NAVER_EMPTY);
     }
 
     @Override

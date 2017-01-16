@@ -129,7 +129,6 @@ public class TutorListCustomAdapter extends RecyclerView.Adapter<TutorListCustom
                 Intent intent = new Intent(context, ProfileActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 intent.putExtra("userId", userId);
-                intent.putExtra("img", profileImg);
                 context.startActivity(intent);
             }
         });

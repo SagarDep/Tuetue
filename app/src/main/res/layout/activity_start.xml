@@ -28,30 +28,6 @@
             android:orientation="vertical"
             >
 
-            <Button
-                android:id="@+id/fb_logout"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Facebook Logout"
-                android:textAllCaps="false"
-                android:background="@color/facebook_blue"
-                android:textColor="@color/white"
-                android:paddingLeft="10dp"
-                android:paddingRight="10dp"
-                />
-            <Button
-                android:id="@+id/naver_logout"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Naver Logout"
-                android:textAllCaps="false"
-                android:background="@color/green"
-                android:textColor="@color/white"
-                android:layout_marginTop="10dp"
-                android:paddingLeft="10dp"
-                android:paddingRight="10dp"
-                />
-
             <ImageView
                 android:layout_margin="10dp"
                 android:id="@+id/fb_login"

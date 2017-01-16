@@ -390,7 +390,7 @@ public class WtInfoActivity extends AppCompatActivity {
 
 
     public void redirectMainActivity() {
-        Intent intent = new Intent(this, MainActivity.class);
+        Intent intent = new Intent(this, Main2Activity.class);
         startActivity(intent);
         finish();
     }

@@ -99,8 +99,6 @@ public class ProfileActivity extends Activity {
 
         Intent intent = getIntent();
         userId = intent.getStringExtra("userId");
-        img = intent.getStringExtra("img");
-
 
         item = new HashMap<>();
         tutorList = new ArrayList<>();
@@ -115,12 +113,6 @@ public class ProfileActivity extends Activity {
         getUserInfo();
         getUserTutorList();
         getUserTuteeList();
-
-//        init();
-//        Picasso.with(getApplicationContext())
-//                .load(img)
-//                .transform(new CropCircleTransformation())
-//                .into(mHeaderLogo);
 
     }
 
@@ -139,10 +131,6 @@ public class ProfileActivity extends Activity {
                 .transform(new BlurTransformation(getApplicationContext()))
                 .into(mHeaderPicture);
         mHeaderLogo = (ImageView) findViewById(R.id.header_logo);
-        Picasso.with(getApplicationContext())
-                .load(img)
-                .transform(new CropCircleTransformation())
-                .into(mHeaderLogo);
 
         mActionBarTitleColor = ContextCompat.getColor(getApplicationContext(), R.color.white);
 
@@ -221,10 +209,11 @@ public class ProfileActivity extends Activity {
     }
 
     private void setAdditionUI(){
-//        Picasso.with(getApplicationContext())
-//                .load((String)item.get("img"))
-//                .transform(new CropCircleTransformation())
-//                .into(mHeaderLogo);
+        img = (String)item.get("img");
+        Picasso.with(getApplicationContext())
+                .load(img)
+                .transform(new CropCircleTransformation())
+                .into(mHeaderLogo);
         mSpannableString = new SpannableString((String)item.get("nickname"));
     }
 

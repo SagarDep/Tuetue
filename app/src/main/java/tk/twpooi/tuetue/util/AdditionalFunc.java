@@ -1,5 +1,14 @@
 package tk.twpooi.tuetue.util;
 
+import android.app.Activity;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.content.Context;
+import android.content.Intent;
+import android.support.design.widget.Snackbar;
+import android.support.v4.content.ContextCompat;
+import android.view.View;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -7,11 +16,36 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import tk.twpooi.tuetue.R;
+import tk.twpooi.tuetue.StartActivity;
+
 /**
  * Created by tw on 2017-01-14.
  */
 
 public class AdditionalFunc {
+
+    public static void showSnackbar(Activity activity, String msg){
+        Snackbar snackbar = Snackbar.make(activity.getWindow().getDecorView().getRootView(), msg, Snackbar.LENGTH_SHORT);
+        View view = snackbar.getView();
+        view.setBackgroundColor(ContextCompat.getColor(activity.getApplicationContext(), R.color.snackbar_color));
+        snackbar.show();
+    }
+    public static void showSnackbar(View v, Context context, String msg){
+        Snackbar snackbar = Snackbar.make(v, msg, Snackbar.LENGTH_SHORT);
+        View view = snackbar.getView();
+        view.setBackgroundColor(ContextCompat.getColor(context, R.color.snackbar_color));
+        snackbar.show();
+    }
+
+    public static void restartApp(Context context){
+        Intent mStartActivity = new Intent(context, StartActivity.class);
+        int mPendingIntentId = 123456;
+        PendingIntent mPendingIntent = PendingIntent.getActivity(context, mPendingIntentId, mStartActivity, PendingIntent.FLAG_CANCEL_CURRENT);
+        AlarmManager mgr = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
+        mgr.set(AlarmManager.RTC, System.currentTimeMillis() + 50, mPendingIntent);
+        System.exit(0);
+    }
 
     public static HashMap<String, Object> getUserInfo(String data){
 
