@@ -1,12 +1,10 @@
 package tk.twpooi.tuetue;
 
-import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
-import android.net.Uri;
 import android.os.Handler;
 import android.os.Message;
 import android.support.design.widget.Snackbar;
@@ -16,24 +14,11 @@ import android.os.Bundle;
 import android.util.Base64;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
-import android.widget.TextView;
-import android.widget.Toast;
 
-import com.facebook.AccessToken;
-import com.facebook.CallbackManager;
-import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
-import com.facebook.FacebookSdk;
-import com.facebook.GraphRequest;
-import com.facebook.GraphResponse;
 import com.facebook.Profile;
-import com.facebook.login.LoginManager;
-import com.facebook.login.LoginResult;
-import com.facebook.login.widget.LoginButton;
 import com.flaviofaria.kenburnsview.KenBurnsView;
 import com.nhn.android.naverlogin.ui.view.OAuthLoginButton;
 import com.squareup.picasso.Picasso;
@@ -42,24 +27,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLEncoder;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Map;
 
-import jp.wasabeef.picasso.transformations.CropCircleTransformation;
 import tk.twpooi.tuetue.util.AdditionalFunc;
 import tk.twpooi.tuetue.util.FacebookLogin;
 import tk.twpooi.tuetue.util.FacebookLoginSupport;
@@ -262,7 +233,7 @@ public class StartActivity extends AppCompatActivity implements FacebookLoginSup
 
     public void redirectMainActivity() {
 //        handler.sendMessage(handler.obtainMessage(MSG_MESSAGE_SHOW_LOGIN));
-        Intent intent = new Intent(this, Main2Activity.class);
+        Intent intent = new Intent(this, MainActivity.class);
         startActivity(intent);
         finish();
     }

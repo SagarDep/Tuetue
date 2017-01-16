@@ -39,7 +39,7 @@ import tk.twpooi.tuetue.util.ParsePHP;
 /**
  * Created by neokree on 18/01/15.
  */
-public class Main2Activity extends MaterialNavigationDrawer implements MaterialAccountListener {
+public class MainActivity extends MaterialNavigationDrawer implements MaterialAccountListener {
 
     private MyHandler handler = new MyHandler();
     private final int MSG_MESSAGE_FINISH = 500;

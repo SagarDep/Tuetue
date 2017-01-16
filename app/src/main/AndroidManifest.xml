@@ -126,7 +126,7 @@
         </activity>
 
         <activity
-            android:name=".Main2Activity"
+            android:name=".MainActivity"
             android:theme="@style/AccountsDark"
             android:windowSoftInputMode="adjustPan"
             android:configChanges="orientation|keyboardHidden|screenSize">
