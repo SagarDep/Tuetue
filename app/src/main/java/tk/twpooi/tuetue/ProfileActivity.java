@@ -1,530 +1,461 @@
 package tk.twpooi.tuetue;
 
+import android.app.ActionBar;
+import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Intent;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-import android.content.pm.Signature;
-import android.net.Uri;
+import android.graphics.Paint;
+import android.graphics.Rect;
+import android.graphics.RectF;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Message;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Base64;
-import android.util.Log;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.util.DisplayMetrics;
+import android.util.TypedValue;
+import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
+import android.view.animation.AccelerateDecelerateInterpolator;
+import android.widget.AbsListView;
+import android.widget.ArrayAdapter;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import com.facebook.CallbackManager;
-import com.facebook.FacebookCallback;
-import com.facebook.FacebookException;
-import com.facebook.FacebookSdk;
-import com.facebook.GraphRequest;
-import com.facebook.GraphResponse;
-import com.facebook.Profile;
-import com.facebook.login.LoginManager;
-import com.facebook.login.LoginResult;
+import com.flyco.dialog.widget.NormalListDialog;
 import com.sackcentury.shinebuttonlib.ShineButton;
 import com.squareup.picasso.Picasso;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLEncoder;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Map;
 
+import jp.wasabeef.picasso.transformations.BlurTransformation;
 import jp.wasabeef.picasso.transformations.CropCircleTransformation;
+import tk.twpooi.tuetue.util.AdditionalFunc;
+import tk.twpooi.tuetue.util.AlphaForegroundColorSpan;
+import tk.twpooi.tuetue.util.ParsePHP;
 
-public class ProfileActivity extends AppCompatActivity {
+public class ProfileActivity extends Activity {
 
-    private FrameLayout root;
-    private TextView tv_nickname;
-    private ImageView img_profile;
-    private TextView tv_intro;
-    private TextView tv_tutorCount;
-    private TextView tv_tuteeCount;
-    private TextView tv_rank;
-    private TextView tv_interest;
-    private ShineButton heartBtn;
+    private MyHandler handler = new MyHandler();
+    private final int MSG_MESSAGE_UPDATE_TUTOR_ITEM = 500;
+    private final int MSG_MESSAGE_UPDATE_TUTEE_ITEM = 502;
+    private final int MSG_MESSAGE_PROGRESS_FINISH = 504;
 
-    private HashMap<String, String> data;
+    // User Data
+    private HashMap<String, Object> item;
     private String userId;
+    private String img;
     private ArrayList<HashMap<String, Object>> tutorList;
+    private ArrayList<HashMap<String, Object>> tuteeList;
     private int interestCount = 0;
-    private int tuteeCount = 0;
+
+    // Basic UI
+    private FrameLayout root;
+    private int mActionBarTitleColor;
+    private int mActionBarHeight;
+    private int mHeaderHeight;
+    private int mMinHeaderTranslation;
+    private ImageView mHeaderPicture;
+    private ImageView mHeaderLogo;
+    private View mHeader;
+    private View mPlaceHolderView;
+    private AccelerateDecelerateInterpolator mSmoothInterpolator;
+
+    private RectF mRect1 = new RectF();
+    private RectF mRect2 = new RectF();
+
+    private AlphaForegroundColorSpan mAlphaForegroundColorSpan;
+    private SpannableString mSpannableString;
+
+    private TypedValue mTypedValue = new TypedValue();
+
+    // RecycleView
+    private RecyclerView rv;
+    private LinearLayoutManager mLinearLayoutManager;
+    private ProfileCustomAdapter adapter;
+
+    private ArrayList<HashMap<String, String>> list;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
 
+        setStatusColor();
+
         Intent intent = getIntent();
         userId = intent.getStringExtra("userId");
+        img = intent.getStringExtra("img");
 
 
-        initData();
+        item = new HashMap<>();
+        tutorList = new ArrayList<>();
+        tuteeList = new ArrayList<>();
 
 
-        init();
+        setBasicUI();
+        makeData();
+        makeList();
+
+
+        getUserInfo();
+        getUserTutorList();
+        getUserTuteeList();
+
+//        init();
+//        Picasso.with(getApplicationContext())
+//                .load(img)
+//                .transform(new CropCircleTransformation())
+//                .into(mHeaderLogo);
 
     }
 
-    private void initData(){
+    private void setBasicUI(){
 
+        root = (FrameLayout)findViewById(R.id.root);
+
+        mSmoothInterpolator = new AccelerateDecelerateInterpolator();
+        mHeaderHeight = getResources().getDimensionPixelSize(R.dimen.header_height);
+        mMinHeaderTranslation = -mHeaderHeight + getActionBarHeight();
+
+        mHeader = findViewById(R.id.header);
+        mHeaderPicture = (ImageView) findViewById(R.id.header_picture);
+        Picasso.with(getApplicationContext())
+                .load(Information.PROFILE_DEFAULT_IAMGE_URL)
+                .transform(new BlurTransformation(getApplicationContext()))
+                .into(mHeaderPicture);
+        mHeaderLogo = (ImageView) findViewById(R.id.header_logo);
+        Picasso.with(getApplicationContext())
+                .load(img)
+                .transform(new CropCircleTransformation())
+                .into(mHeaderLogo);
+
+        mActionBarTitleColor = ContextCompat.getColor(getApplicationContext(), R.color.white);
+
+        mAlphaForegroundColorSpan = new AlphaForegroundColorSpan(mActionBarTitleColor);
+
+        mSpannableString = new SpannableString("Profile");
+
+        setupActionBar();
+        setupListView();
+
+    }
+
+    public void makeList(){
+
+        adapter = new ProfileCustomAdapter(getApplicationContext(), list, img, getWindow().getDecorView().getRootView(), mPlaceHolderView, this);
+
+        rv.setAdapter(adapter);
+
+        adapter.notifyDataSetChanged();
+        adapter.notifyItemChanged(0);
+
+    }
+
+    private ArrayList<HashMap<String, String>> makeData(){
+
+        list = new ArrayList<>();
+
+        try {
+            String nickname = (String) item.get("nickname");
+            String email = (String) item.get("email");
+            String contact = (String) item.get("contact");
+            String intro = (String) item.get("intro");
+            String interest = "";
+
+
+            HashMap<String, String> temp = new HashMap<>();
+            temp.put("title", "닉네임");
+            temp.put("content", nickname);
+            list.add(temp);
+
+            temp = new HashMap<>();
+            temp.put("title", "이메일");
+            temp.put("content", email);
+            list.add(temp);
+
+            temp = new HashMap<>();
+            temp.put("title", "연락수단");
+            temp.put("content", contact);
+            list.add(temp);
+
+            temp = new HashMap<>();
+            temp.put("title", "관심분야");
+            temp.put("content", interest);
+            list.add(temp);
+
+            temp = new HashMap<>();
+            temp.put("title", "나눔한 재능");
+            temp.put("content", "");
+            list.add(temp);
+
+            temp = new HashMap<>();
+            temp.put("title", "나눔 받은 재능");
+            temp.put("content", "");
+            list.add(temp);
+
+            temp = new HashMap<>();
+            temp.put("title", "소개");
+            temp.put("content", intro);
+            list.add(temp);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+        return list;
+
+    }
+
+    private void setAdditionUI(){
+//        Picasso.with(getApplicationContext())
+//                .load((String)item.get("img"))
+//                .transform(new CropCircleTransformation())
+//                .into(mHeaderLogo);
+        mSpannableString = new SpannableString((String)item.get("nickname"));
+    }
+
+    private class MyHandler extends Handler {
+
+        public void handleMessage(Message msg)
+        {
+            switch (msg.what)
+            {
+                case MSG_MESSAGE_UPDATE_TUTOR_ITEM:
+                    for(int i=0; i<list.size(); i++){
+                        HashMap<String, String> map = list.get(i);
+                        if("나눔한 재능".equals((String)map.get("title"))){
+                            map.put("content", tutorList.size() + "개");
+                            adapter.updateList(i, tutorList.size() + "개");
+                        }
+                    }
+                    break;
+                case MSG_MESSAGE_UPDATE_TUTEE_ITEM:
+                    for(int i=0; i<list.size(); i++){
+                        HashMap<String, String> map = list.get(i);
+                        if("나눔 받은 재능".equals((String)map.get("title"))){
+                            map.put("content", tuteeList.size() + "개");
+                            adapter.updateList(i, tuteeList.size() + "개");
+                        }
+                    }
+                    break;
+                case MSG_MESSAGE_PROGRESS_FINISH:
+                    setAdditionUI();
+                    for(int i=0; i<list.size(); i++){
+                        HashMap<String, String> map = list.get(i);
+                        switch (map.get("title")){
+                            case "닉네임":
+                                map.put("content", (String)item.get("nickname"));
+                                adapter.updateList(i, (String)item.get("nickname"));
+                                break;
+                            case "이메일":
+                                map.put("content", (String)item.get("email"));
+                                adapter.updateList(i, (String)item.get("email"));
+                                break;
+                            case "연락수단":
+                                map.put("content", (String)item.get("contact"));
+                                adapter.updateList(i, (String)item.get("contact"));
+                                break;
+                            case "관심분야":
+                                String interest = "";
+                                ArrayList<String> inter = (ArrayList<String>)item.get("interest");
+                                if(inter != null){
+                                    for(int j=0; j<inter.size(); j++){
+                                        interest += inter.get(j);
+                                        if(j+1 < inter.size()){
+                                            interest += ",";
+                                        }
+                                    }
+                                }
+                                map.put("content", interest);
+                                adapter.updateList(i, interest);
+                                break;
+                            case "소개":
+                                map.put("content", (String)item.get("intro"));
+                                adapter.updateList(i, (String)item.get("intro"));
+                                break;
+                        }
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+    private void getUserInfo(){
         HashMap<String, String> map = new HashMap<>();
+        map.put("service", "getUserInfo");
         map.put("id", userId);
 
-        GetUserInfo gui = new GetUserInfo(map);
-        gui.start();
-        try{
-            gui.join();
-        }catch (Exception e){
-
-        }
-        data = gui.getReturnList().get(0);
-        gui.interrupt();
-
-        map = new HashMap<>();
-        map.put("userid", userId);
-
-        GetUserTutorInfo gti = new GetUserTutorInfo(map);
-        gti.start();
-        try{
-            gti.join();
-        }catch (Exception e){
-
-        }
-        tutorList = gti.getResult();
-        System.out.println(tutorList);
-
-        for(HashMap<String, Object> h : tutorList){
-            int inter = (int)h.get("interest");
-            interestCount += inter;
-        }
-
-        map = new HashMap<>();
-        map.put("userId", userId);
-        GetUserTuteeInfo guti = new GetUserTuteeInfo(map);
-        try{
-            guti.join();
-        }catch (Exception e){
-
-        }
-        tuteeCount = guti.getResult();
-        System.out.println("tuteeCount : " + tuteeCount);
-
-    }
-
-    private void init(){
-
-        root = (FrameLayout)findViewById(R.id.activity_profile);
-        tv_nickname = (TextView)findViewById(R.id.nickname);
-        img_profile = (ImageView)findViewById(R.id.rl_profile_img);
-        tv_intro = (TextView)findViewById(R.id.intro);
-        tv_tutorCount = (TextView)findViewById(R.id.tutor_count);
-        tv_tuteeCount = (TextView)findViewById(R.id.tutee_count);
-        tv_rank = (TextView)findViewById(R.id.rank);
-        tv_interest = (TextView)findViewById(R.id.interest);
-        heartBtn = (ShineButton)findViewById(R.id.heartBtn);
-
-        root.setOnClickListener(new View.OnClickListener() {
+        new ParsePHP(Information.MAIN_SERVER_ADDRESS, map){
             @Override
-            public void onClick(View view) {
-                onBackPressed();
+            protected void afterThreadFinish(String data) {
+                item.clear();
+                item = AdditionalFunc.getUserInfo(data);
+                handler.sendMessage(handler.obtainMessage(MSG_MESSAGE_PROGRESS_FINISH));
+
             }
-        });
+        }.start();
+    }
 
-        tv_nickname.setText(data.get("nickname"));
-        Picasso.with(getApplicationContext())
-                .load(data.get("img"))
-                .transform(new CropCircleTransformation())
-                .into(img_profile);
-        tv_intro.setText(data.get("intro"));
-        heartBtn.setChecked(true);
-        heartBtn.setEnabled(false);
-        tv_tutorCount.setText(tutorList.size() + "개");
-        tv_interest.setText(interestCount + "개");
+    private void getUserTutorList(){
 
-        if(interestCount <20){
-            tv_rank.setText("1");
-            tv_rank.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.rank01));
-        }else if(interestCount <40){
-            tv_rank.setText("2");
-            tv_rank.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.rank02));
-        }else if(interestCount <60){
-            tv_rank.setText("3");
-            tv_rank.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.rank03));
-        }else if(interestCount <80){
-            tv_rank.setText("4");
-            tv_rank.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.rank04));
-        }else if(interestCount <100){
-            tv_rank.setText("5");
-            tv_rank.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.rank05));
-        }else{
-            tv_rank.setText("6");
-            tv_rank.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.rank06));
-        }
+        HashMap<String, String> map = new HashMap<String, String>();
+        map.put("id", userId);
+        map.put("service", "getUserTutorList");
+
+        new ParsePHP(Information.MAIN_SERVER_ADDRESS, map){
+            @Override
+            protected void afterThreadFinish(String data) {
+                tutorList.clear();
+                tutorList = AdditionalFunc.getTutorList(data);
+                handler.sendMessage(handler.obtainMessage(MSG_MESSAGE_UPDATE_TUTOR_ITEM));
+            }
+        }.start();
 
     }
 
-    private class GetUserInfo extends Thread{
+    private void getUserTuteeList(){
 
-        private boolean result;
-        private HashMap<String, String> map;
-        private ArrayList<HashMap<String, String>> returnList;
+        HashMap<String, String> map = new HashMap<String, String>();
+        map.put("id", userId);
+        map.put("service", "getUserTuteeList");
 
-        public GetUserInfo(HashMap<String, String> map){
-            this.map = map;
-            result = false;
-        }
-
-        public void run(){
-
-            String addr = Information.MAIN_SERVER_ADDRESS + "getUser.php";
-            String response = new String();
-
-            try {
-                URL url = new URL(addr);
-                HttpURLConnection conn = (HttpURLConnection) url.openConnection(); // 해당 URL에 연결
-
-                conn.setConnectTimeout(10000); // 타임아웃: 10초
-                conn.setUseCaches(false); // 캐시 사용 안 함
-                conn.setRequestMethod("POST"); // POST로 연결
-                conn.setDoInput(true);
-                conn.setDoOutput(true);
-
-                if (map != null) { // 웹 서버로 보낼 매개변수가 있는 경우우
-                    OutputStream os = conn.getOutputStream(); // 서버로 보내기 위한 출력 스트림
-                    BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os, "UTF-8")); // UTF-8로 전송
-                    bw.write(getPostString(map)); // 매개변수 전송
-                    bw.flush();
-                    bw.close();
-                    os.close();
-                }
-
-                if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) { // 연결에 성공한 경우
-                    String line;
-                    BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream())); // 서버의 응답을 읽기 위한 입력 스트림
-
-                    while ((line = br.readLine()) != null) // 서버의 응답을 읽어옴
-                        response += line;
-                }
-
-                conn.disconnect();
-            } catch (MalformedURLException me) {
-                me.printStackTrace();
-            } catch (Exception e) {
-                e.printStackTrace();
+        new ParsePHP(Information.MAIN_SERVER_ADDRESS, map){
+            @Override
+            protected void afterThreadFinish(String data) {
+                tuteeList.clear();
+                tuteeList = AdditionalFunc.getTuteeList(data);
+                handler.sendMessage(handler.obtainMessage(MSG_MESSAGE_UPDATE_TUTEE_ITEM));
             }
-
-            String str = response.toString();
-            returnList = new ArrayList<>();
-            try {
-                // PHP에서 받아온 JSON 데이터를 JSON오브젝트로 변환
-                JSONObject jObject = new JSONObject(str);
-                // results라는 key는 JSON배열로 되어있다.
-                JSONArray results = jObject.getJSONArray("result");
-                String countTemp = (String)jObject.get("num_result");
-                int count = Integer.parseInt(countTemp);
-
-//                HashMap<String, String> hashTemp = new HashMap<>();
-                for ( int i = 0; i < count; ++i ) {
-                    JSONObject temp = results.getJSONObject(i);
-
-                    HashMap<String, String> hashTemp = new HashMap<>();
-                    hashTemp.put("userId", (String)temp.get("id"));
-                    hashTemp.put("intro", (String)temp.get("intro"));
-                    hashTemp.put("img", (String)temp.get("img"));
-                    hashTemp.put("nickname", (String)temp.get("nickname"));
-
-                    returnList.add(hashTemp);
-
-                }
-
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-
-        }
-
-        private String getPostString(HashMap<String, String> map) {
-            StringBuilder result = new StringBuilder();
-            boolean first = true; // 첫 번째 매개변수 여부
-
-            for (Map.Entry<String, String> entry : map.entrySet()) {
-                if (first)
-                    first = false;
-                else // 첫 번째 매개변수가 아닌 경우엔 앞에 &를 붙임
-                    result.append("&");
-
-                try { // UTF-8로 주소에 키와 값을 붙임
-                    result.append(URLEncoder.encode(entry.getKey(), "UTF-8"));
-                    result.append("=");
-                    result.append(URLEncoder.encode(entry.getValue(), "UTF-8"));
-                } catch (UnsupportedEncodingException ue) {
-                    ue.printStackTrace();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-
-            return result.toString();
-        }
-
-        public boolean getResult(){
-            return result;
-        }
-
-        public ArrayList<HashMap<String, String>> getReturnList(){
-            return returnList;
-        }
+        }.start();
 
     }
 
-    private class GetUserTutorInfo extends Thread{
-
-        private ArrayList<HashMap<String, Object>> result = new ArrayList<>();
-        private HashMap<String, String> map;
-
-        public GetUserTutorInfo(HashMap<String, String> map){
-            this.map = map;
-        }
-
-        public void run(){
-
-            String addr = Information.MAIN_SERVER_ADDRESS + "getUserTutorList.php";
-            String response = new String();
-
-            try {
-                URL url = new URL(addr);
-                HttpURLConnection conn = (HttpURLConnection) url.openConnection(); // 해당 URL에 연결
-
-                conn.setConnectTimeout(10000); // 타임아웃: 10초
-                conn.setUseCaches(false); // 캐시 사용 안 함
-                conn.setRequestMethod("POST"); // POST로 연결
-                conn.setDoInput(true);
-                conn.setDoOutput(true);
-
-                if (map != null) { // 웹 서버로 보낼 매개변수가 있는 경우우
-                    OutputStream os = conn.getOutputStream(); // 서버로 보내기 위한 출력 스트림
-                    BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os, "UTF-8")); // UTF-8로 전송
-                    bw.write(getPostString(map)); // 매개변수 전송
-                    bw.flush();
-                    bw.close();
-                    os.close();
-                }
-
-                if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) { // 연결에 성공한 경우
-                    String line;
-                    BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream())); // 서버의 응답을 읽기 위한 입력 스트림
-
-                    while ((line = br.readLine()) != null) // 서버의 응답을 읽어옴
-                        response += line;
-                }
-
-                conn.disconnect();
-            } catch (MalformedURLException me) {
-                me.printStackTrace();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            String str = response.toString();
-            try {
-                // PHP에서 받아온 JSON 데이터를 JSON오브젝트로 변환
-                JSONObject jObject = new JSONObject(str);
-                // results라는 key는 JSON배열로 되어있다.
-                JSONArray results = jObject.getJSONArray("result");
-                String countTemp = (String)jObject.get("num_result");
-                int count = Integer.parseInt(countTemp);
-
-                for ( int i = 0; i < count; ++i ) {
-                    JSONObject temp = results.getJSONObject(i);
-
-                    HashMap<String, Object> hashTemp = new HashMap<>();
-                    hashTemp.put("id", (String)temp.get("id"));
-                    hashTemp.put("userid", (String)temp.get("userid"));
-                    hashTemp.put("img", (String)temp.get("img"));
-                    hashTemp.put("nickname", (String)temp.get("nickname"));
-                    hashTemp.put("category", (String)temp.get("category"));
-                    hashTemp.put("cost", Integer.parseInt((String)temp.get("cost")));
-                    hashTemp.put("count", Integer.parseInt((String)temp.get("count")));
-                    hashTemp.put("limit", Integer.parseInt((String)temp.get("limit")));
-                    hashTemp.put("interest", Integer.parseInt((String)temp.get("interest")));
-                    hashTemp.put("time", (String)temp.get("time"));
-                    hashTemp.put("contents", (String)temp.get("contents"));
-                    hashTemp.put("isFinish", (String)temp.get("isFinish"));
-
-                    String participant = (String)temp.get("participant");
-
-                    ArrayList<String> par = new ArrayList<>();
-
-                    if(!participant.equals("")){
-                        String[] p = participant.split(",");
-
-                        for(String s : p){
-                            par.add(s);
-                        }
-
-                    }
-                    hashTemp.put("participant", par);
-
-                    result.add(hashTemp);
-
-                }
-
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-
-        }
-
-        private String getPostString(HashMap<String, String> map) {
-            StringBuilder result = new StringBuilder();
-            boolean first = true; // 첫 번째 매개변수 여부
-
-            for (Map.Entry<String, String> entry : map.entrySet()) {
-                if (first)
-                    first = false;
-                else // 첫 번째 매개변수가 아닌 경우엔 앞에 &를 붙임
-                    result.append("&");
-
-                try { // UTF-8로 주소에 키와 값을 붙임
-                    result.append(URLEncoder.encode(entry.getKey(), "UTF-8"));
-                    result.append("=");
-                    result.append(URLEncoder.encode(entry.getValue(), "UTF-8"));
-                } catch (UnsupportedEncodingException ue) {
-                    ue.printStackTrace();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-
-            return result.toString();
-        }
-
-
-        public ArrayList<HashMap<String, Object>> getResult(){
-            return result;
-        }
+    public void showListDialog(String title, String[] list) {
+        NormalListDialog dialog = new NormalListDialog(this, list);
+        dialog.title(title)
+                .titleTextSize_SP(14.5f)
+                .show();
 
     }
-
-    private class GetUserTuteeInfo extends Thread{
-
-        private int result;
-        private HashMap<String, String> map;
-
-        public GetUserTuteeInfo(HashMap<String, String> map){
-            this.map = map;
-        }
-
-        public void run(){
-
-            String addr = Information.MAIN_SERVER_ADDRESS + "searchTutee.php";
-            String response = new String();
-
-            try {
-                URL url = new URL(addr);
-                HttpURLConnection conn = (HttpURLConnection) url.openConnection(); // 해당 URL에 연결
-
-                conn.setConnectTimeout(10000); // 타임아웃: 10초
-                conn.setUseCaches(false); // 캐시 사용 안 함
-                conn.setRequestMethod("POST"); // POST로 연결
-                conn.setDoInput(true);
-                conn.setDoOutput(true);
-
-                if (map != null) { // 웹 서버로 보낼 매개변수가 있는 경우우
-                    OutputStream os = conn.getOutputStream(); // 서버로 보내기 위한 출력 스트림
-                    BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os, "UTF-8")); // UTF-8로 전송
-                    bw.write(getPostString(map)); // 매개변수 전송
-                    bw.flush();
-                    bw.close();
-                    os.close();
-                }
-
-                if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) { // 연결에 성공한 경우
-                    String line;
-                    BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream())); // 서버의 응답을 읽기 위한 입력 스트림
-
-                    while ((line = br.readLine()) != null) // 서버의 응답을 읽어옴
-                        response += line;
-                }
-
-                System.out.println("respone : " + response);
-                conn.disconnect();
-            } catch (MalformedURLException me) {
-                me.printStackTrace();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            String str = response.toString();
-
-            try{
-                result = Integer.parseInt(str);
-            }catch (Exception e){
-
-            }
-
-
-
-        }
-
-        private String getPostString(HashMap<String, String> map) {
-            StringBuilder result = new StringBuilder();
-            boolean first = true; // 첫 번째 매개변수 여부
-
-            for (Map.Entry<String, String> entry : map.entrySet()) {
-                if (first)
-                    first = false;
-                else // 첫 번째 매개변수가 아닌 경우엔 앞에 &를 붙임
-                    result.append("&");
-
-                try { // UTF-8로 주소에 키와 값을 붙임
-                    result.append(URLEncoder.encode(entry.getKey(), "UTF-8"));
-                    result.append("=");
-                    result.append(URLEncoder.encode(entry.getValue(), "UTF-8"));
-                } catch (UnsupportedEncodingException ue) {
-                    ue.printStackTrace();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-
-            return result.toString();
-        }
-
-
-        public int getResult(){
-            return result;
-        }
-
-    }
-
 
     public void showSnackbar(String msg){
         Snackbar snackbar = Snackbar.make(getWindow().getDecorView().getRootView(), msg, Snackbar.LENGTH_SHORT);
         View view = snackbar.getView();
         view.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.snackbar_color));
         snackbar.show();
+    }
+
+    public int getActionBarHeight() {
+        if (mActionBarHeight != 0) {
+            return mActionBarHeight;
+        }
+        getTheme().resolveAttribute(android.R.attr.actionBarSize, mTypedValue, true);
+        mActionBarHeight = TypedValue.complexToDimensionPixelSize(mTypedValue.data, getResources().getDisplayMetrics());
+        return mActionBarHeight;
+    }
+
+    private void setupListView() {
+
+        mLinearLayoutManager = new LinearLayoutManager(getApplicationContext());
+        mLinearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
+        rv = (RecyclerView) findViewById(R.id.rv);
+        rv.setHasFixedSize(true);
+        rv.setLayoutManager(mLinearLayoutManager);
+
+        mPlaceHolderView = getLayoutInflater().inflate(R.layout.view_header_placeholder, rv, false);
+        rv.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+
+                int scrollY = rv.computeVerticalScrollOffset();
+                mHeader.setTranslationY(Math.max(-scrollY, mMinHeaderTranslation));
+                float ratio = clamp(mHeader.getTranslationY() / mMinHeaderTranslation, 0.0f, 1.0f);
+                interpolate(mHeaderLogo, getActionBarIconView(), mSmoothInterpolator.getInterpolation(ratio));
+                setTitleAlpha(clamp(5.0F * ratio - 4.0F, 0.0F, 1.0F));
+            }
+        });
+
+    }
+
+    public static float clamp(float value, float min, float max) {
+        return Math.max(min,Math.min(value, max));
+    }
+
+    private void interpolate(View view1, View view2, float interpolation) {
+        getOnScreenRect(mRect1, view1);
+        getOnScreenRect(mRect2, view2);
+
+        float scaleX = 1.0F + interpolation * (mRect2.width() / mRect1.width() - 1.0F);
+        float scaleY = 1.0F + interpolation * (mRect2.height() / mRect1.height() - 1.0F);
+        float translationX = 0.5F * (interpolation * (mRect2.left + mRect2.right - mRect1.left - mRect1.right));
+        float translationY = 0.5F * (interpolation * (mRect2.top + mRect2.bottom - mRect1.top - mRect1.bottom));
+
+        if(Float.isNaN(scaleX))
+            scaleX = 1.0f;
+        if(Float.isNaN(scaleY))
+            scaleY = 1.0f;
+
+        view1.setTranslationX(translationX);
+        view1.setTranslationY(translationY - mHeader.getTranslationY());
+        view1.setScaleX(scaleX);
+        view1.setScaleY(scaleY);
+    }
+
+    private RectF getOnScreenRect(RectF rect, View view) {
+        rect.set(view.getLeft(), view.getTop(), view.getRight(), view.getBottom());
+        return rect;
+    }
+
+    private void setupActionBar() {
+        ActionBar actionBar = getActionBar();
+        actionBar.setIcon(R.drawable.ic_transparent);
+        actionBar.setDisplayHomeAsUpEnabled(false);
+        //getActionBarTitleView().setAlpha(0f);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item){
+        switch (item.getItemId()){
+            case android.R.id.home:
+                onBackPressed();
+                break;
+        }
+        return true;
+    }
+
+    private ImageView getActionBarIconView() {
+        return (ImageView) findViewById(android.R.id.home);
+    }
+
+    private void setTitleAlpha(float alpha) {
+        mAlphaForegroundColorSpan.setAlpha(alpha);
+        mSpannableString.setSpan(mAlphaForegroundColorSpan, 0, mSpannableString.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        getActionBar().setTitle(mSpannableString);
+    }
+
+    private void setStatusColor(){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            Window window = getWindow();
+            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+            window.setStatusBarColor(ContextCompat.getColor(getApplicationContext(), R.color.colorPrimary));
+        }
     }
 
 }

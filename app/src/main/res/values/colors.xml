@@ -49,7 +49,14 @@
     <color name="rank05">#fcbdbd</color>
     <color name="rank06">#fde1e1</color>
 
+    <!-- Profile Activity -->
+    <color name="profile_background">#f4f4f4</color>
+    <color name="profile_title">#707070</color>
+    <color name="profile_content">#262626</color>
+    <!--==================-->
 
     <color name="facebook_blue">#3b5998</color>
+
+    <color name="cyan_500">#00bcd4</color>
 
 </resources>

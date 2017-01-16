@@ -7,6 +7,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
 import android.net.Uri;
+import android.os.Handler;
 import android.os.Message;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
@@ -17,6 +18,8 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -31,7 +34,9 @@ import com.facebook.Profile;
 import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
+import com.flaviofaria.kenburnsview.KenBurnsView;
 import com.nhn.android.naverlogin.ui.view.OAuthLoginButton;
+import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -54,6 +59,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import jp.wasabeef.picasso.transformations.CropCircleTransformation;
+import tk.twpooi.tuetue.util.AdditionalFunc;
 import tk.twpooi.tuetue.util.FacebookLogin;
 import tk.twpooi.tuetue.util.FacebookLoginSupport;
 import tk.twpooi.tuetue.util.NaverLogin;
@@ -62,14 +69,17 @@ import tk.twpooi.tuetue.util.ParsePHP;
 
 public class StartActivity extends AppCompatActivity implements FacebookLoginSupport, NaverLoginSupport{
 
+    private MyHandler handler = new MyHandler();
+    private final int MSG_MESSAGE_SHOW_LOGIN = 500;
+    private final int MSG_MESSAGE_SUCCESS = 501;
+    private final int MSG_MESSAGE_FAIL_FB = 502;
+    private final int MSG_MESSAGE_FAIL_NAVER = 503;
 
     private SharedPreferences setting;
     private SharedPreferences.Editor editor;
 
     // Facebook
     private FacebookLogin facebookLogin;
-    public static String USER_ID = "";
-    public static String[] CATEGORY_LIST;
     private ImageView fbLogin;
 
     // Naver
@@ -77,7 +87,15 @@ public class StartActivity extends AppCompatActivity implements FacebookLoginSup
     private OAuthLoginButton mOAuthLoginButton;
 
     // UI
-    private ProgressDialog progressDialog;
+    private KenBurnsView kenBurnsView;
+    private RelativeLayout rl_background;
+//    private LinearLayout li_login;
+//    private ProgressDialog progressDialog;
+
+    // Data
+    public static String USER_ID = "";
+    public static String[] CATEGORY_LIST;
+    public static HashMap<String, Object> USER_DATA = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -98,7 +116,16 @@ public class StartActivity extends AppCompatActivity implements FacebookLoginSup
 
     private void init(){
 
-        progressDialog = new ProgressDialog(this);
+//        progressDialog = new ProgressDialog(this);
+
+        kenBurnsView = (KenBurnsView)findViewById(R.id.image);
+        Picasso.with(getApplicationContext())
+                .load(Information.LODING_IMAGE_URL)
+                .into(kenBurnsView);
+        rl_background = (RelativeLayout) findViewById(R.id.rl_background);
+        rl_background.setVisibility(View.INVISIBLE);
+//        li_login = (LinearLayout)findViewById(R.id.li_login);
+//        li_login.setVisibility(View.GONE);
 
         fbLogin = (ImageView)findViewById(R.id.fb_login);
 
@@ -108,11 +135,19 @@ public class StartActivity extends AppCompatActivity implements FacebookLoginSup
                 facebookLogin.login();
             }
         });
+
         Button fbLoout = (Button)findViewById(R.id.fb_logout);
         fbLoout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 facebookLogin.logout();
+            }
+        });
+        Button nvLogout = (Button)findViewById(R.id.naver_logout);
+        nvLogout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                naverLogin.logout();
             }
         });
 
@@ -129,9 +164,12 @@ public class StartActivity extends AppCompatActivity implements FacebookLoginSup
 
     public void setCategoryList(){
 
-        progressDialog.show();
+//        progressDialog.show();
 
-        new ParsePHP("http://ldayou.asuscomm.com:36080/android/tuetue/getCategory.php", new HashMap<String, String>()) {
+        HashMap<String, String> map = new HashMap<>();
+        map.put("service", "getCategoryList");
+
+        new ParsePHP(Information.MAIN_SERVER_ADDRESS, map) {
             @Override
             protected void afterThreadFinish(String data) {
                 try {
@@ -148,7 +186,6 @@ public class StartActivity extends AppCompatActivity implements FacebookLoginSup
                         JSONObject temp = results.getJSONObject(i);
                         CATEGORY_LIST[i] = (String)temp.get("category");
                     }
-
 
                     checkAlreadyLogin();
 
@@ -171,7 +208,21 @@ public class StartActivity extends AppCompatActivity implements FacebookLoginSup
                 if(facebookLogin.isAlreadyLogin()){
 
                     USER_ID = facebookLogin.getID();
-                    redirectMainActivity();
+//                    redirectMainActivity();
+                    HashMap<String, String> map = new HashMap<>();
+                    map.put("service", "getUserInfo");
+                    map.put("id", USER_ID);
+                    new ParsePHP(Information.MAIN_SERVER_ADDRESS, map){
+                        @Override
+                        protected void afterThreadFinish(String data) {
+                            USER_DATA = AdditionalFunc.getUserInfo(data);
+                            if(USER_DATA.isEmpty()){
+                                handler.sendMessage(handler.obtainMessage(MSG_MESSAGE_FAIL_FB));
+                            }else{
+                                handler.sendMessage(handler.obtainMessage(MSG_MESSAGE_SUCCESS));
+                            }
+                        }
+                    }.start();
 
                     return;
 
@@ -183,7 +234,21 @@ public class StartActivity extends AppCompatActivity implements FacebookLoginSup
                 if(!data.isEmpty()){
 
                     USER_ID = data.get("id");
-                    redirectMainActivity();
+//                    redirectMainActivity();
+                    HashMap<String, String> map = new HashMap<>();
+                    map.put("service", "getUserInfo");
+                    map.put("id", USER_ID);
+                    new ParsePHP(Information.MAIN_SERVER_ADDRESS, map){
+                        @Override
+                        protected void afterThreadFinish(String data) {
+                            USER_DATA = AdditionalFunc.getUserInfo(data);
+                            if(USER_DATA.isEmpty()){
+                                handler.sendMessage(handler.obtainMessage(MSG_MESSAGE_FAIL_NAVER));
+                            }else{
+                                handler.sendMessage(handler.obtainMessage(MSG_MESSAGE_SUCCESS));
+                            }
+                        }
+                    }.start();
 
                     return;
 
@@ -193,20 +258,46 @@ public class StartActivity extends AppCompatActivity implements FacebookLoginSup
 
         }
 
-        progressDialog.dismiss();
+        handler.sendMessage(handler.obtainMessage(MSG_MESSAGE_SHOW_LOGIN));
 
     }
 
     public void redirectMainActivity() {
-//        Intent intent = new Intent(this, MainActivity.class);
-//        startActivity(intent);
-//        finish();
-    }
-
-    public void redirectWtInfoActivity() {
-        Intent intent = new Intent(this, WtInfoActivity.class);
+//        handler.sendMessage(handler.obtainMessage(MSG_MESSAGE_SHOW_LOGIN));
+        Intent intent = new Intent(this, MainActivity.class);
         startActivity(intent);
         finish();
+    }
+
+    public void redirectWtInfoActivity(Intent intent) {
+//        handler.sendMessage(handler.obtainMessage(MSG_MESSAGE_SHOW_LOGIN));
+        startActivity(intent);
+        finish();
+    }
+
+    private class MyHandler extends Handler {
+
+        public void handleMessage(Message msg)
+        {
+            switch (msg.what)
+            {
+                case MSG_MESSAGE_SHOW_LOGIN:
+//                    li_login.setVisibility(View.VISIBLE);
+                    rl_background.setVisibility(View.VISIBLE);
+                    break;
+                case MSG_MESSAGE_SUCCESS:
+                    redirectMainActivity();
+                    break;
+                case MSG_MESSAGE_FAIL_FB:
+                    facebookLogin.login();
+                    break;
+                case MSG_MESSAGE_FAIL_NAVER:
+                    naverLogin.login();
+                    break;
+                default:
+                    break;
+            }
+        }
     }
 
     @Override
@@ -217,14 +308,16 @@ public class StartActivity extends AppCompatActivity implements FacebookLoginSup
 
     @Override
     public void afterFBLoginSuccess(Profile profile, HashMap<String, String> data) {
-//        String name = profile.getName();
-//        String img = profile.getProfilePictureUri(500, 500).toString();
-//        String email = data.get("email");
-//        showSnackbar(name + " " + email + " " + img);
         showSnackbar("Facebook 로그인 성공");
         editor.putString("login", "facebook");
         editor.commit();
-        redirectWtInfoActivity();
+
+        Intent intent = new Intent(this, WtInfoActivity.class);
+        intent.putExtra("id", profile.getId());
+        intent.putExtra("img", profile.getProfilePictureUri(500, 500).toString());
+        intent.putExtra("email", data.get("email"));
+        intent.putExtra("name", profile.getName());
+        redirectWtInfoActivity(intent);
     }
 
     @Override
@@ -247,7 +340,13 @@ public class StartActivity extends AppCompatActivity implements FacebookLoginSup
         showSnackbar("네이버 로그인 성공");
         editor.putString("login", "naver");
         editor.commit();
-        redirectWtInfoActivity();
+
+        Intent intent = new Intent(this, WtInfoActivity.class);
+        intent.putExtra("id", data.get("id"));
+        intent.putExtra("img", data.get("img"));
+        intent.putExtra("email", data.get("email"));
+        intent.putExtra("name", data.get("name"));
+        redirectWtInfoActivity(intent);
     }
 
     @Override
@@ -258,9 +357,9 @@ public class StartActivity extends AppCompatActivity implements FacebookLoginSup
     @Override
     public void onDestroy(){
         super.onDestroy();
-        if(progressDialog != null){
-            progressDialog.dismiss();
-        }
+//        if(progressDialog != null){
+//            progressDialog.dismiss();
+//        }
     }
 
 

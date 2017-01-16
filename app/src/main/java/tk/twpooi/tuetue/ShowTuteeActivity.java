@@ -1,7 +1,10 @@
 package tk.twpooi.tuetue;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -36,17 +39,25 @@ import java.util.HashMap;
 import java.util.Map;
 
 import jp.wasabeef.picasso.transformations.CropCircleTransformation;
+import tk.twpooi.tuetue.util.AdditionalFunc;
+import tk.twpooi.tuetue.util.ParsePHP;
 
 
 public class ShowTuteeActivity extends AppCompatActivity {
 
+    private MyHandler handler = new MyHandler();
+    private final int MSG_MESSAGE_MAKE_LIST = 500;
+    private final int MSG_MESSAGE_PROGRESS_HIDE = 502;
+    private final int MSG_MESSAGE_SET_BUTTON_TRUE = 503;
+    private final int MSG_MESSAGE_SET_BUTTON_FALSE = 504;
+    private final int MSG_MESSAGE_REFRESH_PROGRESS = 1001;
 
     // Recycle View
     private RecyclerView rv;
     private LinearLayoutManager mLinearLayoutManager;
     private TutorCustomAdapter adapter;
 
-    private HashMap<String, Object> data;
+    private HashMap<String, Object> item;
 
     private RelativeLayout rl_progress;
     private RelativeLayout rl_tutor;
@@ -59,6 +70,7 @@ public class ShowTuteeActivity extends AppCompatActivity {
 
     public static String id;
     private String userId;
+    private String img;
     public static String tutorId;
     private int count;
     private int cost;
@@ -68,38 +80,43 @@ public class ShowTuteeActivity extends AppCompatActivity {
 
     private TextRoundCornerProgressBar progressBar;
 
+    private ProgressDialog progressDialog;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_show_tutor);
 
+        item = new HashMap<>();
+        progressDialog = new ProgressDialog(this);
+
         id = getIntent().getStringExtra("id");
         HashMap<String, String> map = new HashMap<>();
         map.put("id", id);
+        map.put("service", "getTuteeList");
 
-        GetTuteeInfoById guibi = new GetTuteeInfoById(map);
-        guibi.start();
-        try{
-            guibi.join();
-        }catch (Exception e){
-
-        }
-        data = guibi.getResult().get(0);
-
-        init();
+        progressDialog.show();
+        new ParsePHP(Information.MAIN_SERVER_ADDRESS, map){
+            @Override
+            protected void afterThreadFinish(String data) {
+                item.clear();
+                item = AdditionalFunc.getTuteeList(data).get(0);
+                handler.sendMessage(handler.obtainMessage(MSG_MESSAGE_MAKE_LIST));
+            }
+        }.start();
 
     }
 
     private void init(){
 
-        userId = (String)data.get("userid");
-        String nickname = (String)data.get("nickname");
-        String img = (String)data.get("img");
+        userId = (String)item.get("userid");
+        String nickname = (String)item.get("nickname");
+        img = (String)item.get("img");
 //        cost = (int)data.get("cost");
 //        count = (int)data.get("count");
-        participant = (ArrayList<String>)data.get("participant");
-        String isFinish = (String)data.get("isFinish");
-        tutorId = (String)data.get("tutorId");
+        participant = (ArrayList<String>)item.get("participant");
+        String isFinish = (String)item.get("isFinish");
+        tutorId = (String)item.get("tutorId");
 
         rl_tutor = (RelativeLayout)findViewById(R.id.rl_tutor);
         rl_progress = (RelativeLayout)findViewById(R.id.rl_progress);
@@ -123,6 +140,7 @@ public class ShowTuteeActivity extends AppCompatActivity {
                 Intent intent = new Intent(getApplicationContext(), ProfileActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 intent.putExtra("userId", tutorId);
+                intent.putExtra("img", img);
                 startActivity(intent);
             }
         });
@@ -163,14 +181,42 @@ public class ShowTuteeActivity extends AppCompatActivity {
                 mLinearLayoutManager.getOrientation());
         rv.addItemDecoration(dividerItemDecoration);
 
-//        setProgressBar();
-
-//        float percent = ((float)participant.size()/count)*100;
-//        progressBar.setProgress(percent);
-//        progressBar.setProgressText(participant.size() + "/" + count);
-
         makeList();
 
+    }
+
+    private class MyHandler extends Handler {
+
+        public void handleMessage(Message msg)
+        {
+            switch (msg.what)
+            {
+                case MSG_MESSAGE_MAKE_LIST:
+                    progressDialog.hide();
+                    init();
+                    break;
+                case MSG_MESSAGE_PROGRESS_HIDE:
+                    progressDialog.hide();
+                    break;
+                case MSG_MESSAGE_SET_BUTTON_FALSE:
+                    progressDialog.hide();
+                    setButton(false);
+                    makeList();
+                    break;
+                case MSG_MESSAGE_SET_BUTTON_TRUE:
+                    progressDialog.hide();
+                    setButton(true);
+                    makeList();
+                    break;
+                case MSG_MESSAGE_REFRESH_PROGRESS:
+                    float percent = ((float)participant.size()/count)*100;
+                    progressBar.setProgress(percent);
+                    progressBar.setProgressText(participant.size() + "/" + count);
+                    break;
+                default:
+                    break;
+            }
+        }
     }
 
     private void setButton(boolean check){
@@ -201,35 +247,15 @@ public class ShowTuteeActivity extends AppCompatActivity {
                 rl_join.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        participant.add(StartActivity.USER_ID);
-                        String p = "";
-                        for(int i=0; i<participant.size(); i++){
-                            p += participant.get(i);
-                            if(i+1 < participant.size()){
-                                p += ",";
-                            }
-                        }
 
                         HashMap<String, String> map = new HashMap<String, String>();
+                        map.put("service", "updateParticipant");
                         map.put("id", id);
-                        map.put("participant", p);
+                        map.put("participant", StartActivity.USER_ID);
+                        map.put("table", "tutee");
+                        map.put("mode", "1");
 
-                        UpdateParticipant up = new UpdateParticipant(map);
-                        up.start();
-                        try{
-                            up.join();
-                        }catch (Exception e){
-
-                        }
-
-//                    float percent = ((float)participant.size()/count)*100;
-//                    progressBar.setProgress(percent);
-//                    progressBar.setProgressText(participant.size() + "/" + count);
-
-                        makeList();
-                        setButton(false);
-
-
+                        updateParticipant(map, false);
 
                     }
                 });
@@ -240,39 +266,55 @@ public class ShowTuteeActivity extends AppCompatActivity {
                 rl_join.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        participant.remove(StartActivity.USER_ID);
-                        String p = "";
-                        for(int i=0; i<participant.size(); i++){
-                            p += participant.get(i);
-                            if(i+1 < participant.size()){
-                                p += ",";
-                            }
-                        }
 
                         HashMap<String, String> map = new HashMap<String, String>();
+                        map.put("service", "updateParticipant");
                         map.put("id", id);
-                        map.put("participant", p);
+                        map.put("participant", StartActivity.USER_ID);
+                        map.put("table", "tutee");
+                        map.put("mode", "0");
 
-                        UpdateParticipant up = new UpdateParticipant(map);
-                        up.start();
-                        try{
-                            up.join();
-                        }catch (Exception e){
-
-                        }
-
-//                    float percent = ((float)participant.size()/count)*100;
-//                    progressBar.setProgress(percent);
-//                    progressBar.setProgressText(participant.size() + "/" + count);
-
-                        makeList();
-                        setButton(true);
+                        updateParticipant(map, true);
 
                     }
                 });
             }
 
         }
+
+    }
+
+    private void updateParticipant(HashMap<String, String> map, final boolean check){
+
+        progressDialog.show();
+        new ParsePHP(Information.MAIN_SERVER_ADDRESS, map){
+
+            @Override
+            protected void afterThreadFinish(String data) {
+                System.out.println("print : " + data);
+
+
+                ArrayList<String> par = new ArrayList<>();
+                if(!data.equals("")){
+                    String[] p = data.split(",");
+                    for(String s : p){
+                        par.add(s);
+                    }
+                }
+                if (par.size() > 0 && par.get(0).equals("")) {
+                    par.remove(0);
+                }
+                participant = par;
+//
+                if(check){
+                    handler.sendMessage(handler.obtainMessage(MSG_MESSAGE_SET_BUTTON_TRUE));
+                }else{
+                    handler.sendMessage(handler.obtainMessage(MSG_MESSAGE_SET_BUTTON_FALSE));
+                }
+//                handler.sendMessage(handler.obtainMessage(MSG_MESSAGE_REFRESH_PROGRESS));
+
+            }
+        }.start();
 
     }
 
@@ -285,223 +327,14 @@ public class ShowTuteeActivity extends AppCompatActivity {
 
     }
 
-    private class GetTuteeInfoById extends Thread{
-
-        private ArrayList<HashMap<String, Object>> result = new ArrayList<>();
-        private HashMap<String, String> map;
-
-        public GetTuteeInfoById(HashMap<String, String> map){
-            this.map = map;
-        }
-
-        public void run(){
-
-            String addr = Information.MAIN_SERVER_ADDRESS + "getTuteeListById.php";
-            String response = new String();
-
-            try {
-                URL url = new URL(addr);
-                HttpURLConnection conn = (HttpURLConnection) url.openConnection(); // 해당 URL에 연결
-
-                conn.setConnectTimeout(10000); // 타임아웃: 10초
-                conn.setUseCaches(false); // 캐시 사용 안 함
-                conn.setRequestMethod("POST"); // POST로 연결
-                conn.setDoInput(true);
-                conn.setDoOutput(true);
-
-                if (map != null) { // 웹 서버로 보낼 매개변수가 있는 경우우
-                    OutputStream os = conn.getOutputStream(); // 서버로 보내기 위한 출력 스트림
-                    BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os, "UTF-8")); // UTF-8로 전송
-                    bw.write(getPostString(map)); // 매개변수 전송
-                    bw.flush();
-                    bw.close();
-                    os.close();
-                }
-
-                if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) { // 연결에 성공한 경우
-                    String line;
-                    BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream())); // 서버의 응답을 읽기 위한 입력 스트림
-
-                    while ((line = br.readLine()) != null) // 서버의 응답을 읽어옴
-                        response += line;
-                }
-
-                conn.disconnect();
-            } catch (MalformedURLException me) {
-                me.printStackTrace();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            String str = response.toString();
-            try {
-                // PHP에서 받아온 JSON 데이터를 JSON오브젝트로 변환
-                JSONObject jObject = new JSONObject(str);
-                // results라는 key는 JSON배열로 되어있다.
-                JSONArray results = jObject.getJSONArray("result");
-                String countTemp = (String)jObject.get("num_result");
-                int count = Integer.parseInt(countTemp);
-
-                for ( int i = 0; i < count; ++i ) {
-                    JSONObject temp = results.getJSONObject(i);
-
-                    HashMap<String, Object> hashTemp = new HashMap<>();
-                    hashTemp.put("id", (String)temp.get("id"));
-                    hashTemp.put("userid", (String)temp.get("userid"));
-                    hashTemp.put("img", (String)temp.get("img"));
-                    hashTemp.put("nickname", (String)temp.get("nickname"));
-                    hashTemp.put("category", (String)temp.get("category"));
-                    hashTemp.put("cost", Integer.parseInt((String)temp.get("cost")));
-                    hashTemp.put("time", (String)temp.get("time"));
-                    hashTemp.put("contents", (String)temp.get("contents"));
-                    hashTemp.put("isFinish", (String)temp.get("isFinish"));
-                    hashTemp.put("tutorId", (String)temp.get("tutorId"));
-
-                    String participant = (String)temp.get("participant");
-
-                    ArrayList<String> par = new ArrayList<>();
-
-                    if(!participant.equals("")){
-                        String[] p = participant.split(",");
-
-                        for(String s : p){
-                            par.add(s);
-                        }
-
-                    }
-                    hashTemp.put("participant", par);
-
-                    result.add(hashTemp);
-
-                }
-
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-
-        }
-
-        private String getPostString(HashMap<String, String> map) {
-            StringBuilder result = new StringBuilder();
-            boolean first = true; // 첫 번째 매개변수 여부
-
-            for (Map.Entry<String, String> entry : map.entrySet()) {
-                if (first)
-                    first = false;
-                else // 첫 번째 매개변수가 아닌 경우엔 앞에 &를 붙임
-                    result.append("&");
-
-                try { // UTF-8로 주소에 키와 값을 붙임
-                    result.append(URLEncoder.encode(entry.getKey(), "UTF-8"));
-                    result.append("=");
-                    result.append(URLEncoder.encode(entry.getValue(), "UTF-8"));
-                } catch (UnsupportedEncodingException ue) {
-                    ue.printStackTrace();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-
-            return result.toString();
-        }
-
-
-        public ArrayList<HashMap<String, Object>> getResult(){
-            return result;
-        }
-
-    }
-
-    class UpdateParticipant extends Thread {
-
-        private boolean result;
-        private HashMap<String, String> map;
-
-        public UpdateParticipant(HashMap<String, String> map){
-            this.map = map;
-            result = false;
-        }
-
-        public void run(){
-
-            String addr = Information.MAIN_SERVER_ADDRESS + "updateTuteeParticipant.php";
-            String response = new String();
-
-            try {
-                URL url = new URL(addr);
-                HttpURLConnection conn = (HttpURLConnection) url.openConnection(); // 해당 URL에 연결
-
-                conn.setConnectTimeout(10000); // 타임아웃: 10초
-                conn.setUseCaches(false); // 캐시 사용 안 함
-                conn.setRequestMethod("POST"); // POST로 연결
-                conn.setDoInput(true);
-                conn.setDoOutput(true);
-
-                if (map != null) { // 웹 서버로 보낼 매개변수가 있는 경우우
-                    OutputStream os = conn.getOutputStream(); // 서버로 보내기 위한 출력 스트림
-                    BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os, "UTF-8")); // UTF-8로 전송
-                    bw.write(getPostString(map)); // 매개변수 전송
-                    bw.flush();
-                    bw.close();
-                    os.close();
-                }
-
-                if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) { // 연결에 성공한 경우
-                    String line;
-                    BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream())); // 서버의 응답을 읽기 위한 입력 스트림
-
-                    while ((line = br.readLine()) != null) // 서버의 응답을 읽어옴
-                        response += line;
-                }
-
-
-                conn.disconnect();
-            } catch (MalformedURLException me) {
-                me.printStackTrace();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-        }
-
-        private String getPostString(HashMap<String, String> map) {
-            StringBuilder result = new StringBuilder();
-            boolean first = true; // 첫 번째 매개변수 여부
-
-            for (Map.Entry<String, String> entry : map.entrySet()) {
-                if (first)
-                    first = false;
-                else // 첫 번째 매개변수가 아닌 경우엔 앞에 &를 붙임
-                    result.append("&");
-
-                try { // UTF-8로 주소에 키와 값을 붙임
-                    result.append(URLEncoder.encode(entry.getKey(), "UTF-8"));
-                    result.append("=");
-                    result.append(URLEncoder.encode(entry.getValue(), "UTF-8"));
-                } catch (UnsupportedEncodingException ue) {
-                    ue.printStackTrace();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-
-            return result.toString();
-        }
-
-        public boolean getResult(){
-            return result;
-        }
-
-    }
-
     private ArrayList<HashMap<String, String>> makeData(){
 
         ArrayList<HashMap<String, String>> list = new ArrayList<>();
 
-        String contents = (String)data.get("contents");
-        String time = (String)data.get("time");
-        String category = (String)data.get("category");
-        int cost = (int)data.get("cost");
+        String contents = (String)item.get("contents");
+        String time = (String)item.get("time");
+        String category = (String)item.get("category");
+        int cost = (int)item.get("cost");
 //        int interest = (int)data.get("interest");
 //        int count = (int)data.get("count");
         String parti = Integer.toString(participant.size());
@@ -578,6 +411,14 @@ public class ShowTuteeActivity extends AppCompatActivity {
         if(isUpdate){
             rl_join.setVisibility(View.GONE);
             rl_tutor.setVisibility(View.VISIBLE);
+        }
+    }
+
+    @Override
+    public void onDestroy(){
+        super.onDestroy();
+        if(progressDialog != null){
+            progressDialog.dismiss();
         }
     }
 

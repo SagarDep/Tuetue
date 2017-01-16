@@ -86,7 +86,7 @@ public class TutorListCustomAdapter extends RecyclerView.Adapter<TutorListCustom
         final String userId = (String)noticeData.get("userid");
         String isFinish = (String)noticeData.get("isFinish");
 
-        String profileImg = (String)noticeData.get("img");
+        final String profileImg = (String)noticeData.get("img");
         Picasso.with(context)
                 .load(profileImg)
                 .transform(new CropCircleTransformation())
@@ -94,6 +94,7 @@ public class TutorListCustomAdapter extends RecyclerView.Adapter<TutorListCustom
 
         String nickname = (String)noticeData.get("nickname");
         holder.tv_nickname.setText(nickname);
+        holder.tv_email.setText((String)noticeData.get("email"));
 
         int interest = (int)noticeData.get("interest");
         holder.tv_interest.setText("관심 : " + interest + "명");
@@ -128,6 +129,7 @@ public class TutorListCustomAdapter extends RecyclerView.Adapter<TutorListCustom
                 Intent intent = new Intent(context, ProfileActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 intent.putExtra("userId", userId);
+                intent.putExtra("img", profileImg);
                 context.startActivity(intent);
             }
         });

@@ -1,18 +1,25 @@
 package tk.twpooi.tuetue;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
+import android.graphics.Paint;
+import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Message;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.DisplayMetrics;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -42,263 +49,343 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 import jp.wasabeef.picasso.transformations.CropCircleTransformation;
+import tk.twpooi.tuetue.util.AdditionalFunc;
+import tk.twpooi.tuetue.util.ParsePHP;
 
 public class WtInfoActivity extends AppCompatActivity {
 
-    // Facebook
-    private CallbackManager callbackManager;
-    private String facebook_id = "";
-    private String full_name = "";
-    private String profileImg;
+    private MyHandler handler = new MyHandler();
+    private final int MSG_MESSAGE_FINISH = 500;
 
     // UI
-    private RelativeLayout root;
-    private ImageView profileImageView;
+    private ImageView profileImage;
     private TextView profileName;
-    private MaterialEditText nickName;
-    private EditText email;
-    private MaterialEditText intro;
 
-    private TextView continueBtn;
+    private MaterialEditText editNickName;
+    private MaterialEditText editContact;
+    private MaterialEditText editIntro;
+    private MaterialEditText editEmail;
+    private Button nextBtn;
+
+    // UI - Interest Field
+    private LinearLayout interestField;
+    private TextView interestBtn;
 
 
+    // User Data
+    private String id;
+    private String img;
+    private String name;
+    private String email;
+    private ArrayList<String> interest;
+
+    private ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        FacebookSdk.sdkInitialize(getApplicationContext());
-        callbackManager = CallbackManager.Factory.create();
         setContentView(R.layout.activity_wtinfo);
+
+        initData();
 
         init();
 
     }
 
-    private void init(){
+    private void initData(){
 
-        Profile profile = Profile.getCurrentProfile();
+        Intent intent = getIntent();
 
-        facebook_id = profile.getId();
-        full_name = profile.getName();
-
-        root = (RelativeLayout)findViewById(R.id.activity_wtinfo);
-        profileImg = profile.getProfilePictureUri(250, 250).toString();
-        profileImageView = (ImageView)findViewById(R.id.profileImg);
-        Picasso.with(getApplicationContext())
-                .load(profileImg)
-                .transform(new CropCircleTransformation())
-                .into(profileImageView);
-
-        profileName = (TextView)findViewById(R.id.profileName);
-        profileName.setText(profile.getName());
-
-        nickName = (MaterialEditText)findViewById(R.id.nickname);
-        nickName.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                checkEditText();
-            }
-
-            @Override
-            public void afterTextChanged(Editable editable) {
-
-            }
-        });
-//        email = (EditText)findViewById(R.id.email);
-//        email.addTextChangedListener(new TextWatcher() {
-//            @Override
-//            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-//
-//            }
-//
-//            @Override
-//            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-//                checkEditText();
-//            }
-//
-//            @Override
-//            public void afterTextChanged(Editable editable) {
-//
-//            }
-//        });
-        intro = (MaterialEditText)findViewById(R.id.intro);
-        intro.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                checkEditText();
-            }
-
-            @Override
-            public void afterTextChanged(Editable editable) {
-
-            }
-        });
-
-        continueBtn = (TextView)findViewById(R.id.nextBtn);
-        continueBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                showSnackbar(nickName.getText() + ", " + intro.getText());
-                HashMap<String, String> map = new HashMap<String, String>();
-                map.put("id", facebook_id);
-                map.put("img", profileImg);
-                map.put("name", full_name);
-                map.put("nickname", nickName.getText().toString());
-                map.put("intro", intro.getText().toString());
-                System.out.println(map);
-
-
-                SaveUserInformation sui = new SaveUserInformation(map);
-                sui.start();
-                try{
-                    sui.join();
-                }catch (Exception e){
-
-                }
-
-                sui.interrupt();
-                redirectMainActivity();
-
-
-            }
-        });
-        continueBtn.setEnabled(false);
+        id = intent.getStringExtra("id");
+        img = intent.getStringExtra("img");
+        name = intent.getStringExtra("name");
+        email = intent.getStringExtra("email");
+        interest = new ArrayList<>();
 
     }
 
+    private void init(){
 
+        profileImage = (ImageView)findViewById(R.id.profileImg);
+        profileName = (TextView)findViewById(R.id.profileName);
+
+        editNickName = (MaterialEditText)findViewById(R.id.edit_nickname);
+        editContact = (MaterialEditText)findViewById(R.id.edit_contact);
+        editIntro = (MaterialEditText)findViewById(R.id.edit_intro);
+        editEmail = (MaterialEditText)findViewById(R.id.edit_email);
+
+        interestField = (LinearLayout)findViewById(R.id.interest_field);
+        interestBtn = (TextView)findViewById(R.id.interest_btn);
+        interestBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                redirectSelectActivity();
+            }
+        });
+        nextBtn = (Button)findViewById(R.id.nextBtn);
+        nextBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                saveUserInformation();
+            }
+        });
+
+        setNextButton(false);
+
+        TextWatcher textWatcher = new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                checkEditText();
+            }
+        };
+
+        editNickName.addTextChangedListener(textWatcher);
+        editContact.addTextChangedListener(textWatcher);
+        editIntro.addTextChangedListener(textWatcher);
+        editEmail.addTextChangedListener(textWatcher);
+
+
+        Picasso.with(getApplicationContext())
+                .load(img)
+                .transform(new CropCircleTransformation())
+                .into(profileImage);
+        profileName.setText(name + "님");
+
+        editEmail.setText(email);
+        editContact.setText(email);
+
+        progressDialog = new ProgressDialog(this);
+
+    }
 
     private void checkEditText(){
 
-        boolean isNickName = false;
-        boolean isEmail = true;
-        boolean isIntro = false;
+        boolean nick = editNickName.isCharactersCountValid();
+        boolean contact = editContact.isCharactersCountValid();
+        boolean intro = editIntro.isCharactersCountValid();
+        boolean em = editEmail.isCharactersCountValid();
+        boolean inter = interest.size() >= 3;
 
-        if(nickName.getText().toString().length() >= 1){
-            isNickName = true;
-        }
-
-//        if(email.getText().toString().length() >= 1){
-//            isEmail = true;
-//        }
-
-        if(intro.getText().toString().length() >= 1){
-            isIntro = true;
-        }
-
-        continueBtn.setEnabled(isNickName && isEmail && isIntro);
-
+        setNextButton(nick && contact && intro && em && inter);
 
     }
 
-    private class SaveUserInformation extends Thread{
+    private void setNextButton(boolean type){
 
-        private boolean result;
-        private HashMap<String, String> map;
-
-        public SaveUserInformation(HashMap<String, String> map){
-            this.map = map;
-            result = false;
+        if(type){
+            nextBtn.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.colorPrimary));
+            nextBtn.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.white));
+        }else{
+            nextBtn.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.dark_gray));
+            nextBtn.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.light_gray));
         }
 
-        public void run(){
+        nextBtn.setEnabled(type);
 
-            String addr = Information.MAIN_SERVER_ADDRESS + "saveMember.php";
-            String response = new String();
+    }
 
-            try {
-                URL url = new URL(addr);
-                HttpURLConnection conn = (HttpURLConnection) url.openConnection(); // 해당 URL에 연결
+    private void setInterestField(){
 
-                conn.setConnectTimeout(10000); // 타임아웃: 10초
-                conn.setUseCaches(false); // 캐시 사용 안 함
-                conn.setRequestMethod("POST"); // POST로 연결
-                conn.setDoInput(true);
-                conn.setDoOutput(true);
+        if(interest.size() <= 0){
+            interestBtn.setVisibility(View.VISIBLE);
+            return;
+        }else{
+            interestBtn.setVisibility(View.GONE);
+        }
 
-                if (map != null) { // 웹 서버로 보낼 매개변수가 있는 경우우
-                    OutputStream os = conn.getOutputStream(); // 서버로 보내기 위한 출력 스트림
-                    BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os, "UTF-8")); // UTF-8로 전송
-                    bw.write(getPostString(map)); // 매개변수 전송
-                    bw.flush();
-                    bw.close();
-                    os.close();
-                }
+        interestField.removeAllViews();
 
-                if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) { // 연결에 성공한 경우
-                    String line;
-                    BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream())); // 서버의 응답을 읽기 위한 입력 스트림
+        DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
+        float dpHeight = displayMetrics.heightPixels / displayMetrics.density;
+        float dpWidth = displayMetrics.widthPixels / displayMetrics.density;
+        dpWidth -= 85;
 
-                    while ((line = br.readLine()) != null) // 서버의 응답을 읽어옴
-                        response += line;
-                }
+        final float scale =getResources().getDisplayMetrics().density;
+        int width = (int) (dpWidth * scale + 0.5f);
+        int dp5 = (int) (5 * scale + 0.5f);
+        int dp3 = (int) (3 * scale * 0.5f);
 
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        params.setMargins(dp3, dp3, dp3, dp3);
+        int mButtonsSize = 0;
+        Rect bounds = new Rect();
 
-                conn.disconnect();
-            } catch (MalformedURLException me) {
-                me.printStackTrace();
-            } catch (Exception e) {
-                e.printStackTrace();
+        boolean isAdd = false;
+        TextView finalText = new TextView(this);
+        finalText.setPadding(dp5*2, dp5, dp5*2, dp5);
+        finalText.setBackgroundResource(R.drawable.round_button_blue);
+        finalText.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.white));
+        finalText.setText("+" + interest.size());
+        finalText.setLayoutParams(params);
+        finalText.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                redirectSelectActivity();
             }
+        });
 
-            if(response.equals("1")){
-                result = true;
+        for(int i=0; i<interest.size(); i++){
+
+            int remainCount = interest.size() - i;
+            String remainString = "+" + remainCount;
+            finalText.setText(remainString);
+
+            String s = interest.get(i);
+            TextView mBtn = new TextView(this);
+            mBtn.setPadding(dp5*2, dp5, dp5*2, dp5);
+            mBtn.setBackgroundResource(R.drawable.round_button_blue_line);
+            mBtn.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.pastel_blue));
+            mBtn.setText(s);
+            mBtn.setLayoutParams(params);
+
+            Paint textPaint = mBtn.getPaint();
+            textPaint.getTextBounds(s, 0, s.length(), bounds);
+            int textWidth = bounds.width() + dp5*4 + dp3*2;
+
+            Rect tempBounds = new Rect();
+            textPaint = finalText.getPaint();
+            textPaint.getTextBounds(remainString, 0, remainString.length(), tempBounds);
+            int remainWidth = tempBounds.width() + dp5*4 + dp3*2;
+
+            if(mButtonsSize + textWidth + remainWidth < width){
+                interestField.addView(mBtn);
+                mButtonsSize += textWidth;
             }else{
-                result = false;
+                interestField.addView(finalText);
+                isAdd = true;
+                break;
             }
 
         }
 
-        private String getPostString(HashMap<String, String> map) {
-            StringBuilder result = new StringBuilder();
-            boolean first = true; // 첫 번째 매개변수 여부
+        if(!isAdd){
+            finalText.setText("+0");
+            interestField.addView(finalText);
+        }
 
-            for (Map.Entry<String, String> entry : map.entrySet()) {
-                if (first)
-                    first = false;
-                else // 첫 번째 매개변수가 아닌 경우엔 앞에 &를 붙임
-                    result.append("&");
+    }
 
-                try { // UTF-8로 주소에 키와 값을 붙임
-                    result.append(URLEncoder.encode(entry.getKey(), "UTF-8"));
-                    result.append("=");
-                    result.append(URLEncoder.encode(entry.getValue(), "UTF-8"));
-                } catch (UnsupportedEncodingException ue) {
-                    ue.printStackTrace();
-                } catch (Exception e) {
-                    e.printStackTrace();
+    private void saveUserInformation(){
+
+        email = editEmail.getText().toString();
+        String nickname = editNickName.getText().toString();
+        String intro = editIntro.getText().toString();
+        String contact = editContact.getText().toString();
+        String inter = "";
+        for(int i=0; i<interest.size(); i++){
+            inter += interest.get(i);
+            if(i+1 < interest.size()){
+                inter += ",";
+            }
+        }
+
+        HashMap<String, String> map = new HashMap<>();
+        map.put("service", "saveUser");
+        map.put("id", id);
+        map.put("img", img);
+        map.put("name", name);
+        map.put("email", email);
+        map.put("nickname", nickname);
+        map.put("intro", intro);
+        map.put("contact", contact);
+        map.put("interest", inter);
+
+
+        progressDialog.show();
+        new ParsePHP(Information.MAIN_SERVER_ADDRESS, map){
+            @Override
+            protected void afterThreadFinish(String data) {
+                if("1".equals(data)) {
+                    StartActivity.USER_ID = id;
+
+                    HashMap<String, String> map = new HashMap<String, String>();
+                    map.put("service", "getUserInfo");
+                    map.put("id", id);
+                    new ParsePHP(Information.MAIN_SERVER_ADDRESS, map){
+                        @Override
+                        protected void afterThreadFinish(String data) {
+                            StartActivity.USER_DATA = AdditionalFunc.getUserInfo(data);
+                            handler.sendMessage(handler.obtainMessage(MSG_MESSAGE_FINISH));
+                        }
+                    }.start();
+
                 }
             }
+        }.start();
 
-            return result.toString();
+    }
+
+    private class MyHandler extends Handler {
+
+        public void handleMessage(Message msg)
+        {
+            switch (msg.what)
+            {
+                case MSG_MESSAGE_FINISH:
+                    progressDialog.hide();
+                    redirectMainActivity();
+                    break;
+                default:
+                    break;
+            }
         }
+    }
 
-        public boolean getResult(){
-            return result;
-        }
-
+    public void redirectSelectActivity() {
+        Intent intent = new Intent(this, SelectInterestActivity.class);
+        intent.putStringArrayListExtra("interest", interest);
+        startActivityForResult(intent, 0);
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        callbackManager.onActivityResult(requestCode, resultCode, data);
+        switch (resultCode) {
+            case 1:
+                ArrayList<String> temp = (ArrayList<String>)data.getSerializableExtra("interest");
+
+                boolean check = true;
+
+                if(temp.size() == interest.size()) {
+                    for (String s : temp) {
+                        if (!interest.contains(s)) {
+                            check = false;
+                            break;
+                        }
+                    }
+                }else{
+                    check = false;
+                }
+
+                interest = temp;
+
+                if(!check) {
+                    showSnackbar("관심분야가 수정되었습니다.");
+                    setInterestField();
+                }
+
+                checkEditText();
+                break;
+            default:
+                break;
+        }
     }
 
 
@@ -313,6 +400,14 @@ public class WtInfoActivity extends AppCompatActivity {
         View view = snackbar.getView();
         view.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.snackbar_color));
         snackbar.show();
+    }
+
+    @Override
+    public void onDestroy(){
+        super.onDestroy();
+        if(progressDialog != null){
+            progressDialog.dismiss();
+        }
     }
 
 }

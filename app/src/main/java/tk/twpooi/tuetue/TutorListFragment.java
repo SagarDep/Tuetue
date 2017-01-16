@@ -1,10 +1,12 @@
 package tk.twpooi.tuetue;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Message;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
@@ -46,6 +48,8 @@ import in.srain.cube.views.ptr.PtrFrameLayout;
 import in.srain.cube.views.ptr.PtrHandler;
 import in.srain.cube.views.ptr.header.MaterialHeader;
 import in.srain.cube.views.ptr.util.PtrLocalDisplay;
+import tk.twpooi.tuetue.util.AdditionalFunc;
+import tk.twpooi.tuetue.util.ParsePHP;
 
 /**
  * Created by tw on 2016-08-16.
@@ -54,15 +58,19 @@ public class TutorListFragment extends Fragment {
 
 
     private MyHandler handler = new MyHandler();
-    private final int MSG_MESSAGE_LOAD_DATA_START = 1001;
-    private final int MSG_MESSAGE_LOAD_DATA_FINISH = 1002;
-    private final int MSG_MESSAGE_LOAD_DATA_FINISH2 = 1003;
-    private final int MSG_MESSAGE_LOAD_DATA_ERROR = 1004;
+    private final int MSG_MESSAGE_MAKE_LIST = 500;
+    private final int MSG_MESSAGE_PROGRESS_HIDE = 502;
+//    private final int MSG_MESSAGE_LOAD_DATA_START = 1001;
+//    private final int MSG_MESSAGE_LOAD_DATA_FINISH = 1002;
+//    private final int MSG_MESSAGE_LOAD_DATA_FINISH2 = 1003;
+//    private final int MSG_MESSAGE_LOAD_DATA_ERROR = 1004;
 
-    private SweetAlertDialog pDialog;
+//    private SweetAlertDialog pDialog;
+    private ProgressDialog progressDialog;
 
-    private GetTutor getTutor;
-    private GetTutorInfoByCategory getTutorInfoByCategory;
+
+//    private GetTutor getTutor;
+//    private GetTutorInfoByCategory getTutorInfoByCategory;
 
     // UI
     private View view;
@@ -74,6 +82,8 @@ public class TutorListFragment extends Fragment {
 
 
     protected PtrFrameLayout mPtrFrameLayout;
+
+    private ArrayList<HashMap<String, Object>> list;
 
     // Recycle View
     private RecyclerView rv;
@@ -124,15 +134,11 @@ public class TutorListFragment extends Fragment {
 
             @Override
             public void onRefreshBegin(final PtrFrameLayout frame) {
-                getTutor = new GetTutor();
-                getTutor.start();
+                getTutorList();
+//                getTutor = new GetTutor();
+//                getTutor.start();
             }
         });
-
-        pDialog = new SweetAlertDialog(context, SweetAlertDialog.PROGRESS_TYPE);
-        pDialog.getProgressHelper().setBarColor(Color.parseColor("#A5DC86"));
-        pDialog.setTitleText("Loading");
-        pDialog.setCancelable(false);
 
         mLinearLayoutManager = new LinearLayoutManager(context);
         mLinearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
@@ -140,10 +146,32 @@ public class TutorListFragment extends Fragment {
         rv.setHasFixedSize(true);
         rv.setLayoutManager(mLinearLayoutManager);
 
+        list = new ArrayList<>();
 
-        getTutor = new GetTutor();
-        getTutor.start();
+        progressDialog = new ProgressDialog(context);
 
+        getTutorList();
+
+    }
+
+    private void getTutorList(){
+        progressDialog.show();
+
+        HashMap<String, String> map = new HashMap<>();
+        map.put("service", "getTutorList");
+        map.put("page", "0");
+        new ParsePHP(Information.MAIN_SERVER_ADDRESS, map){
+
+            @Override
+            protected void afterThreadFinish(String data) {
+                list.clear();
+
+                list = AdditionalFunc.getTutorList(data);
+
+                handler.sendMessage(handler.obtainMessage(MSG_MESSAGE_MAKE_LIST));
+
+            }
+        }.start();
     }
 
     public void floationMenu(){
@@ -170,8 +198,9 @@ public class TutorListFragment extends Fragment {
                     selectCategory();
                     orderCategory.setTitle("전체조회");
                 }else{
-                    getTutor = new GetTutor();
-                    getTutor.start();
+//                    getTutor = new GetTutor();
+//                    getTutor.start();
+                    getTutorList();
                     orderCategory.setTitle("카테고리로 조회");
                 }
                 menu.toggle();
@@ -193,14 +222,29 @@ public class TutorListFragment extends Fragment {
                 String ca = StartActivity.CATEGORY_LIST[position];
                 HashMap<String, String> map = new HashMap<String, String>();
                 map.put("category", ca);
-                getTutorInfoByCategory = new GetTutorInfoByCategory(map);
-                getTutorInfoByCategory.start();
+                map.put("service", "getTutorList");
+                map.put("page", "0");
+
+                progressDialog.show();
+                new ParsePHP(Information.MAIN_SERVER_ADDRESS, map){
+
+                    @Override
+                    protected void afterThreadFinish(String data) {
+                        list.clear();
+
+                        list = AdditionalFunc.getTutorList(data);
+
+                        handler.sendMessage(handler.obtainMessage(MSG_MESSAGE_MAKE_LIST));
+
+                    }
+                }.start();
+
                 dialog.dismiss();
             }
         });
     }
 
-    public void makeList(ArrayList<HashMap<String, Object>> list){
+    public void makeList(){
 
         adapter = new TutorListCustomAdapter(context, list, rv, mToolbar, this);
 
@@ -219,270 +263,17 @@ public class TutorListFragment extends Fragment {
         {
             switch (msg.what)
             {
-                case MSG_MESSAGE_LOAD_DATA_START:
-                    pDialog.show();
+                case MSG_MESSAGE_MAKE_LIST:
+                    progressDialog.hide();
+                    makeList();
                     break;
-                case MSG_MESSAGE_LOAD_DATA_FINISH:
-                    pDialog.hide();
-                    makeList(getTutor.getResult());
+                case MSG_MESSAGE_PROGRESS_HIDE:
+                    progressDialog.hide();
                     break;
-                case MSG_MESSAGE_LOAD_DATA_FINISH2:
-                    pDialog.hide();
-                    makeList(getTutorInfoByCategory.getResult());
-                    break;
-                case MSG_MESSAGE_LOAD_DATA_ERROR:
-                    pDialog.hide();
-                    showSnackbar("Error 잠시 후 다시 시도해주세요.");
                 default:
                     break;
             }
         }
-    }
-
-    class GetTutor extends Thread{
-
-        private ArrayList<HashMap<String, Object>> result = new ArrayList<>();
-
-        public void run(){
-
-
-            Message msg;
-            msg = handler.obtainMessage(MSG_MESSAGE_LOAD_DATA_START);
-            handler.sendMessage(msg);
-
-            String url = Information.MAIN_SERVER_ADDRESS + "getTutorList.php";
-
-            StringBuilder jsonHtml = new StringBuilder();
-            try {
-                URL phpUrl = new URL(url);
-                HttpURLConnection conn = (HttpURLConnection)phpUrl.openConnection();
-
-                if ( conn != null ) {
-                    conn.setConnectTimeout(10000);
-                    conn.setUseCaches(false);
-
-                    if ( conn.getResponseCode() == HttpURLConnection.HTTP_OK ) {
-                        BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"));
-                        while ( true ) {
-                            String line = br.readLine();
-                            if ( line == null )
-                                break;
-                            jsonHtml.append(line + "\n");
-                        }
-                        br.close();
-                    }
-                    conn.disconnect();
-                }
-            } catch ( Exception e ) {
-                e.printStackTrace();
-            }
-
-            String str = jsonHtml.toString();
-            try {
-                // PHP에서 받아온 JSON 데이터를 JSON오브젝트로 변환
-                JSONObject jObject = new JSONObject(str);
-                // results라는 key는 JSON배열로 되어있다.
-                JSONArray results = jObject.getJSONArray("result");
-                String countTemp = (String)jObject.get("num_result");
-                int count = Integer.parseInt(countTemp);
-
-                for ( int i = 0; i < count; ++i ) {
-                    JSONObject temp = results.getJSONObject(i);
-
-                    HashMap<String, Object> hashTemp = new HashMap<>();
-                    hashTemp.put("id", (String)temp.get("id"));
-                    hashTemp.put("userid", (String)temp.get("userid"));
-                    hashTemp.put("img", (String)temp.get("img"));
-                    hashTemp.put("nickname", (String)temp.get("nickname"));
-                    hashTemp.put("category", (String)temp.get("category"));
-                    hashTemp.put("cost", Integer.parseInt((String)temp.get("cost")));
-                    hashTemp.put("count", Integer.parseInt((String)temp.get("count")));
-                    hashTemp.put("limit", Integer.parseInt((String)temp.get("limit")));
-                    hashTemp.put("interest", Integer.parseInt((String)temp.get("interest")));
-                    hashTemp.put("time", (String)temp.get("time"));
-                    hashTemp.put("contents", (String)temp.get("contents"));
-                    hashTemp.put("isFinish", (String)temp.get("isFinish"));
-
-                    String participant = (String)temp.get("participant");
-
-                    ArrayList<String> par = new ArrayList<>();
-
-                    if(!participant.equals("")){
-                        String[] p = participant.split(",");
-
-                        for(String s : p){
-                            par.add(s);
-                        }
-
-                    }
-                    hashTemp.put("participant", par);
-
-                    result.add(hashTemp);
-
-                }
-
-                msg = handler.obtainMessage(MSG_MESSAGE_LOAD_DATA_FINISH);
-                handler.sendMessage(msg);
-
-                return;
-
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-
-            msg = handler.obtainMessage(MSG_MESSAGE_LOAD_DATA_ERROR);
-            handler.sendMessage(msg);
-
-        }
-
-        public ArrayList<HashMap<String, Object>> getResult(){
-            return result;
-        }
-
-    }
-    private class GetTutorInfoByCategory extends Thread{
-
-        private ArrayList<HashMap<String, Object>> result = new ArrayList<>();
-        private HashMap<String, String> map;
-
-        public GetTutorInfoByCategory(HashMap<String, String> map){
-            this.map = map;
-        }
-
-        public void run(){
-
-            Message msg;
-            msg = handler.obtainMessage(MSG_MESSAGE_LOAD_DATA_START);
-            handler.sendMessage(msg);
-
-            String addr = Information.MAIN_SERVER_ADDRESS + "getTutorListByCategory.php";
-            String response = new String();
-
-            try {
-                URL url = new URL(addr);
-                HttpURLConnection conn = (HttpURLConnection) url.openConnection(); // 해당 URL에 연결
-
-                conn.setConnectTimeout(10000); // 타임아웃: 10초
-                conn.setUseCaches(false); // 캐시 사용 안 함
-                conn.setRequestMethod("POST"); // POST로 연결
-                conn.setDoInput(true);
-                conn.setDoOutput(true);
-
-                if (map != null) { // 웹 서버로 보낼 매개변수가 있는 경우우
-                    OutputStream os = conn.getOutputStream(); // 서버로 보내기 위한 출력 스트림
-                    BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os, "UTF-8")); // UTF-8로 전송
-                    bw.write(getPostString(map)); // 매개변수 전송
-                    bw.flush();
-                    bw.close();
-                    os.close();
-                }
-
-                if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) { // 연결에 성공한 경우
-                    String line;
-                    BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream())); // 서버의 응답을 읽기 위한 입력 스트림
-
-                    while ((line = br.readLine()) != null) // 서버의 응답을 읽어옴
-                        response += line;
-                }
-
-                System.out.println("Tutor : " + response);
-
-                conn.disconnect();
-            } catch (MalformedURLException me) {
-                me.printStackTrace();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            String str = response.toString();
-            try {
-                // PHP에서 받아온 JSON 데이터를 JSON오브젝트로 변환
-                JSONObject jObject = new JSONObject(str);
-                // results라는 key는 JSON배열로 되어있다.
-                JSONArray results = jObject.getJSONArray("result");
-                String countTemp = (String)jObject.get("num_result");
-                int count = Integer.parseInt(countTemp);
-
-                for ( int i = 0; i < count; ++i ) {
-                    JSONObject temp = results.getJSONObject(i);
-
-                    HashMap<String, Object> hashTemp = new HashMap<>();
-                    hashTemp.put("id", (String)temp.get("id"));
-                    hashTemp.put("userid", (String)temp.get("userid"));
-                    hashTemp.put("img", (String)temp.get("img"));
-                    hashTemp.put("nickname", (String)temp.get("nickname"));
-                    hashTemp.put("category", (String)temp.get("category"));
-                    hashTemp.put("cost", Integer.parseInt((String)temp.get("cost")));
-                    hashTemp.put("count", Integer.parseInt((String)temp.get("count")));
-                    hashTemp.put("limit", Integer.parseInt((String)temp.get("limit")));
-                    hashTemp.put("interest", Integer.parseInt((String)temp.get("interest")));
-                    hashTemp.put("time", (String)temp.get("time"));
-                    hashTemp.put("contents", (String)temp.get("contents"));
-                    hashTemp.put("isFinish", (String)temp.get("isFinish"));
-
-                    String participant = (String)temp.get("participant");
-
-                    ArrayList<String> par = new ArrayList<>();
-
-                    if(!participant.equals("")){
-                        String[] p = participant.split(",");
-
-                        for(String s : p){
-                            par.add(s);
-                        }
-
-                    }
-                    hashTemp.put("participant", par);
-
-                    result.add(hashTemp);
-
-                }
-
-
-                msg = handler.obtainMessage(MSG_MESSAGE_LOAD_DATA_FINISH2);
-                handler.sendMessage(msg);
-
-                return;
-
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-
-
-            msg = handler.obtainMessage(MSG_MESSAGE_LOAD_DATA_ERROR);
-            handler.sendMessage(msg);
-
-        }
-
-        private String getPostString(HashMap<String, String> map) {
-            StringBuilder result = new StringBuilder();
-            boolean first = true; // 첫 번째 매개변수 여부
-
-            for (Map.Entry<String, String> entry : map.entrySet()) {
-                if (first)
-                    first = false;
-                else // 첫 번째 매개변수가 아닌 경우엔 앞에 &를 붙임
-                    result.append("&");
-
-                try { // UTF-8로 주소에 키와 값을 붙임
-                    result.append(URLEncoder.encode(entry.getKey(), "UTF-8"));
-                    result.append("=");
-                    result.append(URLEncoder.encode(entry.getValue(), "UTF-8"));
-                } catch (UnsupportedEncodingException ue) {
-                    ue.printStackTrace();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-
-            return result.toString();
-        }
-
-
-        public ArrayList<HashMap<String, Object>> getResult(){
-            return result;
-        }
-
     }
 
     public static void setRefresh(int i){
@@ -517,6 +308,15 @@ public class TutorListFragment extends Fragment {
             temp.put("isFinish", "1");
             adapter.attractionList.set(tutorListIndex, temp);
             adapter.notifyItemChanged(tutorListIndex);
+        }
+    }
+
+    @Override
+    public void onDestroy(){
+        super.onDestroy();
+        if(progressDialog != null){
+            progressDialog.dismiss();
+
         }
     }
 }

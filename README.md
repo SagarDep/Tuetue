@@ -70,6 +70,7 @@ public static String MAIN_SERVER_ADDRESS = "PLEASE ENTER YOUR SERVER ADDRESS";
   <li>Android-RoundCornerProgressBar(Akexorcist) - <a href=https://github.com/akexorcist/Android-RoundCornerProgressBar>https://github.com/akexorcist/Android-RoundCornerProgressBar</a></li>
   <li>FlycoDialog(Flyco) - <a href=https://github.com/H07000223/FlycoDialog_Master>https://github.com/H07000223/FlycoDialog_Master</a></li>
   <li>KenBurnsView(Flávio Faria) - <a href=https://github.com/flavioarfaria/KenBurnsView>https://github.com/flavioarfaria/KenBurnsView</a></li>
+  <li>NotBoringActionBar(flavienlaurent) - <a href=https://github.com/flavienlaurent/NotBoringActionBar>https://github.com/flavienlaurent/NotBoringActionBar</a></li>
 </ul>
 
 <br>

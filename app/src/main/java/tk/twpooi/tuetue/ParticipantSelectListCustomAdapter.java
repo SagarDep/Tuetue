@@ -32,13 +32,13 @@ public class ParticipantSelectListCustomAdapter extends RecyclerView.Adapter<Par
     private View mainView;
 
     // Data
-    public ArrayList<HashMap<String, String>> list;
+    public ArrayList<HashMap<String, Object>> list;
 
     private ParticipantSelectListActivity activity;
 
 
     // 생성자
-    public ParticipantSelectListCustomAdapter(Context context, ArrayList<HashMap<String,String>> list, View view, ParticipantSelectListActivity activity) {
+    public ParticipantSelectListCustomAdapter(Context context, ArrayList<HashMap<String,Object>> list, View view, ParticipantSelectListActivity activity) {
         this.context = context;
         this.list = list;
         this.mainView = view;
@@ -54,15 +54,17 @@ public class ParticipantSelectListCustomAdapter extends RecyclerView.Adapter<Par
 
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
-        final HashMap<String,String> noticeData = list.get(position);
+        final HashMap<String,Object> noticeData = list.get(position);
         final int pos = position;
-        final String userId = noticeData.get("userId");
-        String select = noticeData.get("select");
+        final String userId = (String)noticeData.get("userId");
+        String select = (String)noticeData.get("select");
 
-        String nickname = noticeData.get("nickname");
-        String img = noticeData.get("img");
+        String nickname = (String)noticeData.get("nickname");
+        String img = (String)noticeData.get("img");
+        String email = (String)noticeData.get("email");
 
         holder.tv_nickname.setText(nickname);
+        holder.tv_email.setText(email);
         Picasso.with(context)
                 .load(img)
                 .transform(new CropCircleTransformation())

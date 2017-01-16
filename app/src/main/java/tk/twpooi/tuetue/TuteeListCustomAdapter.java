@@ -82,7 +82,7 @@ public class TuteeListCustomAdapter extends RecyclerView.Adapter<TuteeListCustom
         final String userId = (String)noticeData.get("userid");
         String isFinish = (String)noticeData.get("isFinish");
 
-        String profileImg = (String)noticeData.get("img");
+        final String profileImg = (String)noticeData.get("img");
         Picasso.with(context)
                 .load(profileImg)
                 .transform(new CropCircleTransformation())
@@ -90,6 +90,7 @@ public class TuteeListCustomAdapter extends RecyclerView.Adapter<TuteeListCustom
 
         String nickname = (String)noticeData.get("nickname");
         holder.tv_nickname.setText(nickname);
+        holder.tv_email.setText((String)noticeData.get("email"));
 
         holder.tv_interest.setVisibility(View.GONE);
         holder.tv_count.setVisibility(View.GONE);
@@ -122,6 +123,7 @@ public class TuteeListCustomAdapter extends RecyclerView.Adapter<TuteeListCustom
                 Intent intent = new Intent(context, ProfileActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 intent.putExtra("userId", userId);
+                intent.putExtra("img", profileImg);
                 context.startActivity(intent);
             }
         });

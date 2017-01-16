@@ -153,7 +153,7 @@ public class NaverLogin {
                 switch (eventType) {
                     case XmlPullParser.START_TAG:
                         String startTag = parser.getName();
-                        if(startTag.equals("eamil")) {
+                        if(startTag.equals("email")) {
                             returnData.put("email", parser.nextText());
                         }
                         if(startTag.equals("profile_image")) {

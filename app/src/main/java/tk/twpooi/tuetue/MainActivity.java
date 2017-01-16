@@ -80,6 +80,7 @@ public class MainActivity extends AppCompatActivity {
                 Intent intent = new Intent(getApplicationContext(), ProfileActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 intent.putExtra("userId", StartActivity.USER_ID);
+                intent.putExtra("img", (String)StartActivity.USER_DATA.get("img"));
                 startActivity(intent);
             }
         });
