@@ -5,24 +5,20 @@ import android.content.Intent;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.AccelerateInterpolator;
-import android.view.animation.DecelerateInterpolator;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.sackcentury.shinebuttonlib.ShineButton;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 
 import jp.wasabeef.picasso.transformations.CropCircleTransformation;
+import tk.twpooi.tuetue.util.AdditionalFunc;
 
 
 /**
@@ -31,29 +27,22 @@ import jp.wasabeef.picasso.transformations.CropCircleTransformation;
 public class TutorListCustomAdapter extends RecyclerView.Adapter<TutorListCustomAdapter.ViewHolder> {
 
     // UI
-    private Toolbar mToolbar;
     private Context context;
 
     private TutorListFragment f;
     private FileManager fileManager;
 
     public ArrayList<HashMap<String, Object>> attractionList;
-    private ArrayList<String> interestList;
 
     // 생성자
-    public TutorListCustomAdapter(Context context, ArrayList<HashMap<String,Object>> attractionList, RecyclerView recyclerView, Toolbar toolbar, TutorListFragment f) {
+    public TutorListCustomAdapter(Context context, ArrayList<HashMap<String,Object>> attractionList, RecyclerView recyclerView, TutorListFragment f) {
         this.context = context;
         this.attractionList = attractionList;
         this.f = f;
 
         fileManager = new FileManager(context);
-        interestList = fileManager.readInterestListFile();
-
-        mToolbar = toolbar;
 
         if (recyclerView.getLayoutManager() instanceof LinearLayoutManager) {
-
-
             recyclerView.addOnScrollListener(new ScrollListener() {
                 @Override
                 public void onHide() {
@@ -67,14 +56,11 @@ public class TutorListCustomAdapter extends RecyclerView.Adapter<TutorListCustom
             });
         }
     }
-    public void refresh(){
-        notifyDataSetChanged();
-    }
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         //recycler view에 반복될 아이템 레이아웃 연결
-        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.tutor_list_custom_item,null);
+        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.tuetue_list_custom_item,null);
         return new ViewHolder(v);
     }
 
@@ -84,7 +70,7 @@ public class TutorListCustomAdapter extends RecyclerView.Adapter<TutorListCustom
         final int pos = position;
         final String id = (String)noticeData.get("id");
         final String userId = (String)noticeData.get("userid");
-        String isFinish = (String)noticeData.get("isFinish");
+        ArrayList<String> par = (ArrayList<String>)noticeData.get("participant");
 
         final String profileImg = (String)noticeData.get("img");
         Picasso.with(context)
@@ -97,31 +83,37 @@ public class TutorListCustomAdapter extends RecyclerView.Adapter<TutorListCustom
         holder.tv_email.setText((String)noticeData.get("email"));
 
         int interest = (int)noticeData.get("interest");
-        holder.tv_interest.setText("관심 : " + interest + "명");
-
-        int cost = (int)noticeData.get("cost");
-        holder.tv_cost.setText("비용 : " + cost + "원");
+        holder.tv_interest.setText(Integer.toString(interest));
 
         int count = (int)noticeData.get("count");
-        holder.tv_count.setText("모집인원 : " + count + "명");
+        holder.tv_count.setText(par.size() + "/" + count);
 
         final String contents = (String)noticeData.get("contents");
         holder.tv_contents.setText(contents);
+
+        int dday = AdditionalFunc.getDday((Long)noticeData.get("limit"));
+        if(dday < 0){
+            holder.tv_dday.setText("D+"+Math.abs(dday));
+        }else if(dday == 0){
+            holder.tv_dday.setText("D-day");
+        }else{
+            holder.tv_dday.setText("D-"+dday);
+        }
 
 
         holder.cv.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
 
-                Intent intent = new Intent(context, ShowTutorActivity.class);
+                Intent intent = new Intent(context, ShowTuetueActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 intent.putExtra("id", id);
                 intent.putExtra("index", pos);
+                intent.putExtra("type", true);
                 context.startActivity(intent);
 
             }
         });
-//        holder.tv_title.setText(noticeData.get("title")); //제목
 
         holder.rl_profile.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -133,58 +125,6 @@ public class TutorListCustomAdapter extends RecyclerView.Adapter<TutorListCustom
             }
         });
 
-
-        if(isContain(interestList, id)){
-            holder.interestBtn.setChecked(true);
-        }else{
-            holder.interestBtn.setChecked(false);
-        }
-        holder.interestBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-                HashMap<String, String> map = new HashMap<String, String>();
-
-                map.put("type", "interest");
-                map.put("id", id);
-
-                if(holder.interestBtn.isChecked()){
-                    if(!isContain(interestList, id)) {
-                        map.put("mode", "1");
-                        fileManager.addInterestList(id);
-                    }
-                }else{
-                    if(isContain(interestList, id)){
-                        map.put("mode", "0");
-                        fileManager.removeInterestList(id);
-                    }
-                }
-
-                interestList = fileManager.readInterestListFile();
-
-                IncreaseTutorItem it = new IncreaseTutorItem(map);
-                it.start();
-            }
-        });
-
-        if("0".equals(isFinish)){
-            holder.success_frame.setVisibility(View.GONE);
-        }else{
-            holder.success_frame.setVisibility(View.VISIBLE);
-        }
-
-    }
-
-    private boolean isContain(ArrayList<String> list, String search){
-
-        for(String s : list){
-            if(s.equals(search)){
-                return true;
-            }
-        }
-
-        return false;
-
     }
 
 
@@ -194,19 +134,13 @@ public class TutorListCustomAdapter extends RecyclerView.Adapter<TutorListCustom
     }
 
     private void hideViews() {
-        if(f == null){
-            if(mToolbar != null)
-                mToolbar.animate().translationY(-mToolbar.getHeight()).setInterpolator(new AccelerateInterpolator(2));
-        }else {
+        if(f != null){
             f.hideViews();
         }
     }
 
     private void showViews() {
-        if(f == null){
-            if(mToolbar != null)
-                mToolbar.animate().translationY(0).setInterpolator(new DecelerateInterpolator(2));
-        }else{
+        if(f != null){
             f.showViews();
         }
     }
@@ -245,35 +179,28 @@ public class TutorListCustomAdapter extends RecyclerView.Adapter<TutorListCustom
 
     public final static class ViewHolder extends RecyclerView.ViewHolder {
 
-        RelativeLayout success_frame;
+        CardView cv;
         RelativeLayout rl_profile;
+        ImageView profileImg;
         TextView tv_nickname;
         TextView tv_email;
-        //LinearLayout contentLayout;
-        CardView cv;
-        ImageView profileImg;
-        //RelativeLayout rl_image;
+        TextView tv_dday;
         TextView tv_contents;
-        TextView tv_count;
-        TextView tv_cost;
         TextView tv_interest;
-        ShineButton interestBtn;
-        //RelativeLayout rl_button;
-
+        TextView tv_count;
+        boolean isContentExpand;
 
         public ViewHolder(View v) {
             super(v);
-            success_frame = (RelativeLayout)v.findViewById(R.id.success_frame);
-            cv = (CardView) v.findViewById(R.id.cv);
+            cv = (CardView)v.findViewById(R.id.cv);
             rl_profile = (RelativeLayout)v.findViewById(R.id.rl_profile);
-            tv_nickname = (TextView) v.findViewById(R.id.nickname);
-            tv_email = (TextView) v.findViewById(R.id.email);
-            profileImg = (ImageView)v.findViewById(R.id.rl_profile_img);
-            tv_contents = (TextView)v.findViewById(R.id.contents);
-            tv_count = (TextView)v.findViewById(R.id.count);
-            tv_cost = (TextView)v.findViewById(R.id.cost);
-            tv_interest = (TextView)v.findViewById(R.id.interest);
-            interestBtn = (ShineButton)v.findViewById(R.id.interest_btn);
+            profileImg = (ImageView)v.findViewById(R.id.profileImg);
+            tv_nickname = (TextView)v.findViewById(R.id.tv_nickname);
+            tv_email = (TextView)v.findViewById(R.id.tv_email);
+            tv_dday = (TextView)v.findViewById(R.id.tv_dday);
+            tv_contents = (TextView)v.findViewById(R.id.tv_contents);
+            tv_interest = (TextView)v.findViewById(R.id.tv_interest);
+            tv_count = (TextView)v.findViewById(R.id.tv_count);
         }
     }
 

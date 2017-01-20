@@ -35,18 +35,7 @@
 
 
         <activity
-            android:name=".ShowTutorActivity"
-            android:theme="@style/AppTheme"
-            android:configChanges="orientation|keyboardHidden|screenSize">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="tk.twpooi.tuetue" />
-            </intent-filter>
-        </activity>
-
-        <activity
-            android:name=".ShowTuteeActivity"
+            android:name=".ShowTuetueActivity"
             android:theme="@style/AppTheme"
             android:configChanges="orientation|keyboardHidden|screenSize">
             <intent-filter>

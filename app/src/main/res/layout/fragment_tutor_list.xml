@@ -42,6 +42,17 @@
 
             </LinearLayout>
 
+
+            <com.wang.avi.AVLoadingIndicatorView
+                android:id="@+id/loading"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:indicatorName="LineSpinFadeLoaderIndicator"
+                app:indicatorColor="@color/colorPrimary"
+                style="@style/AVLoadingIndicatorView.Small"
+                android:layout_gravity="center"
+                />
+
         </FrameLayout>
 
     </in.srain.cube.views.ptr.PtrFrameLayout>

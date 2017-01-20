@@ -22,6 +22,7 @@ import com.flyco.dialog.listener.OnOperItemClickL;
 import com.flyco.dialog.widget.NormalListDialog;
 import com.getbase.floatingactionbutton.FloatingActionButton;
 import com.getbase.floatingactionbutton.FloatingActionsMenu;
+import com.wang.avi.AVLoadingIndicatorView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -61,12 +62,12 @@ public class TuteeListFragment extends Fragment {
     private final int MSG_MESSAGE_PROGRESS_HIDE = 502;
 
     private ProgressDialog progressDialog;
+    private AVLoadingIndicatorView loading;
 
     private ArrayList<HashMap<String, Object>> list;
 
     // UI
     private View view;
-    private Toolbar mToolbar;
     private Context context;
     private FloatingActionsMenu menu;
     private FloatingActionButton addTutor;
@@ -131,6 +132,7 @@ public class TuteeListFragment extends Fragment {
         });
 
         progressDialog = new ProgressDialog(context);
+        loading = (AVLoadingIndicatorView)view.findViewById(R.id.loading);
 
         mLinearLayoutManager = new LinearLayoutManager(context);
         mLinearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
@@ -139,13 +141,13 @@ public class TuteeListFragment extends Fragment {
         rv.setLayoutManager(mLinearLayoutManager);
 
 
+        loading.show();
         getTuteeList();
 
     }
 
     private void getTuteeList(){
 
-        progressDialog.show();
 
         HashMap<String, String> map = new HashMap<>();
         map.put("service", "getTuteeList");
@@ -236,7 +238,7 @@ public class TuteeListFragment extends Fragment {
         int scrollX = rv.computeHorizontalScrollOffset();
         int scrollY = rv.computeVerticalScrollOffset();
 
-        adapter = new TuteeListCustomAdapter(context, list, rv, mToolbar, this);
+        adapter = new TuteeListCustomAdapter(context, list, rv, this);
 
         rv.setAdapter(adapter);
 
@@ -257,6 +259,7 @@ public class TuteeListFragment extends Fragment {
             {
                 case MSG_MESSAGE_MAKE_LIST:
                     progressDialog.hide();
+                    loading.hide();
                     makeList();
                     break;
                 case MSG_MESSAGE_PROGRESS_HIDE:
@@ -281,12 +284,12 @@ public class TuteeListFragment extends Fragment {
     }
 
     public void hideViews() {
-//        menu.setVisibility(View.INVISIBLE);
+        menu.setVisibility(View.INVISIBLE);
 //        mToolbar.animate().translationY(-mToolbar.getHeight()).setInterpolator(new AccelerateInterpolator(2));
     }
 
     public void showViews() {
-//        menu.setVisibility(View.VISIBLE);
+        menu.setVisibility(View.VISIBLE);
 //        mToolbar.animate().translationY(0).setInterpolator(new DecelerateInterpolator(2));
     }
 

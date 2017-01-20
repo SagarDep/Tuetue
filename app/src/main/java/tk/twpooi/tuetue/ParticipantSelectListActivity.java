@@ -137,35 +137,21 @@ public class ParticipantSelectListActivity extends AppCompatActivity {
         completeBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                String tutorId = participantList.get(selectionIndex);
-                System.out.println(tutorId);
-                HashMap<String, String> map = new HashMap<String, String>();
-                map.put("id", ShowTuteeActivity.id);
-                map.put("type", "tutee");
-                map.put("tutorId", tutorId);
-                map.put("service", "updateFinish");
-
-                progressDialog.show();
-                new ParsePHP(Information.MAIN_SERVER_ADDRESS, map){
-                    @Override
-                    protected void afterThreadFinish(String data) {
-                        handler.sendMessage(handler.obtainMessage(MSG_MESSAGE_FINISH_ACTIVITY));
-                    }
-                }.start();
-//                UpdateFinish gti = new UpdateFinish(map);
-//                gti.start();
-//                try{
-//                    gti.join();
-//                }catch (Exception e){
+//                String tutorId = participantList.get(selectionIndex);
+//                System.out.println(tutorId);
+//                HashMap<String, String> map = new HashMap<String, String>();
+//                map.put("id", ShowTuteeActivity.id);
+//                map.put("type", "tutee");
+//                map.put("tutorId", tutorId);
+//                map.put("service", "updateFinish");
 //
-//                }
-
-//                ShowTuteeActivity.isUpdate = true;
-//                ShowTuteeActivity.setTutorId(tutorId);
-//
-//                TuteeListFragment.setTuteeUpdate(ShowTuteeActivity.id);
-//
-//                finish();
+//                progressDialog.show();
+//                new ParsePHP(Information.MAIN_SERVER_ADDRESS, map){
+//                    @Override
+//                    protected void afterThreadFinish(String data) {
+//                        handler.sendMessage(handler.obtainMessage(MSG_MESSAGE_FINISH_ACTIVITY));
+//                    }
+//                }.start();
 
             }
         });
@@ -283,9 +269,9 @@ public class ParticipantSelectListActivity extends AppCompatActivity {
                     break;
                 case MSG_MESSAGE_FINISH_ACTIVITY:
                     String tutorId = participantList.get(selectionIndex);
-                    ShowTuteeActivity.isUpdate = true;
-                    ShowTuteeActivity.setTutorId(tutorId);
-                    TuteeListFragment.setTuteeUpdate(ShowTuteeActivity.id);
+//                    ShowTuteeActivity.isUpdate = true;
+//                    ShowTuteeActivity.setTutorId(tutorId);
+//                    TuteeListFragment.setTuteeUpdate(ShowTuteeActivity.id);
                     finish();
                     break;
                 default:

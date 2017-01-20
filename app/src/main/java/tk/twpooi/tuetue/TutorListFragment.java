@@ -11,18 +11,22 @@ import android.os.Message;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AccelerateInterpolator;
+import android.view.animation.DecelerateInterpolator;
 import android.widget.AdapterView;
 
 import com.flyco.dialog.listener.OnOperItemClickL;
 import com.flyco.dialog.widget.NormalListDialog;
 import com.getbase.floatingactionbutton.FloatingActionButton;
 import com.getbase.floatingactionbutton.FloatingActionsMenu;
+import com.wang.avi.AVLoadingIndicatorView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -48,6 +52,7 @@ import in.srain.cube.views.ptr.PtrFrameLayout;
 import in.srain.cube.views.ptr.PtrHandler;
 import in.srain.cube.views.ptr.header.MaterialHeader;
 import in.srain.cube.views.ptr.util.PtrLocalDisplay;
+import it.neokree.materialnavigationdrawer.MaterialNavigationDrawer;
 import tk.twpooi.tuetue.util.AdditionalFunc;
 import tk.twpooi.tuetue.util.ParsePHP;
 
@@ -60,17 +65,9 @@ public class TutorListFragment extends Fragment {
     private MyHandler handler = new MyHandler();
     private final int MSG_MESSAGE_MAKE_LIST = 500;
     private final int MSG_MESSAGE_PROGRESS_HIDE = 502;
-//    private final int MSG_MESSAGE_LOAD_DATA_START = 1001;
-//    private final int MSG_MESSAGE_LOAD_DATA_FINISH = 1002;
-//    private final int MSG_MESSAGE_LOAD_DATA_FINISH2 = 1003;
-//    private final int MSG_MESSAGE_LOAD_DATA_ERROR = 1004;
 
-//    private SweetAlertDialog pDialog;
     private ProgressDialog progressDialog;
-
-
-//    private GetTutor getTutor;
-//    private GetTutorInfoByCategory getTutorInfoByCategory;
+    private AVLoadingIndicatorView loading;
 
     // UI
     private View view;
@@ -149,13 +146,15 @@ public class TutorListFragment extends Fragment {
         list = new ArrayList<>();
 
         progressDialog = new ProgressDialog(context);
+        loading = (AVLoadingIndicatorView)view.findViewById(R.id.loading);
 
+//        progressDialog.show();
+        loading.show();
         getTutorList();
 
     }
 
     private void getTutorList(){
-        progressDialog.show();
 
         HashMap<String, String> map = new HashMap<>();
         map.put("service", "getTutorList");
@@ -246,7 +245,7 @@ public class TutorListFragment extends Fragment {
 
     public void makeList(){
 
-        adapter = new TutorListCustomAdapter(context, list, rv, mToolbar, this);
+        adapter = new TutorListCustomAdapter(context, list, rv, this);
 
         rv.setAdapter(adapter);
 
@@ -265,6 +264,7 @@ public class TutorListFragment extends Fragment {
             {
                 case MSG_MESSAGE_MAKE_LIST:
                     progressDialog.hide();
+                    loading.hide();
                     makeList();
                     break;
                 case MSG_MESSAGE_PROGRESS_HIDE:
@@ -289,13 +289,17 @@ public class TutorListFragment extends Fragment {
     }
 
     public void hideViews() {
-//        menu.setVisibility(View.INVISIBLE);
+        menu.setVisibility(View.INVISIBLE);
 //        mToolbar.animate().translationY(-mToolbar.getHeight()).setInterpolator(new AccelerateInterpolator(2));
+//        getActivity().getActionBar().hide();
+//        ((MaterialNavigationDrawer)getActivity()).getSupportActionBar().hide();
     }
 
     public void showViews() {
-//        menu.setVisibility(View.VISIBLE);
+        menu.setVisibility(View.VISIBLE);
 //        mToolbar.animate().translationY(0).setInterpolator(new DecelerateInterpolator(2));
+//        getActivity().getActionBar().show();
+//        ((MaterialNavigationDrawer)getActivity()).getSupportActionBar().show();
     }
 
 

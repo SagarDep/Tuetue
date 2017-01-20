@@ -5,23 +5,21 @@ import android.content.Intent;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.AccelerateInterpolator;
-import android.view.animation.DecelerateInterpolator;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.sackcentury.shinebuttonlib.ShineButton;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 
 import jp.wasabeef.picasso.transformations.CropCircleTransformation;
+import tk.twpooi.tuetue.util.AdditionalFunc;
 
 
 /**
@@ -30,7 +28,6 @@ import jp.wasabeef.picasso.transformations.CropCircleTransformation;
 public class TuteeListCustomAdapter extends RecyclerView.Adapter<TuteeListCustomAdapter.ViewHolder> {
 
     // UI
-    private Toolbar mToolbar;
     private Context context;
 
     private TuteeListFragment f;
@@ -40,15 +37,13 @@ public class TuteeListCustomAdapter extends RecyclerView.Adapter<TuteeListCustom
     private ArrayList<String> interestList;
 
     // 생성자
-    public TuteeListCustomAdapter(Context context, ArrayList<HashMap<String,Object>> attractionList, RecyclerView recyclerView, Toolbar toolbar, TuteeListFragment f) {
+    public TuteeListCustomAdapter(Context context, ArrayList<HashMap<String,Object>> attractionList, RecyclerView recyclerView, TuteeListFragment f) {
         this.context = context;
         this.attractionList = attractionList;
         this.f = f;
 
         fileManager = new FileManager(context);
         interestList = fileManager.readInterestListFile();
-
-        mToolbar = toolbar;
 
         if (recyclerView.getLayoutManager() instanceof LinearLayoutManager) {
 
@@ -70,7 +65,7 @@ public class TuteeListCustomAdapter extends RecyclerView.Adapter<TuteeListCustom
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         //recycler view에 반복될 아이템 레이아웃 연결
-        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.tutor_list_custom_item,null);
+        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.tuetue_list_custom_item,null);
         return new ViewHolder(v);
     }
 
@@ -80,6 +75,7 @@ public class TuteeListCustomAdapter extends RecyclerView.Adapter<TuteeListCustom
         final int pos = position;
         final String id = (String)noticeData.get("id");
         final String userId = (String)noticeData.get("userid");
+        ArrayList<String> par = (ArrayList<String>)noticeData.get("participant");
         String isFinish = (String)noticeData.get("isFinish");
 
         final String profileImg = (String)noticeData.get("img");
@@ -91,26 +87,30 @@ public class TuteeListCustomAdapter extends RecyclerView.Adapter<TuteeListCustom
         String nickname = (String)noticeData.get("nickname");
         holder.tv_nickname.setText(nickname);
         holder.tv_email.setText((String)noticeData.get("email"));
-
-        holder.tv_interest.setVisibility(View.GONE);
-        holder.tv_count.setVisibility(View.GONE);
-        holder.interestBtn.setVisibility(View.GONE);
-
-        int cost = (int)noticeData.get("cost");
-        holder.tv_cost.setText("비용 : " + cost + "원");
-
-        final String contents = (String)noticeData.get("contents");
+        String contents = (String)noticeData.get("contents");
         holder.tv_contents.setText(contents);
 
+        int dday = AdditionalFunc.getDday((Long)noticeData.get("limit"));
+        if(dday < 0){
+            holder.tv_dday.setText("D+"+Math.abs(dday));
+        }else if(dday == 0){
+            holder.tv_dday.setText("D-day");
+        }else{
+            holder.tv_dday.setText("D-"+dday);
+        }
+
+        holder.li_interest.setVisibility(View.GONE);
+        holder.tv_count.setText(Integer.toString(par.size()));
 
         holder.cv.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
 
-                Intent intent = new Intent(context, ShowTuteeActivity.class);
+                Intent intent = new Intent(context, ShowTuetueActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 intent.putExtra("id", id);
                 intent.putExtra("index", pos);
+                intent.putExtra("type", false);
                 context.startActivity(intent);
 
             }
@@ -127,12 +127,6 @@ public class TuteeListCustomAdapter extends RecyclerView.Adapter<TuteeListCustom
             }
         });
 
-        if("0".equals(isFinish)){
-            holder.success_frame.setVisibility(View.GONE);
-        }else{
-            holder.success_frame.setVisibility(View.VISIBLE);
-        }
-
     }
 
 
@@ -142,19 +136,13 @@ public class TuteeListCustomAdapter extends RecyclerView.Adapter<TuteeListCustom
     }
 
     private void hideViews() {
-        if(f == null){
-            if(mToolbar != null)
-                mToolbar.animate().translationY(-mToolbar.getHeight()).setInterpolator(new AccelerateInterpolator(2));
-        }else {
+        if(f != null){
             f.hideViews();
         }
     }
 
     private void showViews() {
-        if(f == null){
-            if(mToolbar != null)
-                mToolbar.animate().translationY(0).setInterpolator(new DecelerateInterpolator(2));
-        }else{
+        if(f != null){
             f.showViews();
         }
     }
@@ -192,35 +180,37 @@ public class TuteeListCustomAdapter extends RecyclerView.Adapter<TuteeListCustom
     }
 
     public final static class ViewHolder extends RecyclerView.ViewHolder {
-        RelativeLayout success_frame;
+
+        CardView cv;
         RelativeLayout rl_profile;
+        ImageView profileImg;
         TextView tv_nickname;
         TextView tv_email;
-        //LinearLayout contentLayout;
-        CardView cv;
-        ImageView profileImg;
-        //RelativeLayout rl_image;
+        TextView tv_dday;
         TextView tv_contents;
-        TextView tv_count;
-        TextView tv_cost;
+        View line;
+        LinearLayout li_addition_field;
+        LinearLayout li_interest;
         TextView tv_interest;
-        ShineButton interestBtn;
-        //RelativeLayout rl_button;
-
+        LinearLayout li_count;
+        TextView tv_count;
+        boolean isContentExpand;
 
         public ViewHolder(View v) {
             super(v);
-            success_frame = (RelativeLayout)v.findViewById(R.id.success_frame);
-            cv = (CardView) v.findViewById(R.id.cv);
+            cv = (CardView)v.findViewById(R.id.cv);
             rl_profile = (RelativeLayout)v.findViewById(R.id.rl_profile);
-            tv_nickname = (TextView) v.findViewById(R.id.nickname);
-            tv_email = (TextView) v.findViewById(R.id.email);
-            profileImg = (ImageView)v.findViewById(R.id.rl_profile_img);
-            tv_contents = (TextView)v.findViewById(R.id.contents);
-            tv_count = (TextView)v.findViewById(R.id.count);
-            tv_cost = (TextView)v.findViewById(R.id.cost);
-            tv_interest = (TextView)v.findViewById(R.id.interest);
-            interestBtn = (ShineButton)v.findViewById(R.id.interest_btn);
+            profileImg = (ImageView)v.findViewById(R.id.profileImg);
+            tv_nickname = (TextView)v.findViewById(R.id.tv_nickname);
+            tv_email = (TextView)v.findViewById(R.id.tv_email);
+            tv_dday = (TextView)v.findViewById(R.id.tv_dday);
+            tv_contents = (TextView)v.findViewById(R.id.tv_contents);
+            line = (View)v.findViewById(R.id.line);
+            li_addition_field = (LinearLayout)v.findViewById(R.id.li_addition_field);
+            li_interest = (LinearLayout)v.findViewById(R.id.li_interest);
+            tv_interest = (TextView)v.findViewById(R.id.tv_interest);
+            li_count = (LinearLayout)v.findViewById(R.id.li_count);
+            tv_count = (TextView)v.findViewById(R.id.tv_count);
         }
     }
 

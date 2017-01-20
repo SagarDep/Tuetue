@@ -13,7 +13,12 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 
 import tk.twpooi.tuetue.R;
@@ -45,6 +50,69 @@ public class AdditionalFunc {
         AlarmManager mgr = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
         mgr.set(AlarmManager.RTC, System.currentTimeMillis() + 50, mPendingIntent);
         System.exit(0);
+    }
+
+    public static long getMilliseconds(int year, int month, int day){
+
+        long days = 0;
+
+        try {
+            String cdate = String.format("%d%02d%02d", year, month, day);
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+            Date date = sdf.parse(cdate);
+            days = date.getTime();
+            System.out.println(days);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        return days;
+
+    }
+
+    public static int getDday(long eTime){
+
+        long cTime = System.currentTimeMillis();
+        Date currentDate = new Date(cTime);
+        Date finishDate = new Date(eTime);
+//        System.out.println(cTime + ", " + eTime);
+
+        DateFormat df = new SimpleDateFormat("yyyy");
+        int currentYear = Integer.parseInt(df.format(currentDate));
+        int finishYear = Integer.parseInt(df.format(finishDate));
+        df = new SimpleDateFormat("MM");
+        int currentMonth = Integer.parseInt(df.format(currentDate));
+        int finishMonth = Integer.parseInt(df.format(finishDate));
+        df = new SimpleDateFormat("dd");
+        int currentDay = Integer.parseInt(df.format(currentDate));
+        int finishDay = Integer.parseInt(df.format(finishDate));
+
+//        System.out.println(currentYear + ", " + currentMonth + ", " + currentDay);
+//        System.out.println(finishYear + ", " + finishMonth + ", " + finishDay);
+
+        Calendar start = Calendar.getInstance();
+        Calendar end = Calendar.getInstance();
+        start.set(currentYear, currentMonth, currentDay);
+        end.set(finishYear, finishMonth, finishDay);
+
+        Date startDate = start.getTime();
+        Date endDate = end.getTime();
+
+        long startTime = startDate.getTime();
+        long endTime = endDate.getTime();
+        long diffTime = endTime - startTime;
+        long diffDays = diffTime / (1000 * 60 * 60 * 24);
+
+
+        return (int)diffDays;
+    }
+
+    public static String getDateString(long time){
+
+        Date currentDate = new Date(time);
+        DateFormat df = new SimpleDateFormat("yyyy년 MM월 dd일");
+        return df.format(currentDate);
+
     }
 
     public static HashMap<String, Object> getUserInfo(String data){
@@ -94,6 +162,7 @@ public class AdditionalFunc {
 
     public static ArrayList<HashMap<String, Object>> getTutorList(String data){
 
+        System.out.println(data);
         ArrayList<HashMap<String, Object>> list = new ArrayList<>();
 
         try {
@@ -116,7 +185,9 @@ public class AdditionalFunc {
                 hashTemp.put("category", (String)temp.get("category"));
                 hashTemp.put("cost", Integer.parseInt((String)temp.get("cost")));
                 hashTemp.put("count", Integer.parseInt((String)temp.get("count")));
-                hashTemp.put("limit", Integer.parseInt((String)temp.get("limit")));
+                hashTemp.put("limit", Long.parseLong((String)temp.get("limit")));
+                hashTemp.put("start", Long.parseLong((String)temp.get("limit")));
+                hashTemp.put("finish", Long.parseLong((String)temp.get("limit")));
                 hashTemp.put("interest", Integer.parseInt((String)temp.get("interest")));
                 hashTemp.put("time", (String)temp.get("time"));
                 hashTemp.put("contents", (String)temp.get("contents"));
@@ -174,6 +245,7 @@ public class AdditionalFunc {
                 hashTemp.put("nickname", (String)temp.get("nickname"));
                 hashTemp.put("category", (String)temp.get("category"));
                 hashTemp.put("cost", Integer.parseInt((String)temp.get("cost")));
+                hashTemp.put("limit", Long.parseLong((String)temp.get("limit")));
                 hashTemp.put("time", (String)temp.get("time"));
                 hashTemp.put("contents", (String)temp.get("contents"));
                 hashTemp.put("isFinish", (String)temp.get("isFinish"));
@@ -204,6 +276,71 @@ public class AdditionalFunc {
         } catch (JSONException e) {
             e.printStackTrace();
         }
+
+        return list;
+
+    }
+
+    public static ArrayList<HashMap<String, String>> getShowTutorList(){
+
+        ArrayList<HashMap<String, String>> list = new ArrayList<>();
+
+        HashMap<String, String> map = new HashMap<>();
+        map.put("en", "contents");
+        map.put("ko", "소개");
+        list.add(map);
+
+        map = new HashMap<>();
+        map.put("en", "category");
+        map.put("ko", "분야");
+        list.add(map);
+
+        map = new HashMap<>();
+        map.put("en", "period");
+        map.put("ko", "기간");
+        list.add(map);
+
+        map = new HashMap<>();
+        map.put("en", "time");
+        map.put("ko", "시간");
+        list.add(map);
+
+        map = new HashMap<>();
+        map.put("en", "count");
+        map.put("ko", "정원");
+        list.add(map);
+
+        map = new HashMap<>();
+        map.put("en", "interest");
+        map.put("ko", "관심");
+        list.add(map);
+
+        return list;
+
+    }
+    public static ArrayList<HashMap<String, String>> getShowTuteeList(){
+
+        ArrayList<HashMap<String, String>> list = new ArrayList<>();
+
+        HashMap<String, String> map = new HashMap<>();
+        map.put("en", "contents");
+        map.put("ko", "소개");
+        list.add(map);
+
+        map = new HashMap<>();
+        map.put("en", "category");
+        map.put("ko", "분야");
+        list.add(map);
+
+        map = new HashMap<>();
+        map.put("en", "time");
+        map.put("ko", "시간");
+        list.add(map);
+
+        map = new HashMap<>();
+        map.put("en", "participant");
+        map.put("ko", "참여한 튜터");
+        list.add(map);
 
         return list;
 

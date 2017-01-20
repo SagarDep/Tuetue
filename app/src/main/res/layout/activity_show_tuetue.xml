@@ -68,15 +68,16 @@
             <com.akexorcist.roundcornerprogressbar.TextRoundCornerProgressBar
                 xmlns:prg="http://schemas.android.com/apk/res-auto"
                 android:id="@+id/progress"
-                android:layout_height="30dp"
-                android:layout_width="320dp"
-                android:layout_marginTop="10dp"
-                android:layout_marginBottom="10dp"
-                prg:rcBackgroundPadding="5dp"
+                android:layout_height="20dp"
+                android:layout_width="match_parent"
+                android:layout_marginTop="5dp"
+                android:layout_marginBottom="5dp"
+                android:layout_marginRight="10dp"
+                android:layout_marginLeft="10dp"
                 prg:rcProgressColor="@color/green"
                 prg:rcBackgroundColor="@color/dark_gray"
                 prg:rcTextProgressColor="@color/white"
-                prg:rcTextProgressSize="14sp"
+                prg:rcTextProgressSize="12sp"
                 />
 
         </RelativeLayout>
@@ -128,124 +129,117 @@
 
 
     <LinearLayout
-        android:id="@+id/rl_profile"
-        android:layout_below="@+id/fm_progress"
+        android:id="@+id/li_profile"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_below="@+id/fm_progress"
         android:orientation="vertical"
         >
-
         <RelativeLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
+            android:id="@+id/rl_profile"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/profile_background"
+            >
 
-            <ImageView
-                android:id="@+id/rl_profile_img"
-                android:layout_width="80dp"
-                android:layout_height="80dp"
-                android:padding="10dp"
-                />
-
-
-            <LinearLayout
+            <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_centerVertical="true"
-                android:layout_toRightOf="@+id/rl_profile_img"
-                android:padding="5dp"
+                android:layout_toLeftOf="@+id/tv_dday"
                 >
 
-                <TextView
-                    android:id="@+id/nickname"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Name"
-                    android:textColor="@color/black"
-                    />
-                <TextView
-                    android:id="@+id/email"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="thisisemail@gmail.com"
-                    android:textColor="@color/dark_gray"
+                <ImageView
+                    android:id="@+id/profileImg"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:layout_margin="10dp"
                     />
 
-            </LinearLayout>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_toRightOf="@+id/profileImg"
+                    android:layout_centerVertical="true"
+                    >
 
+                    <TextView
+                        android:id="@+id/tv_nickname"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textSize="12sp"
+                        android:textColor="@color/dark_gray"
+                        />
 
+                    <TextView
+                        android:id="@+id/tv_email"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textSize="12sp"
+                        android:textColor="@color/dark_gray"
+                        />
+
+                </LinearLayout>
+
+            </RelativeLayout>
+
+            <TextView
+                android:id="@+id/tv_dday"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="13sp"
+                android:textColor="@color/dark_gray"
+                android:layout_gravity="right"
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true"
+                android:layout_marginRight="10dp"
+                android:layout_marginLeft="10dp"
+                />
 
         </RelativeLayout>
-
 
         <View
             android:layout_width="match_parent"
             android:layout_height="1dip"
-            android:background="#bebebe"
+            android:background="@color/light_gray"
             />
-
 
     </LinearLayout>
 
-
-
-    <RelativeLayout
-        android:id="@+id/rv_root"
+    <ScrollView
+        android:id="@+id/sv"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@+id/rl_profile"
-        android:layout_above="@+id/rl_join"
-        >
-
-        <android.support.v7.widget.RecyclerView
-            android:layout_height="match_parent"
-            android:layout_width="match_parent"
-            android:id="@+id/rv"
-            >
-        </android.support.v7.widget.RecyclerView>
-
-
-    </RelativeLayout>
-
-    <RelativeLayout
-        android:id="@+id/rl_join"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:layout_alignParentBottom="true"
-        android:background="@color/red_btn_bg_color"
+        android:layout_below="@+id/li_profile"
+        android:layout_above="@+id/join"
+        android:background="@color/profile_background"
         >
 
         <LinearLayout
+            android:id="@+id/li_info_field"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center"
+            android:layout_height="wrap_content"
             android:orientation="vertical"
             >
 
-            <TextView
-                android:id="@+id/cost"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="비용"
-                android:textColor="@color/light_gray"
-                android:textSize="12sp"
-                android:gravity="center"
-                />
-
-            <TextView
-                android:id="@+id/join"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="참가하기"
-                android:textColor="@color/white"
-                android:textSize="16sp"
-                android:gravity="center"
-                />
-
         </LinearLayout>
 
-    </RelativeLayout>
+    </ScrollView>
 
+
+
+    <TextView
+        android:id="@+id/join"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:text="참가하기"
+        android:textColor="@color/white"
+        android:textSize="14sp"
+        android:gravity="center"
+        android:layout_alignParentBottom="true"
+        android:background="@color/colorPrimary"
+        android:visibility="gone"
+        />
 
 
 </RelativeLayout>
