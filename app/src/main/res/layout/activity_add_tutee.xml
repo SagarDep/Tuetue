@@ -64,58 +64,75 @@
             android:orientation="vertical"
             >
 
-            <Button
-                android:id="@+id/category"
-                android:layout_width="match_parent"
-                android:layout_height="40dp"
-                android:background="@color/dark_gray"
-                android:text="카테고리를 선택하세요."
-                android:textColor="@color/white"
-                />
-
-            <com.rengwuxian.materialedittext.MaterialEditText
-                android:id="@+id/cost"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="5dp"
-                android:layout_marginBottom="10dp"
-                android:layout_centerHorizontal="true"
-                android:hint="비용"
-                android:inputType="number"
-                android:textCursorDrawable="@drawable/text_cursor_cyan"
-                app:met_baseColor="@color/dark_gray"
-                app:met_floatingLabel="highlight"
-                app:met_primaryColor="@color/dark_gray"
-                app:met_singleLineEllipsis="false"
-                />
+            <!--<Button-->
+                <!--android:id="@+id/category"-->
+                <!--android:layout_width="match_parent"-->
+                <!--android:layout_height="40dp"-->
+                <!--android:background="@color/dark_gray"-->
+                <!--android:text="카테고리를 선택하세요."-->
+                <!--android:textColor="@color/white"-->
+                <!--/>-->
 
             <!--<com.rengwuxian.materialedittext.MaterialEditText-->
-                <!--android:id="@+id/count"-->
+                <!--android:id="@+id/cost"-->
                 <!--android:layout_width="match_parent"-->
                 <!--android:layout_height="wrap_content"-->
                 <!--android:padding="5dp"-->
                 <!--android:layout_marginBottom="10dp"-->
                 <!--android:layout_centerHorizontal="true"-->
-                <!--android:hint="정원"-->
+                <!--android:hint="비용"-->
                 <!--android:inputType="number"-->
                 <!--android:textCursorDrawable="@drawable/text_cursor_cyan"-->
                 <!--app:met_baseColor="@color/dark_gray"-->
                 <!--app:met_floatingLabel="highlight"-->
-                <!--app:met_maxCharacters="20"-->
                 <!--app:met_primaryColor="@color/dark_gray"-->
                 <!--app:met_singleLineEllipsis="false"-->
                 <!--/>-->
 
+            <!--&lt;!&ndash;<com.rengwuxian.materialedittext.MaterialEditText&ndash;&gt;-->
+                <!--&lt;!&ndash;android:id="@+id/count"&ndash;&gt;-->
+                <!--&lt;!&ndash;android:layout_width="match_parent"&ndash;&gt;-->
+                <!--&lt;!&ndash;android:layout_height="wrap_content"&ndash;&gt;-->
+                <!--&lt;!&ndash;android:padding="5dp"&ndash;&gt;-->
+                <!--&lt;!&ndash;android:layout_marginBottom="10dp"&ndash;&gt;-->
+                <!--&lt;!&ndash;android:layout_centerHorizontal="true"&ndash;&gt;-->
+                <!--&lt;!&ndash;android:hint="정원"&ndash;&gt;-->
+                <!--&lt;!&ndash;android:inputType="number"&ndash;&gt;-->
+                <!--&lt;!&ndash;android:textCursorDrawable="@drawable/text_cursor_cyan"&ndash;&gt;-->
+                <!--&lt;!&ndash;app:met_baseColor="@color/dark_gray"&ndash;&gt;-->
+                <!--&lt;!&ndash;app:met_floatingLabel="highlight"&ndash;&gt;-->
+                <!--&lt;!&ndash;app:met_maxCharacters="20"&ndash;&gt;-->
+                <!--&lt;!&ndash;app:met_primaryColor="@color/dark_gray"&ndash;&gt;-->
+                <!--&lt;!&ndash;app:met_singleLineEllipsis="false"&ndash;&gt;-->
+                <!--&lt;!&ndash;/>&ndash;&gt;-->
+
+
+            <!--&lt;!&ndash;<com.rengwuxian.materialedittext.MaterialEditText&ndash;&gt;-->
+                <!--&lt;!&ndash;android:id="@+id/limit"&ndash;&gt;-->
+                <!--&lt;!&ndash;android:layout_width="match_parent"&ndash;&gt;-->
+                <!--&lt;!&ndash;android:layout_height="wrap_content"&ndash;&gt;-->
+                <!--&lt;!&ndash;android:padding="5dp"&ndash;&gt;-->
+                <!--&lt;!&ndash;android:layout_marginBottom="10dp"&ndash;&gt;-->
+                <!--&lt;!&ndash;android:layout_centerHorizontal="true"&ndash;&gt;-->
+                <!--&lt;!&ndash;android:hint="모집기한"&ndash;&gt;-->
+                <!--&lt;!&ndash;android:inputType="date"&ndash;&gt;-->
+                <!--&lt;!&ndash;android:textCursorDrawable="@drawable/text_cursor_cyan"&ndash;&gt;-->
+                <!--&lt;!&ndash;app:met_baseColor="@color/dark_gray"&ndash;&gt;-->
+                <!--&lt;!&ndash;app:met_floatingLabel="highlight"&ndash;&gt;-->
+                <!--&lt;!&ndash;app:met_maxCharacters="20"&ndash;&gt;-->
+                <!--&lt;!&ndash;app:met_primaryColor="@color/dark_gray"&ndash;&gt;-->
+                <!--&lt;!&ndash;app:met_singleLineEllipsis="false"&ndash;&gt;-->
+                <!--&lt;!&ndash;/>&ndash;&gt;-->
+
 
             <!--<com.rengwuxian.materialedittext.MaterialEditText-->
-                <!--android:id="@+id/limit"-->
+                <!--android:id="@+id/time"-->
                 <!--android:layout_width="match_parent"-->
                 <!--android:layout_height="wrap_content"-->
                 <!--android:padding="5dp"-->
                 <!--android:layout_marginBottom="10dp"-->
                 <!--android:layout_centerHorizontal="true"-->
-                <!--android:hint="모집기한"-->
-                <!--android:inputType="date"-->
+                <!--android:hint="시간"-->
                 <!--android:textCursorDrawable="@drawable/text_cursor_cyan"-->
                 <!--app:met_baseColor="@color/dark_gray"-->
                 <!--app:met_floatingLabel="highlight"-->
@@ -124,38 +141,168 @@
                 <!--app:met_singleLineEllipsis="false"-->
                 <!--/>-->
 
+            <!--<com.rengwuxian.materialedittext.MaterialEditText-->
+                <!--android:id="@+id/contents"-->
+                <!--android:layout_width="match_parent"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:padding="5dp"-->
+                <!--android:layout_marginBottom="10dp"-->
+                <!--android:layout_centerHorizontal="true"-->
+                <!--android:hint="내용"-->
+                <!--android:textCursorDrawable="@drawable/text_cursor_cyan"-->
+                <!--app:met_baseColor="@color/dark_gray"-->
+                <!--app:met_floatingLabel="highlight"-->
+                <!--app:met_maxCharacters="20"-->
+                <!--app:met_primaryColor="@color/dark_gray"-->
+                <!--app:met_singleLineEllipsis="false"-->
+                <!--/>-->
 
-            <com.rengwuxian.materialedittext.MaterialEditText
-                android:id="@+id/time"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:padding="5dp"
-                android:layout_marginBottom="10dp"
-                android:layout_centerHorizontal="true"
-                android:hint="시간"
-                android:textCursorDrawable="@drawable/text_cursor_cyan"
-                app:met_baseColor="@color/dark_gray"
-                app:met_floatingLabel="highlight"
-                app:met_maxCharacters="20"
-                app:met_primaryColor="@color/dark_gray"
-                app:met_singleLineEllipsis="false"
-                />
+                android:orientation="vertical"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="10dp"
+                android:layout_marginBottom="5dp"
+                >
 
-            <com.rengwuxian.materialedittext.MaterialEditText
-                android:id="@+id/contents"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="5dp"
-                android:layout_marginBottom="10dp"
-                android:layout_centerHorizontal="true"
-                android:hint="내용"
-                android:textCursorDrawable="@drawable/text_cursor_cyan"
-                app:met_baseColor="@color/dark_gray"
-                app:met_floatingLabel="highlight"
-                app:met_maxCharacters="20"
-                app:met_primaryColor="@color/dark_gray"
-                app:met_singleLineEllipsis="false"
-                />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:minHeight="40dp"
+                    >
+
+                    <TextView
+                        android:id="@+id/tv_contents"
+                        android:layout_width="60dp"
+                        android:layout_height="wrap_content"
+                        android:text="소개"
+                        android:textSize="12sp"
+                        android:textColor="@color/profile_title"
+                        android:gravity="right"
+                        android:paddingRight="5dp"
+                        />
+
+                    <com.rengwuxian.materialedittext.MaterialEditText
+                        android:id="@+id/edit_contents"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="내용을 작성해주세요."
+                        android:textSize="12sp"
+                        android:textColor="@color/profile_content"
+                        app:met_minCharacters="1"
+                        app:met_singleLineEllipsis="false"
+                        app:met_primaryColor="@color/profile_content"
+                        />
+
+                </LinearLayout>
+
+                <!-- 시간 입력 -->
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:minHeight="40dp"
+                    >
+
+                    <TextView
+                        android:id="@+id/tv_time"
+                        android:layout_width="60dp"
+                        android:layout_height="wrap_content"
+                        android:text="시간"
+                        android:textSize="12sp"
+                        android:textColor="@color/profile_title"
+                        android:gravity="right"
+                        android:paddingRight="5dp"
+                        />
+
+                    <com.rengwuxian.materialedittext.MaterialEditText
+                        android:id="@+id/edit_time"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="원하는 시간을 자유롭게 작성해주세요."
+                        android:textSize="12sp"
+                        android:textColor="@color/profile_content"
+                        app:met_minCharacters="1"
+                        app:met_singleLineEllipsis="true"
+                        app:met_primaryColor="@color/profile_content"
+                        />
+
+                </LinearLayout>
+
+                <!-- 모집기한 -->
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:minHeight="40dp"
+                    >
+
+                    <TextView
+                        android:id="@+id/tv_limit"
+                        android:layout_width="60dp"
+                        android:layout_height="wrap_content"
+                        android:text="모집기한"
+                        android:textSize="12sp"
+                        android:textColor="@color/profile_title"
+                        android:gravity="right"
+                        android:paddingRight="5dp"
+                        />
+
+                    <TextView
+                        android:id="@+id/limit_btn"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="선택"
+                        android:textColor="@color/colorPrimary"
+                        android:textStyle="bold"
+                        android:textSize="12sp"
+                        android:gravity="center"
+                        />
+
+                </LinearLayout>
+
+                <!-- 카테고리 -->
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:minHeight="40dp"
+                    >
+
+                    <TextView
+                        android:id="@+id/tv_category"
+                        android:layout_width="60dp"
+                        android:layout_height="wrap_content"
+                        android:text="카테고리"
+                        android:textSize="12sp"
+                        android:textColor="@color/profile_title"
+                        android:gravity="right"
+                        android:paddingRight="5dp"
+                        />
+
+
+                    <TextView
+                        android:id="@+id/category_btn"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="선택"
+                        android:textColor="@color/colorPrimary"
+                        android:textStyle="bold"
+                        android:textSize="12sp"
+                        android:gravity="center"
+                        />
+
+                </LinearLayout>
+
+                <!-- 필드 종료 -->
+
+
+            </LinearLayout>
 
         </LinearLayout>
 

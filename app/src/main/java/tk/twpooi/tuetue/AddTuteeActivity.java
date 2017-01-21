@@ -1,6 +1,8 @@
 package tk.twpooi.tuetue;
 
+import android.app.ProgressDialog;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -12,10 +14,14 @@ import android.text.TextWatcher;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.TextView;
 
+import com.flyco.dialog.listener.OnBtnClickL;
 import com.flyco.dialog.listener.OnOperItemClickL;
+import com.flyco.dialog.widget.MaterialDialog;
 import com.flyco.dialog.widget.NormalListDialog;
 import com.rengwuxian.materialedittext.MaterialEditText;
+import com.wdullaer.materialdatetimepicker.date.DatePickerDialog;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -33,41 +39,44 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
 import cn.pedant.SweetAlert.SweetAlertDialog;
+import tk.twpooi.tuetue.util.AdditionalFunc;
+import tk.twpooi.tuetue.util.ParsePHP;
 
 public class AddTuteeActivity extends AppCompatActivity {
 
     private MyHandler handler = new MyHandler();
-    private final int MSG_MESSAGE_LOAD_DATA_START = 1001;
-    private final int MSG_MESSAGE_LOAD_DATA_FINISH = 1002;
-    private final int MSG_MESSAGE_LOAD_DATA_FINISH2 = 1003;
-    private final int MSG_MESSAGE_ERROR = 1004;
+    private final int MSG_MESSAGE_SAVE_SUCCESS = 1000;
+    private final int MSG_MESSAGE_SAVE_ERROR = 1001;
 
-    private SweetAlertDialog pDialog;
+//    private SweetAlertDialog pDialog;
 
-    private Button categoryBtn;
-    private MaterialEditText me_cost;
-//    private MaterialEditText me_count;
-//    private MaterialEditText me_limit;
-    private MaterialEditText me_time;
-    private MaterialEditText me_contents;
+    private TextView categoryBtn;
+    private MaterialEditText edit_time;
+    private MaterialEditText edit_contents;
+    private TextView limitBtn;
+
     private Button addBtn;
 
     private boolean isCategory;
+    private boolean isLimit;
 
-    private SaveTutee saveTutee;
+    private long ms_limit;
+
+    private ProgressDialog progressDialog;
+
+//    private SaveTutee saveTutee;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_tutee);
-
-
 
         init();
 
@@ -82,9 +91,10 @@ public class AddTuteeActivity extends AppCompatActivity {
             @Override
             public void onOperItemClick(AdapterView<?> parent, View view, int position, long id) {
                 String ca = StartActivity.CATEGORY_LIST[position];
-                categoryBtn.setText(ca);
                 isCategory = true;
-                categoryBtn.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.red_btn_bg_pressed_color));
+                setDateBtn(categoryBtn, ca);
+//                categoryBtn.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.red_btn_bg_pressed_color));
+                checkAddable();
                 dialog.dismiss();
             }
         });
@@ -93,6 +103,7 @@ public class AddTuteeActivity extends AppCompatActivity {
 
     private void init(){
 
+        progressDialog = new ProgressDialog(this);
         TextWatcher textWatcher = new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
@@ -110,23 +121,40 @@ public class AddTuteeActivity extends AppCompatActivity {
             }
         };
 
-        categoryBtn = (Button) findViewById(R.id.category);
+        categoryBtn = (TextView) findViewById(R.id.category_btn);
         categoryBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 selectCategory();
             }
         });
-        me_cost = (MaterialEditText)findViewById(R.id.cost);
-        me_cost.addTextChangedListener(textWatcher);
-//        me_count = (MaterialEditText)findViewById(R.id.count);
-//        me_count.addTextChangedListener(textWatcher);
-//        me_limit = (MaterialEditText)findViewById(R.id.limit);
-//        me_limit.addTextChangedListener(textWatcher);
-        me_time = (MaterialEditText)findViewById(R.id.time);
-        me_time.addTextChangedListener(textWatcher);
-        me_contents = (MaterialEditText)findViewById(R.id.contents);
-        me_contents.addTextChangedListener(textWatcher);
+        edit_time = (MaterialEditText)findViewById(R.id.edit_time);
+        edit_time.addTextChangedListener(textWatcher);
+        edit_contents = (MaterialEditText)findViewById(R.id.edit_contents);
+        edit_contents.addTextChangedListener(textWatcher);
+
+        limitBtn = (TextView) findViewById(R.id.limit_btn);
+        limitBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Calendar now = Calendar.getInstance();
+                DatePickerDialog dpd = DatePickerDialog.newInstance(
+                        new DatePickerDialog.OnDateSetListener() {
+                            @Override
+                            public void onDateSet(DatePickerDialog view, int year, int monthOfYear, int dayOfMonth) {
+                                isLimit = true;
+                                setDateBtn(limitBtn, String.format("%s년 %s월 %s일", year, monthOfYear+1, dayOfMonth));
+                                ms_limit = AdditionalFunc.getMilliseconds(year, monthOfYear+1, dayOfMonth);
+                                checkAddable();
+                            }
+                        },
+                        now.get(Calendar.YEAR),
+                        now.get(Calendar.MONTH),
+                        now.get(Calendar.DAY_OF_MONTH)
+                );
+                dpd.show(getFragmentManager(), "모집기한");
+            }
+        });
 
         addBtn = (Button)findViewById(R.id.addBtn);
         addBtn.setEnabled(false);
@@ -134,70 +162,49 @@ public class AddTuteeActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
 
-                GetUserInfo gui = new GetUserInfo(StartActivity.USER_ID);
-                gui.start();
-                try{
-                    gui.join();
-                }catch (Exception e){
-
-                }
-
-                String id = getID();
-                String userId = StartActivity.USER_ID;
-                String img = gui.getReturnList().get(0).get("img");
-                String nickname = gui.getReturnList().get(0).get("nickname");
-
+                HashMap<String, Object> user = StartActivity.USER_DATA;
+                String contents = edit_contents.getText().toString();
+                String time = edit_time.getText().toString();
                 String category = categoryBtn.getText().toString();
-                String cost = me_cost.getText().toString();
-//                String count = me_count.getText().toString();
-//                String limit = me_limit.getText().toString();
-                String time = me_time.getText().toString();
-                String contents = me_contents.getText().toString();
 
-                HashMap<String, String> map = new HashMap<String, String>();
-                map.put("id", id);
-                map.put("userid", userId);
-                map.put("img", img);
-                map.put("nickname", nickname);
+                HashMap<String, String> map = new HashMap<>();
+                map.put("service", "saveTutee");
+                map.put("id", getID());
+                map.put("userid", StartActivity.USER_ID);
+                map.put("img", (String)user.get("img"));
+                map.put("email", (String)user.get("email"));
+                map.put("nickname", (String)user.get("nickname"));
                 map.put("category", category);
-                map.put("cost", cost);
-//                map.put("count", count);
-//                map.put("limit", limit);
+                map.put("limit", Long.toString(ms_limit));
                 map.put("time", time);
                 map.put("contents", contents);
 
-                gui.interrupt();
-
-                saveTutee = new SaveTutee(map);
-                saveTutee.start();
+                progressDialog.show();
+                new ParsePHP(Information.MAIN_SERVER_ADDRESS, map){
+                    @Override
+                    protected void afterThreadFinish(String data) {
+                        if("1".equals(data)){
+                            handler.sendMessage(handler.obtainMessage(MSG_MESSAGE_SAVE_SUCCESS));
+                        }else{
+                            handler.sendMessage(handler.obtainMessage(MSG_MESSAGE_SAVE_ERROR));
+                        }
+                    }
+                }.start();
 
             }
         });
-
-        pDialog = new SweetAlertDialog(this, SweetAlertDialog.PROGRESS_TYPE);
-        pDialog.getProgressHelper().setBarColor(Color.parseColor("#A5DC86"));
-        pDialog.setTitleText("Loading");
-        pDialog.setCancelable(false);
 
         checkAddable();
 
     }
 
-    private boolean isValid(MaterialEditText me){
-
-        return me.getText().toString().length() >= 1;
-
-    }
-
     private void checkAddable(){
 
-        boolean cost = isValid(me_cost);
-//        boolean count = isValid(me_count);
-//        boolean limit = isValid(me_limit);
-        boolean time = isValid(me_time);
-        boolean contents = isValid(me_contents);
+        boolean isTime = edit_time.isCharactersCountValid();
+        boolean isContents = edit_contents.isCharactersCountValid();
 
-        boolean setting = isCategory && cost && time && contents;
+        boolean setting = isCategory && isTime && isContents && isLimit;
+
         addBtn.setEnabled(setting);
         if(setting){
             addBtn.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.red_btn_bg_color));
@@ -221,125 +228,11 @@ public class AddTuteeActivity extends AppCompatActivity {
         return id;
     }
 
-    private class GetUserInfo extends Thread{
+    private void setDateBtn(TextView tv, String text){
 
-        private boolean result;
-        private HashMap<String, String> map;
-        private ArrayList<HashMap<String, String>> returnList;
-
-        public GetUserInfo(String id){
-            map = new HashMap<>();
-            map.put("id", id);
-            result = false;
-        }
-
-        public void run(){
-
-            Message msg;
-            msg = handler.obtainMessage(MSG_MESSAGE_LOAD_DATA_START);
-            handler.sendMessage(msg);
-
-            String addr = Information.MAIN_SERVER_ADDRESS + "getUser.php";
-            String response = new String();
-
-            try {
-                URL url = new URL(addr);
-                HttpURLConnection conn = (HttpURLConnection) url.openConnection(); // 해당 URL에 연결
-
-                conn.setConnectTimeout(10000); // 타임아웃: 10초
-                conn.setUseCaches(false); // 캐시 사용 안 함
-                conn.setRequestMethod("POST"); // POST로 연결
-                conn.setDoInput(true);
-                conn.setDoOutput(true);
-
-                if (map != null) { // 웹 서버로 보낼 매개변수가 있는 경우우
-                    OutputStream os = conn.getOutputStream(); // 서버로 보내기 위한 출력 스트림
-                    BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os, "UTF-8")); // UTF-8로 전송
-                    bw.write(getPostString(map)); // 매개변수 전송
-                    bw.flush();
-                    bw.close();
-                    os.close();
-                }
-
-                if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) { // 연결에 성공한 경우
-                    String line;
-                    BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream())); // 서버의 응답을 읽기 위한 입력 스트림
-
-                    while ((line = br.readLine()) != null) // 서버의 응답을 읽어옴
-                        response += line;
-                }
-
-                conn.disconnect();
-            } catch (MalformedURLException me) {
-                me.printStackTrace();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            String str = response.toString();
-            returnList = new ArrayList<>();
-            try {
-                // PHP에서 받아온 JSON 데이터를 JSON오브젝트로 변환
-                JSONObject jObject = new JSONObject(str);
-                // results라는 key는 JSON배열로 되어있다.
-                JSONArray results = jObject.getJSONArray("result");
-                String countTemp = (String)jObject.get("num_result");
-                int count = Integer.parseInt(countTemp);
-
-//                HashMap<String, String> hashTemp = new HashMap<>();
-                for ( int i = 0; i < count; ++i ) {
-                    JSONObject temp = results.getJSONObject(i);
-
-                    HashMap<String, String> hashTemp = new HashMap<>();
-                    hashTemp.put("userId", (String)temp.get("id"));
-                    hashTemp.put("intro", (String)temp.get("intro"));
-                    hashTemp.put("img", (String)temp.get("img"));
-                    hashTemp.put("nickname", (String)temp.get("nickname"));
-
-                    returnList.add(hashTemp);
-
-                }
-
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-
-            msg = handler.obtainMessage(MSG_MESSAGE_LOAD_DATA_FINISH);
-            handler.sendMessage(msg);
-
-        }
-
-        private String getPostString(HashMap<String, String> map) {
-            StringBuilder result = new StringBuilder();
-            boolean first = true; // 첫 번째 매개변수 여부
-
-            for (Map.Entry<String, String> entry : map.entrySet()) {
-                if (first)
-                    first = false;
-                else // 첫 번째 매개변수가 아닌 경우엔 앞에 &를 붙임
-                    result.append("&");
-
-                try { // UTF-8로 주소에 키와 값을 붙임
-                    result.append(URLEncoder.encode(entry.getKey(), "UTF-8"));
-                    result.append("=");
-                    result.append(URLEncoder.encode(entry.getValue(), "UTF-8"));
-                } catch (UnsupportedEncodingException ue) {
-                    ue.printStackTrace();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-
-            return result.toString();
-        }
-
-        public boolean getResult(){
-            return result;
-        }
-
-        public ArrayList<HashMap<String, String>> getReturnList(){
-            return returnList;
-        }
+        tv.setText(text);
+        tv.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.dark_gray));
+        tv.setTypeface(Typeface.DEFAULT);
 
     }
 
@@ -349,29 +242,37 @@ public class AddTuteeActivity extends AppCompatActivity {
         {
             switch (msg.what)
             {
-                case MSG_MESSAGE_LOAD_DATA_START:
-                    pDialog.show();
+                case MSG_MESSAGE_SAVE_SUCCESS:
+                    progressDialog.hide();
+                    final MaterialDialog dialog = new MaterialDialog(AddTuteeActivity.this);
+                    dialog.title("확인")
+                            .content("성공적으로 게시하였습니다.")
+                            .btnNum(1)
+                            .btnText("확인")
+                            .show();
+                    dialog.setOnBtnClickL(new OnBtnClickL() {
+                        @Override
+                        public void onBtnClick() {
+                            dialog.dismiss();
+                            finish();
+                        }
+                    });
                     break;
-                case MSG_MESSAGE_LOAD_DATA_FINISH:
-                    pDialog.hide();
-                    break;
-                case MSG_MESSAGE_LOAD_DATA_FINISH2:
-                    pDialog.setTitleText("성공")
-                            .setContentText("성공적으로 등록하였습니다.")
-                            .setConfirmText("확인")
-                            .setConfirmClickListener(new SweetAlertDialog.OnSweetClickListener() {
-                                @Override
-                                public void onClick(SweetAlertDialog sweetAlertDialog) {
-                                    pDialog.dismiss();
-                                    finish();
-                                }
-                            })
-                            .changeAlertType(SweetAlertDialog.SUCCESS_TYPE);
-
-                    break;
-                case MSG_MESSAGE_ERROR:
-                    pDialog.hide();
-                    showSnackbar("잠시 후 다시 시도해주세요.");
+                case MSG_MESSAGE_SAVE_ERROR:
+                    progressDialog.hide();
+                    final MaterialDialog dialog2 = new MaterialDialog(AddTuteeActivity.this);
+                    dialog2.title("에러")
+                            .content("잠시 후에 다시 시도해주세요...")
+                            .btnNum(1)
+                            .btnText("확인")
+                            .show();
+                    dialog2.setOnBtnClickL(new OnBtnClickL() {
+                        @Override
+                        public void onBtnClick() {
+                            dialog2.dismiss();
+                            finish();
+                        }
+                    });
                     break;
                 default:
                     break;
@@ -379,107 +280,19 @@ public class AddTuteeActivity extends AppCompatActivity {
         }
     }
 
-    private class SaveTutee extends Thread{
-
-        private boolean result;
-        private HashMap<String, String> map;
-
-        public SaveTutee(HashMap<String, String> map){
-            this.map = map;
-            result = false;
-        }
-
-        public void run(){
-
-            Message msg;
-            msg = handler.obtainMessage(MSG_MESSAGE_LOAD_DATA_START);
-            handler.sendMessage(msg);
-
-            String addr = Information.MAIN_SERVER_ADDRESS + "saveTutee.php";
-            String response = new String();
-
-            try {
-                URL url = new URL(addr);
-                HttpURLConnection conn = (HttpURLConnection) url.openConnection(); // 해당 URL에 연결
-
-                conn.setConnectTimeout(10000); // 타임아웃: 10초
-                conn.setUseCaches(false); // 캐시 사용 안 함
-                conn.setRequestMethod("POST"); // POST로 연결
-                conn.setDoInput(true);
-                conn.setDoOutput(true);
-
-                if (map != null) { // 웹 서버로 보낼 매개변수가 있는 경우우
-                    OutputStream os = conn.getOutputStream(); // 서버로 보내기 위한 출력 스트림
-                    BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os, "UTF-8")); // UTF-8로 전송
-                    bw.write(getPostString(map)); // 매개변수 전송
-                    bw.flush();
-                    bw.close();
-                    os.close();
-                }
-
-                if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) { // 연결에 성공한 경우
-                    String line;
-                    BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream())); // 서버의 응답을 읽기 위한 입력 스트림
-
-                    while ((line = br.readLine()) != null) // 서버의 응답을 읽어옴
-                        response += line;
-                }
-
-                conn.disconnect();
-            } catch (MalformedURLException me) {
-                me.printStackTrace();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            if(response.equals("1")){
-                result = true;
-                msg = handler.obtainMessage(MSG_MESSAGE_LOAD_DATA_FINISH2);
-                handler.sendMessage(msg);
-            }else{
-                result = false;
-                msg = handler.obtainMessage(MSG_MESSAGE_ERROR);
-                handler.sendMessage(msg);
-            }
-
-
-        }
-
-        private String getPostString(HashMap<String, String> map) {
-            StringBuilder result = new StringBuilder();
-            boolean first = true; // 첫 번째 매개변수 여부
-
-            for (Map.Entry<String, String> entry : map.entrySet()) {
-                if (first)
-                    first = false;
-                else // 첫 번째 매개변수가 아닌 경우엔 앞에 &를 붙임
-                    result.append("&");
-
-                try { // UTF-8로 주소에 키와 값을 붙임
-                    result.append(URLEncoder.encode(entry.getKey(), "UTF-8"));
-                    result.append("=");
-                    result.append(URLEncoder.encode(entry.getValue(), "UTF-8"));
-                } catch (UnsupportedEncodingException ue) {
-                    ue.printStackTrace();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-
-            return result.toString();
-        }
-
-        public boolean getResult(){
-            return result;
-        }
-
-    }
-
     public void showSnackbar(String msg){
         Snackbar snackbar = Snackbar.make(getWindow().getDecorView().getRootView(), msg, Snackbar.LENGTH_SHORT);
         View view = snackbar.getView();
         view.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.snackbar_color));
         snackbar.show();
+    }
+
+    @Override
+    public void onDestroy(){
+        super.onDestroy();
+        if(progressDialog != null){
+            progressDialog.dismiss();
+        }
     }
 
 }

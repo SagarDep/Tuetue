@@ -162,7 +162,6 @@ public class AdditionalFunc {
 
     public static ArrayList<HashMap<String, Object>> getTutorList(String data){
 
-        System.out.println(data);
         ArrayList<HashMap<String, Object>> list = new ArrayList<>();
 
         try {
@@ -183,7 +182,6 @@ public class AdditionalFunc {
                 hashTemp.put("email", (String)temp.get("email"));
                 hashTemp.put("nickname", (String)temp.get("nickname"));
                 hashTemp.put("category", (String)temp.get("category"));
-                hashTemp.put("cost", Integer.parseInt((String)temp.get("cost")));
                 hashTemp.put("count", Integer.parseInt((String)temp.get("count")));
                 hashTemp.put("limit", Long.parseLong((String)temp.get("limit")));
                 hashTemp.put("start", Long.parseLong((String)temp.get("limit")));
@@ -244,7 +242,6 @@ public class AdditionalFunc {
                 hashTemp.put("email", (String)temp.get("email"));
                 hashTemp.put("nickname", (String)temp.get("nickname"));
                 hashTemp.put("category", (String)temp.get("category"));
-                hashTemp.put("cost", Integer.parseInt((String)temp.get("cost")));
                 hashTemp.put("limit", Long.parseLong((String)temp.get("limit")));
                 hashTemp.put("time", (String)temp.get("time"));
                 hashTemp.put("contents", (String)temp.get("contents"));
