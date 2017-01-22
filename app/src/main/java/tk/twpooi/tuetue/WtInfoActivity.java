@@ -255,9 +255,9 @@ public class WtInfoActivity extends AppCompatActivity {
     private void saveUserInformation(){
 
         email = editEmail.getText().toString();
-        String nickname = editNickName.getText().toString();
-        String intro = editIntro.getText().toString();
-        String contact = editContact.getText().toString();
+        String nickname = AdditionalFunc.replaceNewLineString(editNickName.getText().toString());
+        String intro = AdditionalFunc.replaceNewLineString(editIntro.getText().toString());
+        String contact = AdditionalFunc.replaceNewLineString(editContact.getText().toString());
         String inter = "";
         for(int i=0; i<interest.size(); i++){
             inter += interest.get(i);

@@ -239,9 +239,9 @@ public class AddTutorActivity extends AppCompatActivity {
                 }else{
 
                     HashMap<String, Object> user = StartActivity.USER_DATA;
-                    String contents = edit_contents.getText().toString();
+                    String contents = AdditionalFunc.replaceNewLineString(edit_contents.getText().toString());
                     String count = edit_count.getText().toString();
-                    String time = edit_time.getText().toString();
+                    String time = AdditionalFunc.replaceNewLineString(edit_time.getText().toString());
                     String category = categoryBtn.getText().toString();
 
                     HashMap<String, String> map = new HashMap<String, String>();
@@ -359,7 +359,6 @@ public class AddTutorActivity extends AppCompatActivity {
                         @Override
                         public void onBtnClick() {
                             dialog2.dismiss();
-                            finish();
                         }
                     });
                     break;

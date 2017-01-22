@@ -52,6 +52,13 @@ public class AdditionalFunc {
         System.exit(0);
     }
 
+    public static String replaceNewLineString(String s){
+
+        String str = s.replaceAll("\n", "\\\\n");
+        return str;
+
+    }
+
     public static long getMilliseconds(int year, int month, int day){
 
         long days = 0;

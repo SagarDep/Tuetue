@@ -163,8 +163,8 @@ public class AddTuteeActivity extends AppCompatActivity {
             public void onClick(View view) {
 
                 HashMap<String, Object> user = StartActivity.USER_DATA;
-                String contents = edit_contents.getText().toString();
-                String time = edit_time.getText().toString();
+                String contents = AdditionalFunc.replaceNewLineString(edit_contents.getText().toString());
+                String time = AdditionalFunc.replaceNewLineString(edit_time.getText().toString());
                 String category = categoryBtn.getText().toString();
 
                 HashMap<String, String> map = new HashMap<>();
@@ -183,6 +183,7 @@ public class AddTuteeActivity extends AppCompatActivity {
                 new ParsePHP(Information.MAIN_SERVER_ADDRESS, map){
                     @Override
                     protected void afterThreadFinish(String data) {
+                        System.out.println(data);
                         if("1".equals(data)){
                             handler.sendMessage(handler.obtainMessage(MSG_MESSAGE_SAVE_SUCCESS));
                         }else{
@@ -270,7 +271,6 @@ public class AddTuteeActivity extends AppCompatActivity {
                         @Override
                         public void onBtnClick() {
                             dialog2.dismiss();
-                            finish();
                         }
                     });
                     break;
