@@ -132,7 +132,7 @@ public class ProfileActivity extends Activity {
                 .into(mHeaderPicture);
         mHeaderLogo = (ImageView) findViewById(R.id.header_logo);
 
-        mActionBarTitleColor = ContextCompat.getColor(getApplicationContext(), R.color.white);
+        mActionBarTitleColor = ContextCompat.getColor(getApplicationContext(), R.color.dark_gray);
 
         mAlphaForegroundColorSpan = new AlphaForegroundColorSpan(mActionBarTitleColor);
 

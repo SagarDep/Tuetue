@@ -213,6 +213,7 @@
         android:layout_below="@+id/li_profile"
         android:layout_above="@+id/join"
         android:background="@color/profile_background"
+        android:scrollbars="vertical"
         >
 
         <LinearLayout

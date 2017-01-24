@@ -8,11 +8,9 @@ import android.os.Message;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -24,23 +22,8 @@ import com.akexorcist.roundcornerprogressbar.TextRoundCornerProgressBar;
 import com.squareup.picasso.Picasso;
 import com.wang.avi.AVLoadingIndicatorView;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
 
 import jp.wasabeef.picasso.transformations.CropCircleTransformation;
 import tk.twpooi.tuetue.util.AdditionalFunc;
@@ -61,12 +44,18 @@ public class ShowTuetueActivity extends AppCompatActivity {
 
     private FrameLayout fm_progress;
 
+    private Toolbar toolbar;
     private RelativeLayout rl_profile;
     private ImageView profileImg;
     private TextView tv_nickname;
     private TextView tv_email;
     private TextView tv_dday;
 
+    // Scroll View
+    private int HIDE_THRESHOLD = 20;
+    private int scrolledDistance = 0;
+    private boolean controlsVisible = true;
+    private int previous_scrollY = 0;
     private ScrollView sv;
     private LinearLayout infoField;
 
@@ -137,6 +126,7 @@ public class ShowTuetueActivity extends AppCompatActivity {
             fm_progress.setVisibility(View.GONE);
         }
 
+        toolbar = (Toolbar)findViewById(R.id.toolbar);
         rl_profile = (RelativeLayout)findViewById(R.id.rl_profile);
         profileImg = (ImageView)findViewById(R.id.profileImg);
         tv_nickname = (TextView)findViewById(R.id.tv_nickname);
@@ -144,18 +134,54 @@ public class ShowTuetueActivity extends AppCompatActivity {
         tv_dday = (TextView)findViewById(R.id.tv_dday);
 
         sv = (ScrollView)findViewById(R.id.sv);
+//        sv.getViewTreeObserver().addOnScrollChangedListener(new ViewTreeObserver.OnScrollChangedListener() {
+//            @Override
+//            public void onScrollChanged() {
+//                int svScrollY = Math.max(sv.getScrollY(), 0);
+//                int svY = (int)sv.getY();
+//                int scrollY = svScrollY - svY; // For ScrollView
+//                System.out.println(sv.getY() + ", " + sv.getPivotY() + ", " + sv.getRotationY() + ", " + sv.getScaleY() + ", " + sv.getScrollY() + ", " + sv.getTranslationY());
+//                System.out.println(scrollY);
+//                int dy = scrollY - previous_scrollY;
+//                previous_scrollY = scrollY;
+//                int scrollX = sv.getScrollX(); // For HorizontalScrollView
+//
+//                if (scrolledDistance > HIDE_THRESHOLD && controlsVisible) {
+//                    onHide();
+//                    controlsVisible = false;
+//                    scrolledDistance = 0;
+//                } else if (scrolledDistance < -HIDE_THRESHOLD && !controlsVisible) {
+//                    onShow();
+//                    controlsVisible = true;
+//                    scrolledDistance = 0;
+//                }
+//
+//                if((controlsVisible && dy>0) || (!controlsVisible && dy<0)) {
+//                    scrolledDistance += dy;
+//                }
+//            }
+//        });
         infoField = (LinearLayout)findViewById(R.id.li_info_field);
 
         joinBtn = (TextView)findViewById(R.id.join);
 
         setProgressBar();
 
-//        float percent = ((float)participant.size()/count)*100;
-//        progressBar.setProgress(percent);
-//        progressBar.setProgressText(participant.size() + "/" + count);
-//
-//        makeList();
+    }
 
+    private void onShow(){
+//        toolbar.animate().translationY(0).setInterpolator(new DecelerateInterpolator(2));
+        toolbar.setVisibility(View.VISIBLE);
+//        if(type){
+//            fm_progress.setVisibility(View.VISIBLE);
+//        }
+        System.out.println("onShow");
+    }
+    private void onHide(){
+//        toolbar.animate().translationY(-toolbar.getHeight()).setInterpolator(new AccelerateInterpolator(2));
+        toolbar.setVisibility(View.GONE);
+//        fm_progress.setVisibility(View.GONE);
+        System.out.println("onHide");
     }
 
     private class MyHandler extends Handler {

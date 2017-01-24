@@ -19,6 +19,7 @@ import java.util.HashMap;
 
 import jp.wasabeef.picasso.transformations.CropCircleTransformation;
 import tk.twpooi.tuetue.util.AdditionalFunc;
+import tk.twpooi.tuetue.util.OnLoadMoreListener;
 
 
 /**
@@ -33,6 +34,12 @@ public class TutorListCustomAdapter extends RecyclerView.Adapter<TutorListCustom
     private FileManager fileManager;
 
     public ArrayList<HashMap<String, Object>> attractionList;
+
+    // 무한 스크롤
+    private OnLoadMoreListener onLoadMoreListener;
+    private int visibleThreshold = 3;
+    private int lastVisibleItem, totalItemCount;
+    private boolean loading = false;
 
     // 생성자
     public TutorListCustomAdapter(Context context, ArrayList<HashMap<String,Object>> attractionList, RecyclerView recyclerView, TutorListFragment f) {
@@ -145,6 +152,14 @@ public class TutorListCustomAdapter extends RecyclerView.Adapter<TutorListCustom
         }
     }
 
+    // 무한 스크롤
+    public void setOnLoadMoreListener(OnLoadMoreListener onLoadMoreListener) {
+        this.onLoadMoreListener = onLoadMoreListener;
+    }
+    public void setLoaded() {
+        loading = false;
+    }
+
     public abstract class ScrollListener extends RecyclerView.OnScrollListener {
         private static final int HIDE_THRESHOLD = 20;
         private int scrolledDistance = 0;
@@ -155,6 +170,18 @@ public class TutorListCustomAdapter extends RecyclerView.Adapter<TutorListCustom
             super.onScrolled(recyclerView, dx, dy);
 
             final LinearLayoutManager linearLayoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
+
+            totalItemCount = linearLayoutManager.getItemCount();
+            lastVisibleItem = linearLayoutManager.findLastVisibleItemPosition();
+            if (!loading && totalItemCount <= (lastVisibleItem + visibleThreshold)) {
+                // End has been reached
+                // Do something
+                loading = true;
+                if (onLoadMoreListener != null) {
+                    onLoadMoreListener.onLoadMore();
+                }
+            }
+            // 여기까지 무한 스크롤
 
             if (scrolledDistance > HIDE_THRESHOLD && controlsVisible) {
                 onHide();

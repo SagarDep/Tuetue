@@ -2,8 +2,8 @@ package tk.twpooi.tuetue;
 
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -12,7 +12,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,31 +23,16 @@ import com.getbase.floatingactionbutton.FloatingActionButton;
 import com.getbase.floatingactionbutton.FloatingActionsMenu;
 import com.wang.avi.AVLoadingIndicatorView;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
 
-import cn.pedant.SweetAlert.SweetAlertDialog;
 import in.srain.cube.views.ptr.PtrDefaultHandler;
 import in.srain.cube.views.ptr.PtrFrameLayout;
 import in.srain.cube.views.ptr.PtrHandler;
 import in.srain.cube.views.ptr.header.MaterialHeader;
 import in.srain.cube.views.ptr.util.PtrLocalDisplay;
 import tk.twpooi.tuetue.util.AdditionalFunc;
+import tk.twpooi.tuetue.util.OnLoadMoreListener;
 import tk.twpooi.tuetue.util.ParsePHP;
 
 /**
@@ -59,12 +43,16 @@ public class TuteeListFragment extends Fragment {
 
     private MyHandler handler = new MyHandler();
     private final int MSG_MESSAGE_MAKE_LIST = 500;
+    private final int MSG_MESSAGE_MAKE_ENDLESS_LIST = 501;
     private final int MSG_MESSAGE_PROGRESS_HIDE = 502;
 
     private ProgressDialog progressDialog;
     private AVLoadingIndicatorView loading;
 
+    int page = 0;
+    private ArrayList<HashMap<String, Object>> tempList;
     private ArrayList<HashMap<String, Object>> list;
+    private String category;
 
     // UI
     private View view;
@@ -80,6 +68,7 @@ public class TuteeListFragment extends Fragment {
     private RecyclerView rv;
     private LinearLayoutManager mLinearLayoutManager;
     private TuteeListCustomAdapter adapter;
+    private boolean isLoadFinish;
 
     private static boolean isTuteeUpdate;
     private static String updateId;
@@ -88,7 +77,7 @@ public class TuteeListFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         // UI
-        view = inflater.inflate(R.layout.fragment_tutor_list, container, false);
+        view = inflater.inflate(R.layout.fragment_tuetue_list, container, false);
         context = container.getContext();
 
         initUI();
@@ -101,6 +90,7 @@ public class TuteeListFragment extends Fragment {
     public void initUI(){
 
         list = new ArrayList<>();
+        tempList = new ArrayList<>();
 
         floationMenu();
 
@@ -127,11 +117,13 @@ public class TuteeListFragment extends Fragment {
 
             @Override
             public void onRefreshBegin(final PtrFrameLayout frame) {
+                initLoadValue();
                 getTuteeList();
             }
         });
 
         progressDialog = new ProgressDialog(context);
+        progressDialog.setMessage("조회 중입니다.");
         loading = (AVLoadingIndicatorView)view.findViewById(R.id.loading);
 
         mLinearLayoutManager = new LinearLayoutManager(context);
@@ -141,36 +133,66 @@ public class TuteeListFragment extends Fragment {
         rv.setLayoutManager(mLinearLayoutManager);
 
 
-        loading.show();
+//        loading.show();
         getTuteeList();
 
     }
 
     private void getTuteeList(){
 
-
-        HashMap<String, String> map = new HashMap<>();
-        map.put("service", "getTuteeList");
-        map.put("page", "0");
-
-        new ParsePHP(Information.MAIN_SERVER_ADDRESS, map){
-
-            @Override
-            protected void afterThreadFinish(String data) {
-
-                list.clear();
-                list = AdditionalFunc.getTuteeList(data);
-                handler.sendMessage(handler.obtainMessage(MSG_MESSAGE_MAKE_LIST));
-
+        if(!isLoadFinish) {
+            loading.show();
+            HashMap<String, String> map = new HashMap<>();
+            map.put("service", "getTuteeList");
+            map.put("page", Integer.toString(page));
+            if(category != null && (!"".equals(category))){
+                map.put("category", category);
             }
-        }.start();
 
+            new ParsePHP(Information.MAIN_SERVER_ADDRESS, map) {
+
+                @Override
+                protected void afterThreadFinish(String data) {
+
+                    if(page <= 0) {
+                        list.clear();
+                        list = AdditionalFunc.getTuteeList(data);
+                        handler.sendMessage(handler.obtainMessage(MSG_MESSAGE_MAKE_LIST));
+                    }else{
+
+                        tempList.clear();
+                        tempList = AdditionalFunc.getTuteeList(data);
+                        if (tempList.size() < StartActivity.LIST_SIZE) {
+                            isLoadFinish = true;
+                        }
+                        handler.sendMessage(handler.obtainMessage(MSG_MESSAGE_MAKE_ENDLESS_LIST));
+
+                    }
+
+                }
+            }.start();
+        }else{
+            if(adapter != null){
+                adapter.setLoaded();
+            }
+        }
 
     }
 
     public void floationMenu(){
 
         menu = (FloatingActionsMenu)view.findViewById(R.id.multiple_actions);
+
+        FloatingActionButton gotoUp = (FloatingActionButton)view.findViewById(R.id.gotoUp);
+        gotoUp.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(rv != null){
+                    rv.smoothScrollToPosition(0);
+                }
+            }
+        });
+        gotoUp.setTitle("맨위로");
 
         addTutor = (FloatingActionButton)view.findViewById(R.id.addTutor);
         addTutor.setOnClickListener(new View.OnClickListener() {
@@ -192,6 +214,9 @@ public class TuteeListFragment extends Fragment {
                     selectCategory();
                     orderCategory.setTitle("전체조회");
                 }else{
+                    initLoadValue();
+                    category = null;
+                    progressDialog.show();
                     getTuteeList();
                     orderCategory.setTitle("카테고리로 조회");
                 }
@@ -211,26 +236,31 @@ public class TuteeListFragment extends Fragment {
         dialog.setOnOperItemClickL(new OnOperItemClickL() {
             @Override
             public void onOperItemClick(AdapterView<?> parent, View view, int position, long id) {
-                String ca = StartActivity.CATEGORY_LIST[position];
-                HashMap<String, String> map = new HashMap<String, String>();
-                map.put("category", ca);
-                map.put("service", "getTuteeList");
-                map.put("page", "0");
-
+                category = StartActivity.CATEGORY_LIST[position];
+                initLoadValue();
                 progressDialog.show();
-                new ParsePHP(Information.MAIN_SERVER_ADDRESS, map){
-
-                    @Override
-                    protected void afterThreadFinish(String data) {
-                        list.clear();
-                        list = AdditionalFunc.getTuteeList(data);
-                        handler.sendMessage(handler.obtainMessage(MSG_MESSAGE_MAKE_LIST));
-                    }
-                }.start();
+                getTuteeList();
 
                 dialog.dismiss();
             }
         });
+        dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+                orderCategory.setTitle("카테고리로 조회");
+            }
+        });
+        dialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialog) {
+                orderCategory.setTitle("카테고리로 조회");
+            }
+        });
+    }
+
+    private void initLoadValue(){
+        page = 0;
+        isLoadFinish = false;
     }
 
     public void makeList(){
@@ -241,6 +271,14 @@ public class TuteeListFragment extends Fragment {
         adapter = new TuteeListCustomAdapter(context, list, rv, this);
 
         rv.setAdapter(adapter);
+
+        adapter.setOnLoadMoreListener(new OnLoadMoreListener() {
+            @Override
+            public void onLoadMore() {
+                page+=1;
+                getTuteeList();
+            }
+        });
 
         adapter.notifyDataSetChanged();
 
@@ -262,6 +300,10 @@ public class TuteeListFragment extends Fragment {
                     loading.hide();
                     makeList();
                     break;
+                case MSG_MESSAGE_MAKE_ENDLESS_LIST:
+                    loading.hide();
+                    addList();
+                    break;
                 case MSG_MESSAGE_PROGRESS_HIDE:
                     progressDialog.hide();
                     break;
@@ -269,6 +311,16 @@ public class TuteeListFragment extends Fragment {
                     break;
             }
         }
+    }
+
+    private void addList(){
+
+        for(int i=0; i<tempList.size(); i++){
+            list.add(tempList.get(i));
+            adapter.notifyItemInserted(list.size());
+        }
+        adapter.setLoaded();
+
     }
 
     public static void setTuteeUpdate(String id){

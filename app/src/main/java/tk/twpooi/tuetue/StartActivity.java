@@ -68,6 +68,7 @@ public class StartActivity extends AppCompatActivity implements FacebookLoginSup
     // Data
     public static String USER_ID = "";
     public static String[] CATEGORY_LIST;
+    public static int LIST_SIZE = 10;
     public static HashMap<String, Object> USER_DATA = new HashMap<>();
 
     // ToWtInfo
