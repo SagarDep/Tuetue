@@ -33,12 +33,13 @@ import in.srain.cube.views.ptr.header.MaterialHeader;
 import in.srain.cube.views.ptr.util.PtrLocalDisplay;
 import tk.twpooi.tuetue.util.AdditionalFunc;
 import tk.twpooi.tuetue.util.OnLoadMoreListener;
+import tk.twpooi.tuetue.util.OnVisibleListener;
 import tk.twpooi.tuetue.util.ParsePHP;
 
 /**
  * Created by tw on 2016-08-16.
  */
-public class TuteeListFragment extends Fragment {
+public class TuteeListFragment extends Fragment implements OnVisibleListener{
 
 
     private MyHandler handler = new MyHandler();
@@ -288,6 +289,18 @@ public class TuteeListFragment extends Fragment {
 
     }
 
+    @Override
+    public void showView() {
+        menu.setVisibility(View.VISIBLE);
+//        mToolbar.animate().translationY(0).setInterpolator(new DecelerateInterpolator(2));
+    }
+
+    @Override
+    public void hideView() {
+        menu.setVisibility(View.INVISIBLE);
+//        mToolbar.animate().translationY(-mToolbar.getHeight()).setInterpolator(new AccelerateInterpolator(2));
+    }
+
 
     private class MyHandler extends Handler {
 
@@ -334,17 +347,6 @@ public class TuteeListFragment extends Fragment {
         view.setBackgroundColor(ContextCompat.getColor(context, R.color.snackbar_color));
         snackbar.show();
     }
-
-    public void hideViews() {
-        menu.setVisibility(View.INVISIBLE);
-//        mToolbar.animate().translationY(-mToolbar.getHeight()).setInterpolator(new AccelerateInterpolator(2));
-    }
-
-    public void showViews() {
-        menu.setVisibility(View.VISIBLE);
-//        mToolbar.animate().translationY(0).setInterpolator(new DecelerateInterpolator(2));
-    }
-
 
     @Override
     public void onResume(){

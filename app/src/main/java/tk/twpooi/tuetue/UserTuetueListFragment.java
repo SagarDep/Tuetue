@@ -7,7 +7,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
@@ -42,11 +41,11 @@ import tk.twpooi.tuetue.util.ParsePHP;
 /**
  * Created by tw on 2016-08-16.
  */
-public class TutorListFragment extends Fragment implements OnVisibleListener{
+public class UserTuetueListFragment extends Fragment implements OnVisibleListener{
+
 
     private MyHandler handler = new MyHandler();
     private final int MSG_MESSAGE_MAKE_LIST = 500;
-    private final int MSG_MESSAGE_MAKE_ENDLESS_LIST = 501;
     private final int MSG_MESSAGE_PROGRESS_HIDE = 502;
 
     private ProgressDialog progressDialog;
@@ -54,43 +53,31 @@ public class TutorListFragment extends Fragment implements OnVisibleListener{
 
     // UI
     private View view;
-    private Toolbar mToolbar;
     private Context context;
     private FloatingActionsMenu menu;
     private FloatingActionButton addTutor;
     private FloatingActionButton orderCategory;
-
-
     protected PtrFrameLayout mPtrFrameLayout;
 
-    int page = 0;
-    private ArrayList<HashMap<String, Object>> tempList;
+
+    private boolean type; // true : tutor, false : tutee
     private ArrayList<HashMap<String, Object>> list;
-    private String category;
 
     // Recycle View
     private RecyclerView rv;
     private LinearLayoutManager mLinearLayoutManager;
-    private TutorListCustomAdapter adapter;
-    private boolean isLoadFinish;
-
-    public static boolean isTutorListUpdate;
-    public static int tutorListIndex;
+    private RecyclerView.Adapter adapter;
 
     @Override
-    public void onCreate(Bundle savedInstanceState){
+    public void onCreate(Bundle savedInstanceState)
+    {
         super.onCreate(savedInstanceState);
-        this.setRetainInstance(true);
-    }
-
-    @Override
-    public void onSaveInstanceState(Bundle outState){
-        super.onSaveInstanceState(outState);
+//        type = getArguments().getBoolean("type", true);
+        type = true;
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        System.out.println(savedInstanceState);
 
         // UI
         view = inflater.inflate(R.layout.fragment_tuetue_list, container, false);
@@ -130,7 +117,7 @@ public class TutorListFragment extends Fragment implements OnVisibleListener{
 
             @Override
             public void onRefreshBegin(final PtrFrameLayout frame) {
-                initLoadValue();
+                progressDialog.show();
                 getTutorList();
             }
         });
@@ -142,8 +129,6 @@ public class TutorListFragment extends Fragment implements OnVisibleListener{
         rv.setLayoutManager(mLinearLayoutManager);
 
         list = new ArrayList<>();
-        tempList = new ArrayList<>();
-        category = null;
 
         progressDialog = new ProgressDialog(context);
         progressDialog.setMessage("조회 중입니다.");
@@ -155,43 +140,32 @@ public class TutorListFragment extends Fragment implements OnVisibleListener{
     }
 
     private void getTutorList(){
-        if(!isLoadFinish) {
-            loading.show();
-            HashMap<String, String> map = new HashMap<>();
-            map.put("service", "getTutorList");
-            map.put("page", Integer.toString(page));
-            if(category != null && (!"".equals(category))){
-                map.put("category", category);
-            }
-            new ParsePHP(Information.MAIN_SERVER_ADDRESS, map) {
-
-                @Override
-                protected void afterThreadFinish(String data) {
-
-                    if (page <= 0) {
-                        list.clear();
-
-                        list = AdditionalFunc.getTutorList(data);
-
-                        handler.sendMessage(handler.obtainMessage(MSG_MESSAGE_MAKE_LIST));
-                    } else {
-
-                        tempList.clear();
-                        tempList = AdditionalFunc.getTutorList(data);
-                        if (tempList.size() < StartActivity.LIST_SIZE) {
-                            isLoadFinish = true;
-                        }
-                        handler.sendMessage(handler.obtainMessage(MSG_MESSAGE_MAKE_ENDLESS_LIST));
-
-                    }
-
-                }
-            }.start();
+        loading.show();
+        HashMap<String, String> map = new HashMap<>();
+        if(type) {
+            map.put("service", "getUserTutorList");
         }else{
-            if(adapter != null){
-                adapter.setLoaded();
-            }
+            map.put("service", "getUserTuteeList");
         }
+        map.put("id", StartActivity.USER_ID);
+
+        new ParsePHP(Information.MAIN_SERVER_ADDRESS, map) {
+
+            @Override
+            protected void afterThreadFinish(String data) {
+
+                list.clear();
+
+                if(type) {
+                    list = AdditionalFunc.getTutorList(data);
+                }else{
+                    list = AdditionalFunc.getTuteeList(data);
+                }
+
+                handler.sendMessage(handler.obtainMessage(MSG_MESSAGE_MAKE_LIST));
+
+            }
+        }.start();
     }
 
     public void floationMenu(){
@@ -210,87 +184,21 @@ public class TutorListFragment extends Fragment implements OnVisibleListener{
         gotoUp.setTitle("맨위로");
 
         addTutor = (FloatingActionButton)view.findViewById(R.id.addTutor);
-        addTutor.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(context, AddTutorActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(intent);
-                menu.toggle();
-            }
-        });
-        addTutor.setTitle("재능나눔 모집");
-
+        addTutor.setVisibility(View.GONE);
         orderCategory = (FloatingActionButton)view.findViewById(R.id.order_category);
-        orderCategory.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(orderCategory.getTitle().equals("카테고리로 조회")){
-                    selectCategory();
-                    orderCategory.setTitle("전체조회");
-                }else{
-                    initLoadValue();
-                    category = null;
-                    progressDialog.show();
-                    getTutorList();
-                    orderCategory.setTitle("카테고리로 조회");
-                }
-                menu.toggle();
-            }
-        });
-        orderCategory.setTitle("카테고리로 조회");
+        orderCategory.setVisibility(View.GONE);
 
    }
 
-    private void selectCategory() {
-        final NormalListDialog dialog = new NormalListDialog(context, StartActivity.CATEGORY_LIST);
-        dialog.title("카테고리 선택")//
-                .titleTextSize_SP(14.5f)//
-                .show();
-
-        dialog.setOnOperItemClickL(new OnOperItemClickL() {
-            @Override
-            public void onOperItemClick(AdapterView<?> parent, View view, int position, long id) {
-                category = StartActivity.CATEGORY_LIST[position];
-                initLoadValue();
-                progressDialog.show();
-                getTutorList();
-
-                dialog.dismiss();
-            }
-        });
-        dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
-            @Override
-            public void onDismiss(DialogInterface dialog) {
-                orderCategory.setTitle("카테고리로 조회");
-            }
-        });
-        dialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
-            @Override
-            public void onCancel(DialogInterface dialog) {
-                orderCategory.setTitle("카테고리로 조회");
-            }
-        });
-    }
-
-    private void initLoadValue(){
-        page = 0;
-        isLoadFinish = false;
-    }
-
     public void makeList(){
 
-        adapter = new TutorListCustomAdapter(context, list, rv, this, (MaterialNavigationDrawer)getActivity());
+        if(type) {
+            adapter = new TutorListCustomAdapter(context, list, rv, this, (MaterialNavigationDrawer)getActivity());
+        }else{
+            adapter = new TuteeListCustomAdapter(context, list, rv, this);
+        }
 
         rv.setAdapter(adapter);
-
-        adapter.setOnLoadMoreListener(new OnLoadMoreListener() {
-            @Override
-            public void onLoadMore() {
-                page+=1;
-                getTutorList();
-            }
-        });
 
         adapter.notifyDataSetChanged();
 
@@ -301,17 +209,11 @@ public class TutorListFragment extends Fragment implements OnVisibleListener{
     @Override
     public void showView() {
         menu.setVisibility(View.VISIBLE);
-//        mToolbar.animate().translationY(0).setInterpolator(new DecelerateInterpolator(2));
-//        getActivity().getActionBar().show();
-//        ((MaterialNavigationDrawer)getActivity()).getSupportActionBar().show();
     }
 
     @Override
     public void hideView() {
         menu.setVisibility(View.INVISIBLE);
-//        mToolbar.animate().translationY(-mToolbar.getHeight()).setInterpolator(new AccelerateInterpolator(2));
-//        getActivity().getActionBar().hide();
-//        ((MaterialNavigationDrawer)getActivity()).getSupportActionBar().hide();
     }
 
 
@@ -326,10 +228,6 @@ public class TutorListFragment extends Fragment implements OnVisibleListener{
                     loading.hide();
                     makeList();
                     break;
-                case MSG_MESSAGE_MAKE_ENDLESS_LIST:
-                    loading.hide();
-                    addList();
-                    break;
                 case MSG_MESSAGE_PROGRESS_HIDE:
                     progressDialog.hide();
                     break;
@@ -337,22 +235,6 @@ public class TutorListFragment extends Fragment implements OnVisibleListener{
                     break;
             }
         }
-    }
-
-    private void addList(){
-
-        for(int i=0; i<tempList.size(); i++){
-            list.add(tempList.get(i));
-            adapter.notifyItemInserted(list.size());
-        }
-
-        adapter.setLoaded();
-
-    }
-
-    public static void setRefresh(int i){
-        isTutorListUpdate = true;
-        tutorListIndex = i;
     }
 
     public void showSnackbar(String msg){
@@ -365,13 +247,6 @@ public class TutorListFragment extends Fragment implements OnVisibleListener{
     @Override
     public void onResume(){
         super.onResume();
-        if(isTutorListUpdate){
-            isTutorListUpdate = false;
-            HashMap<String, Object> temp = adapter.attractionList.get(tutorListIndex);
-            temp.put("isFinish", "1");
-            adapter.attractionList.set(tutorListIndex, temp);
-            adapter.notifyItemChanged(tutorListIndex);
-        }
     }
 
     @Override
@@ -379,7 +254,6 @@ public class TutorListFragment extends Fragment implements OnVisibleListener{
         super.onDestroy();
         if(progressDialog != null){
             progressDialog.dismiss();
-
         }
     }
 }

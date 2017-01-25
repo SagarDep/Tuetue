@@ -39,7 +39,7 @@ import tk.twpooi.tuetue.util.ParsePHP;
 /**
  * Created by neokree on 18/01/15.
  */
-public class MainActivity extends MaterialNavigationDrawer implements MaterialAccountListener {
+public class MainActivity extends MaterialNavigationDrawer {
 
     private MyHandler handler = new MyHandler();
     private final int MSG_MESSAGE_FINISH = 500;
@@ -60,6 +60,11 @@ public class MainActivity extends MaterialNavigationDrawer implements MaterialAc
     private SharedPreferences.Editor editor;
     private String login;
 
+    // Section
+    private static MaterialSection tutorListSection;
+    private static TutorListFragment tutorListFragment;
+    private static TuteeListFragment tuteeListFragment;
+
     @Override
     public void init(Bundle savedInstanceState) {
 
@@ -76,6 +81,7 @@ public class MainActivity extends MaterialNavigationDrawer implements MaterialAc
 
         this.disableLearningPattern();
         this.setDefaultSectionLoaded(1);
+        this.setBackPattern(MaterialNavigationDrawer.BACKPATTERN_BACK_TO_FIRST);
     }
 
     private void setAccount(){
@@ -145,10 +151,29 @@ public class MainActivity extends MaterialNavigationDrawer implements MaterialAc
         Picasso.with(this)
                 .load(Information.PROFILE_DEFAULT_IAMGE_URL)
                 .into(target2);
-
         // set listener
-        this.setAccountListener(this);
+
+//        Intent tutorIntent = new Intent(getApplicationContext(), UserTuetueListFragment.class);
+//        tutorIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//        tutorIntent.putExtra("type", true);
+//
+//        Intent tuteeIntent = new Intent(getApplicationContext(), UserTuetueListFragment.class);
+//        tuteeIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//        tuteeIntent.putExtra("type", false);
+
+        UserTuetueListFragment tutor = new UserTuetueListFragment();
+//        Bundle tutorBdl = new Bundle(1);
+//        tutorBdl.putBoolean("type", true);
+//        tutor.setArguments(tutorBdl);
+
+        UserTuetueListFragment tutee = new UserTuetueListFragment();
+//        Bundle tuteeBdl = new Bundle(1);
+//        tuteeBdl.putBoolean("type", false);
+//        tutee.setArguments(tuteeBdl);
+
         // add account sections
+        this.addAccountSection(newSection("나의 글 보기(재능나눔)", R.drawable.ic_account_star_grey600_24dp, tutor));
+        this.addAccountSection(newSection("나의 글 보기(재능기부)", R.drawable.ic_account_star_variant_grey600_24dp, tutee));
         this.addAccountSection(newSection("프로필 설정",R.drawable.ic_settings_black_24dp,new MaterialSectionListener() {
             @Override
             public void onClick(MaterialSection section) {
@@ -214,10 +239,16 @@ public class MainActivity extends MaterialNavigationDrawer implements MaterialAc
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         intent.putExtra("userId", StartActivity.USER_ID);
 
+
+        tutorListFragment = new TutorListFragment();
+        tutorListSection = newSection("재능나눔", R.drawable.ic_account_star_grey600_24dp, tutorListFragment);
+        tuteeListFragment = new TuteeListFragment();
+
         // create sections
         this.addSection(newSection("프로필 보기",R.drawable.ic_account_grey600_24dp, intent));
-        this.addSection(newSection("재능나눔", R.drawable.ic_account_star_grey600_24dp, new TutorListFragment()));
-        this.addSection(newSection("재능기부", R.drawable.ic_account_star_variant_grey600_24dp, new TuteeListFragment()));
+        this.addSection(tutorListSection);
+        this.addSection(newSection("재능기부", R.drawable.ic_account_star_variant_grey600_24dp, tuteeListFragment));
+        this.addSection(newSection("나의 글 보기(재능나눔)", R.drawable.ic_account_star_grey600_24dp, new UserTuetueListFragment()));
         this.addSection(newSection("정보", new MaterialSectionListener() {
             @Override
             public void onClick(MaterialSection section) {
@@ -292,15 +323,6 @@ public class MainActivity extends MaterialNavigationDrawer implements MaterialAc
         finish();
     }
 
-    @Override
-    public void onAccountOpening(MaterialAccount account) {
-
-    }
-
-    @Override
-    public void onChangeAccount(MaterialAccount newAccount) {
-
-    }
 
     public void showSnackbar(String msg){
         Snackbar snackbar = Snackbar.make(getWindow().getDecorView().getRootView(), msg, Snackbar.LENGTH_SHORT);

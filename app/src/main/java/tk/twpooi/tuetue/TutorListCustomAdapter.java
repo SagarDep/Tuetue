@@ -2,6 +2,7 @@ package tk.twpooi.tuetue;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -17,9 +18,11 @@ import com.squareup.picasso.Picasso;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import it.neokree.materialnavigationdrawer.MaterialNavigationDrawer;
 import jp.wasabeef.picasso.transformations.CropCircleTransformation;
 import tk.twpooi.tuetue.util.AdditionalFunc;
 import tk.twpooi.tuetue.util.OnLoadMoreListener;
+import tk.twpooi.tuetue.util.OnVisibleListener;
 
 
 /**
@@ -30,7 +33,8 @@ public class TutorListCustomAdapter extends RecyclerView.Adapter<TutorListCustom
     // UI
     private Context context;
 
-    private TutorListFragment f;
+    private MaterialNavigationDrawer activity;
+    private OnVisibleListener onVisibleListener;
     private FileManager fileManager;
 
     public ArrayList<HashMap<String, Object>> attractionList;
@@ -42,10 +46,11 @@ public class TutorListCustomAdapter extends RecyclerView.Adapter<TutorListCustom
     private boolean loading = false;
 
     // 생성자
-    public TutorListCustomAdapter(Context context, ArrayList<HashMap<String,Object>> attractionList, RecyclerView recyclerView, TutorListFragment f) {
+    public TutorListCustomAdapter(Context context, ArrayList<HashMap<String,Object>> attractionList, RecyclerView recyclerView, OnVisibleListener listener, MaterialNavigationDrawer activity) {
         this.context = context;
         this.attractionList = attractionList;
-        this.f = f;
+        this.onVisibleListener = listener;
+        this.activity = activity;
 
         fileManager = new FileManager(context);
 
@@ -112,12 +117,20 @@ public class TutorListCustomAdapter extends RecyclerView.Adapter<TutorListCustom
             @Override
             public void onClick(View view) {
 
-                Intent intent = new Intent(context, ShowTuetueActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                intent.putExtra("id", id);
-                intent.putExtra("index", pos);
-                intent.putExtra("type", true);
-                context.startActivity(intent);
+                ShowTuetueFragment fragment = new ShowTuetueFragment();
+                Bundle bdl = new Bundle(1);
+                bdl.putString("id", id);
+                bdl.putInt("index", pos);
+                bdl.putBoolean("type", true);
+                fragment.setArguments(bdl);
+                activity.setFragmentChild(fragment, "상세보기");
+
+//                Intent intent = new Intent(context, ShowTuetueActivity.class);
+//                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//                intent.putExtra("id", id);
+//                intent.putExtra("index", pos);
+//                intent.putExtra("type", true);
+//                context.startActivity(intent);
 
             }
         });
@@ -141,14 +154,14 @@ public class TutorListCustomAdapter extends RecyclerView.Adapter<TutorListCustom
     }
 
     private void hideViews() {
-        if(f != null){
-            f.hideViews();
+        if(onVisibleListener != null){
+            onVisibleListener.hideView();
         }
     }
 
     private void showViews() {
-        if(f != null){
-            f.showViews();
+        if(onVisibleListener != null){
+            onVisibleListener.showView();
         }
     }
 

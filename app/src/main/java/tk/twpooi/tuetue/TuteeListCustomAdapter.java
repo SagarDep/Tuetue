@@ -21,6 +21,7 @@ import java.util.HashMap;
 import jp.wasabeef.picasso.transformations.CropCircleTransformation;
 import tk.twpooi.tuetue.util.AdditionalFunc;
 import tk.twpooi.tuetue.util.OnLoadMoreListener;
+import tk.twpooi.tuetue.util.OnVisibleListener;
 
 
 /**
@@ -31,7 +32,7 @@ public class TuteeListCustomAdapter extends RecyclerView.Adapter<TuteeListCustom
     // UI
     private Context context;
 
-    private TuteeListFragment f;
+    private OnVisibleListener onVisibleListener;
     private FileManager fileManager;
 
     public ArrayList<HashMap<String, Object>> attractionList;
@@ -44,10 +45,10 @@ public class TuteeListCustomAdapter extends RecyclerView.Adapter<TuteeListCustom
     private boolean loading = false;
 
     // 생성자
-    public TuteeListCustomAdapter(Context context, ArrayList<HashMap<String,Object>> attractionList, RecyclerView recyclerView, TuteeListFragment f) {
+    public TuteeListCustomAdapter(Context context, ArrayList<HashMap<String,Object>> attractionList, RecyclerView recyclerView, OnVisibleListener listener) {
         this.context = context;
         this.attractionList = attractionList;
-        this.f = f;
+        this.onVisibleListener = listener;
 
         fileManager = new FileManager(context);
         interestList = fileManager.readInterestListFile();
@@ -143,14 +144,14 @@ public class TuteeListCustomAdapter extends RecyclerView.Adapter<TuteeListCustom
     }
 
     private void hideViews() {
-        if(f != null){
-            f.hideViews();
+        if(onVisibleListener != null){
+            onVisibleListener.hideView();
         }
     }
 
     private void showViews() {
-        if(f != null){
-            f.showViews();
+        if(onVisibleListener != null){
+            onVisibleListener.showView();
         }
     }
 
