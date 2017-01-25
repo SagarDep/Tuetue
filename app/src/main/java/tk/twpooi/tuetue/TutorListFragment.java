@@ -33,7 +33,6 @@ import in.srain.cube.views.ptr.PtrFrameLayout;
 import in.srain.cube.views.ptr.PtrHandler;
 import in.srain.cube.views.ptr.header.MaterialHeader;
 import in.srain.cube.views.ptr.util.PtrLocalDisplay;
-import it.neokree.materialnavigationdrawer.MaterialNavigationDrawer;
 import tk.twpooi.tuetue.util.AdditionalFunc;
 import tk.twpooi.tuetue.util.OnLoadMoreListener;
 import tk.twpooi.tuetue.util.OnVisibleListener;
@@ -205,6 +204,7 @@ public class TutorListFragment extends Fragment implements OnVisibleListener{
                 if(rv != null){
                     rv.smoothScrollToPosition(0);
                 }
+                menu.toggle();
             }
         });
         gotoUp.setTitle("맨위로");
@@ -280,7 +280,7 @@ public class TutorListFragment extends Fragment implements OnVisibleListener{
 
     public void makeList(){
 
-        adapter = new TutorListCustomAdapter(context, list, rv, this, (MaterialNavigationDrawer)getActivity());
+        adapter = new TutorListCustomAdapter(context, list, rv, this);
 
         rv.setAdapter(adapter);
 

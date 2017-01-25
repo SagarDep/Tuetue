@@ -18,7 +18,6 @@ import com.squareup.picasso.Picasso;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import it.neokree.materialnavigationdrawer.MaterialNavigationDrawer;
 import jp.wasabeef.picasso.transformations.CropCircleTransformation;
 import tk.twpooi.tuetue.util.AdditionalFunc;
 import tk.twpooi.tuetue.util.OnLoadMoreListener;
@@ -33,7 +32,7 @@ public class TutorListCustomAdapter extends RecyclerView.Adapter<TutorListCustom
     // UI
     private Context context;
 
-    private MaterialNavigationDrawer activity;
+//    private MaterialNavigationDrawer activity;
     private OnVisibleListener onVisibleListener;
     private FileManager fileManager;
 
@@ -46,11 +45,11 @@ public class TutorListCustomAdapter extends RecyclerView.Adapter<TutorListCustom
     private boolean loading = false;
 
     // 생성자
-    public TutorListCustomAdapter(Context context, ArrayList<HashMap<String,Object>> attractionList, RecyclerView recyclerView, OnVisibleListener listener, MaterialNavigationDrawer activity) {
+    public TutorListCustomAdapter(Context context, ArrayList<HashMap<String,Object>> attractionList, RecyclerView recyclerView, OnVisibleListener listener) {
         this.context = context;
         this.attractionList = attractionList;
         this.onVisibleListener = listener;
-        this.activity = activity;
+//        this.activity = activity;
 
         fileManager = new FileManager(context);
 
@@ -117,20 +116,20 @@ public class TutorListCustomAdapter extends RecyclerView.Adapter<TutorListCustom
             @Override
             public void onClick(View view) {
 
-                ShowTuetueFragment fragment = new ShowTuetueFragment();
-                Bundle bdl = new Bundle(1);
-                bdl.putString("id", id);
-                bdl.putInt("index", pos);
-                bdl.putBoolean("type", true);
-                fragment.setArguments(bdl);
-                activity.setFragmentChild(fragment, "상세보기");
+//                ShowTuetueFragment fragment = new ShowTuetueFragment();
+//                Bundle bdl = new Bundle(1);
+//                bdl.putString("id", id);
+//                bdl.putInt("index", pos);
+//                bdl.putBoolean("type", true);
+//                fragment.setArguments(bdl);
+//                activity.setFragmentChild(fragment, "상세보기");
 
-//                Intent intent = new Intent(context, ShowTuetueActivity.class);
-//                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-//                intent.putExtra("id", id);
-//                intent.putExtra("index", pos);
-//                intent.putExtra("type", true);
-//                context.startActivity(intent);
+                Intent intent = new Intent(context, ShowTuetueActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent.putExtra("id", id);
+                intent.putExtra("index", pos);
+                intent.putExtra("type", true);
+                context.startActivity(intent);
 
             }
         });

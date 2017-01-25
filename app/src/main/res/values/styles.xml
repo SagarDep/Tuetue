@@ -13,6 +13,7 @@
     </style>
 
 
+
     <!-- Floation Action Button -->
     <style name="menu_labels_style">
         <item name="android:background">@drawable/fab_label_background</item>
@@ -42,12 +43,16 @@
     </style>
     <!-- ===================== -->
 
-    <!-- Accounts -->
-    <style name="AccountsDark" parent="MaterialNavigationDrawerTheme.Light.DarkActionBar">
-        <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="colorAccent">@color/colorAccent</item>
-        <!--<item name="drawerType">@integer/DRAWERTYPE_CUSTOM</item>-->
+
+    <!-- MainActivity -->
+    <style name="AppTheme.NoActionBar">
+        <item name="theme">@style/ThemeOverlay.AppCompat.Dark.ActionBar</item>
+        <item name="popupTheme">@style/Base.V21.Theme.AppCompat.Light.Dialog</item>
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
     </style>
+    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
 </resources>

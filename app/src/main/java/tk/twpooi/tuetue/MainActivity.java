@@ -1,288 +1,240 @@
 package tk.twpooi.tuetue;
 
-import android.app.Fragment;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
-import android.view.LayoutInflater;
 import android.view.View;
+import android.support.design.widget.NavigationView;
+import android.support.v4.view.GravityCompat;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.nhn.android.naverlogin.ui.view.OAuthLoginButton;
 import com.squareup.picasso.Picasso;
-import com.squareup.picasso.Target;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
-import it.neokree.materialnavigationdrawer.MaterialNavigationDrawer;
-import it.neokree.materialnavigationdrawer.elements.MaterialAccount;
-import it.neokree.materialnavigationdrawer.elements.MaterialSection;
-import it.neokree.materialnavigationdrawer.elements.listeners.MaterialAccountListener;
-import it.neokree.materialnavigationdrawer.elements.listeners.MaterialSectionListener;
 import jp.wasabeef.picasso.transformations.CropCircleTransformation;
-import tk.twpooi.tuetue.util.AdditionalFunc;
 import tk.twpooi.tuetue.util.FacebookLogin;
 import tk.twpooi.tuetue.util.NaverLogin;
 import tk.twpooi.tuetue.util.ParsePHP;
 
-/**
- * Created by neokree on 18/01/15.
- */
-public class MainActivity extends MaterialNavigationDrawer {
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
     private MyHandler handler = new MyHandler();
     private final int MSG_MESSAGE_FINISH = 500;
 
-    // UI
-    private ImageView profile;
-    private TextView tv_nickname;
-    private TextView tv_email;
-    private ProgressDialog progressDialog;
 
-    // User Account
-    private MaterialAccount userAccount;
+    private NavigationView navigationView;
+
+    private String[] menuList = {"nav_show_profile", "nav_tutor", "nav_tutee", "nav_my_tutor", "nav_my_tutee", "nav_info", "nav_report", "nav_help", "nav_open_source"};
+
+    // Logout
+    private ProgressDialog progressDialog;
     private FacebookLogin facebookLogin;
     private NaverLogin naverLogin;
-    private List<Target> targets = new ArrayList<>();
-
     private SharedPreferences setting;
     private SharedPreferences.Editor editor;
     private String login;
 
-    // Section
-    private static MaterialSection tutorListSection;
-    private static TutorListFragment tutorListFragment;
-    private static TuteeListFragment tuteeListFragment;
-
     @Override
-    public void init(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        facebookLogin = new FacebookLogin(this);
+        setContentView(R.layout.activity_main);
 
         setting = getSharedPreferences("setting", 0);
         editor = setting.edit();
         login = setting.getString("login", null);
 
-        facebookLogin = new FacebookLogin(this);
         naverLogin = new NaverLogin(this, new OAuthLoginButton(this));
         progressDialog = new ProgressDialog(this);
 
-        setAccount();
-        setSection();
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
 
-        this.disableLearningPattern();
-        this.setDefaultSectionLoaded(1);
-        this.setBackPattern(MaterialNavigationDrawer.BACKPATTERN_BACK_TO_FIRST);
-    }
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.setDrawerListener(toggle);
+        toggle.syncState();
 
-    private void setAccount(){
+        navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
 
         String nickname = (String)StartActivity.USER_DATA.get("nickname");
         String email = (String)StartActivity.USER_DATA.get("email");
         String img = (String)StartActivity.USER_DATA.get("img");
 
-        // create and set the header
-//        View view = LayoutInflater.from(this).inflate(R.layout.custom_menubar_drawer,null);
-//        profile = (ImageView)view.findViewById(R.id.img);
-//        tv_nickname = (TextView)view.findViewById(R.id.nickname);
-//        tv_email = (TextView)view.findViewById(R.id.email);
-//        setDrawerHeaderCustom(view);
-
-//        Picasso.with(getApplicationContext())
-//                .load(img)
-//                .transform(new CropCircleTransformation())
-//                .into(profile);
-//        tv_nickname.setText(nickname);
-//        tv_email.setText(email);
-
-        userAccount = new MaterialAccount(this.getResources(), nickname, email, null, null);
-        this.addAccount(userAccount);
-
-        Target target1 = new Target() {
-            @Override
-            public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
-                userAccount.setPhoto(bitmap);
-                targets.remove(this);
-            }
-
-            @Override
-            public void onBitmapFailed(Drawable errorDrawable) {
-
-            }
-
-            @Override
-            public void onPrepareLoad(Drawable placeHolderDrawable) {
-
-            }
-        };
-        targets.add(target1);
+        View headerView = navigationView.getHeaderView(0);
+        ImageView backgroundImg = (ImageView)headerView.findViewById(R.id.img_background);
+        Picasso.with(this)
+                .load(Information.PROFILE_DEFAULT_IAMGE_URL)
+                .into(backgroundImg);
+        ImageView profileImg = (ImageView)headerView.findViewById(R.id.profileImg);
         Picasso.with(this)
                 .load(img)
                 .transform(new CropCircleTransformation())
-                .into(target1);
+                .into(profileImg);
+        TextView tv_nickname = (TextView)headerView.findViewById(R.id.tv_nickname);
+        tv_nickname.setText(nickname);
+        TextView tv_email = (TextView)headerView.findViewById(R.id.tv_email);
+        tv_email.setText(email);
 
-        Target target2 = new Target() {
-            @Override
-            public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
-                userAccount.setBackground(bitmap);
-                targets.remove(this);
-            }
 
-            @Override
-            public void onBitmapFailed(Drawable errorDrawable) {
-
-            }
-
-            @Override
-            public void onPrepareLoad(Drawable placeHolderDrawable) {
-
-            }
-        };
-        targets.add(target2);
-        Picasso.with(this)
-                .load(Information.PROFILE_DEFAULT_IAMGE_URL)
-                .into(target2);
-        // set listener
-
-//        Intent tutorIntent = new Intent(getApplicationContext(), UserTuetueListFragment.class);
-//        tutorIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-//        tutorIntent.putExtra("type", true);
-//
-//        Intent tuteeIntent = new Intent(getApplicationContext(), UserTuetueListFragment.class);
-//        tuteeIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-//        tuteeIntent.putExtra("type", false);
-
-        UserTuetueListFragment tutor = new UserTuetueListFragment();
-//        Bundle tutorBdl = new Bundle(1);
-//        tutorBdl.putBoolean("type", true);
-//        tutor.setArguments(tutorBdl);
-
-        UserTuetueListFragment tutee = new UserTuetueListFragment();
-//        Bundle tuteeBdl = new Bundle(1);
-//        tuteeBdl.putBoolean("type", false);
-//        tutee.setArguments(tuteeBdl);
-
-        // add account sections
-        this.addAccountSection(newSection("나의 글 보기(재능나눔)", R.drawable.ic_account_star_grey600_24dp, tutor));
-        this.addAccountSection(newSection("나의 글 보기(재능기부)", R.drawable.ic_account_star_variant_grey600_24dp, tutee));
-        this.addAccountSection(newSection("프로필 설정",R.drawable.ic_settings_black_24dp,new MaterialSectionListener() {
-            @Override
-            public void onClick(MaterialSection section) {
-                Toast.makeText(getApplicationContext(),"Account settings clicked",Toast.LENGTH_SHORT).show();
-
-                // for default section is selected when you click on it
-                section.unSelect(); // so deselect the section if you want
-            }
-        }));
-        this.addAccountSection(newSection("로그아웃", new MaterialSectionListener() {
-            @Override
-            public void onClick(MaterialSection section) {
-
-                if("facebook".equals(login)){
-                    facebookLogin.logout();
-                }else{
-                    naverLogin.logout();
-                }
-
-                editor.remove("login");
-                editor.commit();
-
-//                AdditionalFunc.restartApp(getApplicationContext());
-                redirectStartPage();
-
-            }
-        }));
-
-        if("facebook".equals(login)){
-
-            this.addAccountSection(newSection("로그아웃 및 데이터 삭제", new MaterialSectionListener() {
-                @Override
-                public void onClick(MaterialSection section) {
-                    facebookLogin.logout();
-                    editor.remove("login");
-                    editor.commit();
-//                    AdditionalFunc.restartApp(getApplicationContext());
-//                    redirectStartPage();
-                    removeUser(StartActivity.USER_ID);
-                }
-            }));
-
-        }else if("naver".equals(login)){
-
-            this.addAccountSection(newSection("계정 및 데이터 삭제", new MaterialSectionListener() {
-                @Override
-                public void onClick(MaterialSection section) {
-                    naverLogin.logout();
-                    editor.remove("login");
-                    editor.commit();
-//                    AdditionalFunc.restartApp(getApplicationContext());
-//                    redirectStartPage();
-                    removeUser(StartActivity.USER_ID);
-                }
-            }));
-
+        showFragment("nav_tutor", new TutorListFragment());
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setTitle("재능나눔");
         }
+        navigationView.setCheckedItem(R.id.nav_tutor);
 
     }
-    private void setSection(){
 
-        Intent intent = new Intent(getApplicationContext(), ProfileActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        intent.putExtra("userId", StartActivity.USER_ID);
+    @Override
+    public void onBackPressed() {
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        if (drawer.isDrawerOpen(GravityCompat.START)) {
+            drawer.closeDrawer(GravityCompat.START);
+        } else {
+            super.onBackPressed();
+        }
+    }
 
+    @SuppressWarnings("StatementWithEmptyBody")
+    @Override
+    public boolean onNavigationItemSelected(MenuItem item) {
+        // Handle navigation view item clicks here.
+        int id = item.getItemId();
 
-        tutorListFragment = new TutorListFragment();
-        tutorListSection = newSection("재능나눔", R.drawable.ic_account_star_grey600_24dp, tutorListFragment);
-        tuteeListFragment = new TuteeListFragment();
+        String title = null;
 
-        // create sections
-        this.addSection(newSection("프로필 보기",R.drawable.ic_account_grey600_24dp, intent));
-        this.addSection(tutorListSection);
-        this.addSection(newSection("재능기부", R.drawable.ic_account_star_variant_grey600_24dp, tuteeListFragment));
-        this.addSection(newSection("나의 글 보기(재능나눔)", R.drawable.ic_account_star_grey600_24dp, new UserTuetueListFragment()));
-        this.addSection(newSection("정보", new MaterialSectionListener() {
-            @Override
-            public void onClick(MaterialSection section) {
-                showSnackbar("정보");
+        if (id == R.id.nav_show_profile) {
+
+            Intent intent = new Intent(getApplicationContext(), ProfileActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            intent.putExtra("userId", StartActivity.USER_ID);
+            startActivity(intent);
+
+        } else if (id == R.id.nav_tutor) {
+
+            showFragment("nav_tutor", new TutorListFragment());
+            title = "재능나눔";
+
+        } else if (id == R.id.nav_tutee) {
+
+            showFragment("nav_tutee", new TuteeListFragment());
+            title = "재능기부";
+
+        } else if(id == R.id.nav_my_tutor){
+
+            Fragment fragment = new UserTuetueListFragment();
+            Bundle bdl = new Bundle(1);
+            bdl.putBoolean("type", true);
+            fragment.setArguments(bdl);
+            showFragment("nav_my_tutor", fragment);
+            title = "내글보기(재능나눔)";
+
+        } else if(id == R.id.nav_my_tutee){
+
+            Fragment fragment = new UserTuetueListFragment();
+            Bundle bdl = new Bundle(1);
+            bdl.putBoolean("type", false);
+            fragment.setArguments(bdl);
+            showFragment("nav_my_tutee", fragment);
+            title = "내글보기(재능기부)";
+
+        } else if(id == R.id.nav_logout){
+
+            if("facebook".equals(login)){
+                facebookLogin.logout();
+            }else{
+                naverLogin.logout();
             }
-        }));
-        this.addSection(newSection("오류제보", new MaterialSectionListener() {
-            @Override
-            public void onClick(MaterialSection section) {
-                showSnackbar("오류제보");
-            }
-        }));
-        this.addSection(newSection("도움말", new MaterialSectionListener() {
-            @Override
-            public void onClick(MaterialSection section) {
-                showSnackbar("도움말");
-            }
-        }));
-        this.addSection(newSection("Open source", new MaterialSectionListener() {
-            @Override
-            public void onClick(MaterialSection section) {
-                showSnackbar("Open source");
-            }
-        }));
 
-//        this.addSection(newSection("Section",R.drawable.ic_hotel_grey600_24dp,new FragmentButton()).setSectionColor(Color.parseColor("#03a9f4")));
+            editor.remove("login");
+            editor.commit();
 
-        // create bottom section
-        this.addBottomSection(newSection("설정", R.drawable.ic_settings_black_24dp, new MaterialSectionListener() {
-            @Override
-            public void onClick(MaterialSection section) {
-                showSnackbar("설정");
+            redirectStartPage();
+
+        } else if(id == R.id.nav_logout_delete){
+            if("facebook".equals(login)){
+
+                facebookLogin.logout();
+                editor.remove("login");
+                editor.commit();
+                removeUser(StartActivity.USER_ID);
+
+            }else if("naver".equals(login)){
+
+                naverLogin.logout();
+                editor.remove("login");
+                editor.commit();
+                removeUser(StartActivity.USER_ID);
+
             }
-        }));
+        } else if(id == R.id.nav_info){
+//            showFragment("nav_info", new Fragment());
+            showSnackbar("정보");
+        } else if(id == R.id.nav_report){
+//            showFragment("nav_report", new Fragment());
+            showSnackbar("오류제보");
+        } else if(id == R.id.nav_help){
+//            showFragment("nav_help", new Fragment());
+            showSnackbar("도움말");
+        } else if(id == R.id.nav_open_source){
+//            showFragment("nav_open_source", new Fragment());
+            showSnackbar("Open source");
+        }
+
+        if (getSupportActionBar() != null && title != null) {
+            getSupportActionBar().setTitle(title);
+        }
+
+        navigationView.setCheckedItem(id);
+
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawer.closeDrawer(GravityCompat.START);
+        return true;
+    }
+
+    private void showFragment(String tag, Fragment fragment){
+        FragmentManager fragmentManager = getSupportFragmentManager();
+
+        if(fragmentManager.findFragmentByTag(tag) != null){
+            fragmentManager.beginTransaction().show(fragmentManager.findFragmentByTag(tag)).commit();
+        }else{
+            fragmentManager.beginTransaction().add(R.id.content_fragment_layout, fragment, tag).commit();
+        }
+        hideFragment(fragmentManager,tag);
+
+    }
+
+    private void hideFragment(FragmentManager fragmentManager, String name){
+
+        for(String s : menuList){
+
+            if(!s.equals(name)) {
+                if (fragmentManager.findFragmentByTag(s) != null) {
+                    fragmentManager.beginTransaction().hide(fragmentManager.findFragmentByTag(s)).commit();
+                }
+            }
+
+        }
 
     }
 
@@ -322,7 +274,6 @@ public class MainActivity extends MaterialNavigationDrawer {
         startActivity(intent);
         finish();
     }
-
 
     public void showSnackbar(String msg){
         Snackbar snackbar = Snackbar.make(getWindow().getDecorView().getRootView(), msg, Snackbar.LENGTH_SHORT);

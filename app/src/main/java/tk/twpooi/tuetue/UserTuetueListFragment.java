@@ -32,7 +32,6 @@ import in.srain.cube.views.ptr.PtrFrameLayout;
 import in.srain.cube.views.ptr.PtrHandler;
 import in.srain.cube.views.ptr.header.MaterialHeader;
 import in.srain.cube.views.ptr.util.PtrLocalDisplay;
-import it.neokree.materialnavigationdrawer.MaterialNavigationDrawer;
 import tk.twpooi.tuetue.util.AdditionalFunc;
 import tk.twpooi.tuetue.util.OnLoadMoreListener;
 import tk.twpooi.tuetue.util.OnVisibleListener;
@@ -72,8 +71,8 @@ public class UserTuetueListFragment extends Fragment implements OnVisibleListene
     public void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-//        type = getArguments().getBoolean("type", true);
-        type = true;
+        type = getArguments().getBoolean("type", true);
+//        type = true;
     }
 
     @Override
@@ -179,6 +178,7 @@ public class UserTuetueListFragment extends Fragment implements OnVisibleListene
                 if(rv != null){
                     rv.smoothScrollToPosition(0);
                 }
+                menu.toggle();
             }
         });
         gotoUp.setTitle("맨위로");
@@ -193,7 +193,7 @@ public class UserTuetueListFragment extends Fragment implements OnVisibleListene
     public void makeList(){
 
         if(type) {
-            adapter = new TutorListCustomAdapter(context, list, rv, this, (MaterialNavigationDrawer)getActivity());
+            adapter = new TutorListCustomAdapter(context, list, rv, this);
         }else{
             adapter = new TuteeListCustomAdapter(context, list, rv, this);
         }

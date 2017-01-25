@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_tutor"
+            android:icon="@drawable/ic_account_star_black_24dp"
+            android:title="재능나눔" />
+        <item
+            android:id="@+id/nav_tutee"
+            android:icon="@drawable/ic_account_star_variant_black_24dp"
+            android:title="재능기부" />
+
+    </group>
+
+        <item
+            android:title="유저">
+            <menu>
+                <item
+                    android:id="@+id/nav_show_profile"
+                    android:icon="@drawable/ic_account_black_24dp"
+                    android:title="프로필 보기" />
+
+                <group android:checkableBehavior="single">
+                    <item
+                        android:id="@+id/nav_my_tutor"
+                        android:icon="@drawable/ic_account_star_black_24dp"
+                        android:title="내글보기(재능나눔)" />
+                    <item
+                        android:id="@+id/nav_my_tutee"
+                        android:icon="@drawable/ic_account_star_variant_black_24dp"
+                        android:title="내글보기(재능기부)" />
+                </group>
+
+                <item
+                    android:id="@+id/nav_logout"
+                    android:title="로그아웃" />
+                <item
+                    android:id="@+id/nav_logout_delete"
+                    android:title="로그아웃 및 데이터 삭제" />
+
+            </menu>
+        </item>
+
+        <item android:title="부가">
+            <menu>
+                <item
+                    android:id="@+id/nav_info"
+                    android:title="정보" />
+                <item
+                    android:id="@+id/nav_report"
+                    android:title="오류제보" />
+                <item
+                    android:id="@+id/nav_help"
+                    android:title="도움말" />
+                <item
+                    android:id="@+id/nav_open_source"
+                    android:title="Open source" />
+            </menu>
+        </item>
+
+
+</menu>

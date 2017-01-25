@@ -191,6 +191,7 @@ public class TuteeListFragment extends Fragment implements OnVisibleListener{
                 if(rv != null){
                     rv.smoothScrollToPosition(0);
                 }
+                menu.toggle();
             }
         });
         gotoUp.setTitle("맨위로");

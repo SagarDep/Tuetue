@@ -57,6 +57,7 @@ dependencies {
     compile 'com.getbase:floatingactionbutton:1.10.1'
     // edit text
     compile 'com.rengwuxian.materialedittext:library:2.1.4'
+
     // refresh
     compile 'in.srain.cube:ultra-ptr:1.0.11'
     // Progressbar
@@ -66,8 +67,6 @@ dependencies {
     compile 'com.flaviofaria:kenburnsview:1.0.7'
     // loding indicator
     compile 'com.wang.avi:library:2.1.2'
-    // Menubar
-    compile 'it.neokree:MaterialNavigationDrawer:1.3.3'
     // Date
     compile 'com.wdullaer:materialdatetimepicker:3.1.0'
     // Facebook
