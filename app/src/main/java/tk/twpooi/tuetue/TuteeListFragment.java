@@ -33,13 +33,13 @@ import in.srain.cube.views.ptr.header.MaterialHeader;
 import in.srain.cube.views.ptr.util.PtrLocalDisplay;
 import tk.twpooi.tuetue.util.AdditionalFunc;
 import tk.twpooi.tuetue.util.OnLoadMoreListener;
-import tk.twpooi.tuetue.util.OnVisibleListener;
+import tk.twpooi.tuetue.util.OnAdapterSupport;
 import tk.twpooi.tuetue.util.ParsePHP;
 
 /**
  * Created by tw on 2016-08-16.
  */
-public class TuteeListFragment extends Fragment implements OnVisibleListener{
+public class TuteeListFragment extends Fragment implements OnAdapterSupport {
 
 
     private MyHandler handler = new MyHandler();
@@ -270,7 +270,7 @@ public class TuteeListFragment extends Fragment implements OnVisibleListener{
         int scrollX = rv.computeHorizontalScrollOffset();
         int scrollY = rv.computeVerticalScrollOffset();
 
-        adapter = new TuteeListCustomAdapter(context, list, rv, this);
+        adapter = new TuteeListCustomAdapter(context, list, rv, this, ShowTuetueActivity.TYPE_TUTEE_LIST);
 
         rv.setAdapter(adapter);
 
@@ -302,6 +302,22 @@ public class TuteeListFragment extends Fragment implements OnVisibleListener{
 //        mToolbar.animate().translationY(-mToolbar.getHeight()).setInterpolator(new AccelerateInterpolator(2));
     }
 
+    @Override
+    public void redirectActivityForResult(Intent intent) {
+        getActivity().startActivityForResult(intent, 0);
+    }
+
+    @Override
+    public void redirectActivity(Intent intent) {
+        getActivity().startActivity(intent);
+    }
+
+    public void updateList(int index, HashMap<String, Object> data) {
+        if (index >= 0 && index < list.size()) {
+            list.set(index, data);
+            adapter.notifyItemChanged(index);
+        }
+    }
 
     private class MyHandler extends Handler {
 

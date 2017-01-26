@@ -1,6 +1,7 @@
 package tk.twpooi.tuetue;
 
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
@@ -52,10 +53,9 @@ import tk.twpooi.tuetue.util.ParsePHP;
 public class AddTuteeActivity extends AppCompatActivity {
 
     private MyHandler handler = new MyHandler();
+    private final int MSG_MESSAGE_FILL_FORM = 500;
     private final int MSG_MESSAGE_SAVE_SUCCESS = 1000;
     private final int MSG_MESSAGE_SAVE_ERROR = 1001;
-
-//    private SweetAlertDialog pDialog;
 
     private TextView categoryBtn;
     private MaterialEditText edit_time;
@@ -71,14 +71,36 @@ public class AddTuteeActivity extends AppCompatActivity {
 
     private ProgressDialog progressDialog;
 
-//    private SaveTutee saveTutee;
+    private boolean isEditMode;
+    private String id;
+    private HashMap<String, Object> item;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_tutee);
 
+        Intent intent = getIntent();
+        isEditMode = intent.getBooleanExtra("edit", false);
+        id = intent.getStringExtra("id");
+
         init();
+
+        if (isEditMode) {
+            progressDialog.setMessage("잠시만 기다려주세요.");
+            progressDialog.show();
+            HashMap<String, String> map = new HashMap<>();
+            map.put("id", id);
+            map.put("service", "getTuteeList");
+            new ParsePHP(Information.MAIN_SERVER_ADDRESS, map) {
+                @Override
+                protected void afterThreadFinish(String data) {
+                    item.clear();
+                    item = AdditionalFunc.getTuteeList(data).get(0);
+                    handler.sendMessage(handler.obtainMessage(MSG_MESSAGE_FILL_FORM));
+                }
+            }.start();
+        }
 
     }
     private void selectCategory() {
@@ -103,6 +125,7 @@ public class AddTuteeActivity extends AppCompatActivity {
 
     private void init(){
 
+        item = new HashMap<>();
         progressDialog = new ProgressDialog(this);
         TextWatcher textWatcher = new TextWatcher() {
             @Override
@@ -168,8 +191,13 @@ public class AddTuteeActivity extends AppCompatActivity {
                 String category = categoryBtn.getText().toString();
 
                 HashMap<String, String> map = new HashMap<>();
-                map.put("service", "saveTutee");
-                map.put("id", getID());
+                if (isEditMode) {
+                    map.put("service", "updateTutee");
+                    map.put("id", id);
+                } else {
+                    map.put("service", "saveTutee");
+                    map.put("id", getID());
+                }
                 map.put("userid", StartActivity.USER_ID);
                 map.put("img", (String)user.get("img"));
                 map.put("email", (String)user.get("email"));
@@ -179,6 +207,14 @@ public class AddTuteeActivity extends AppCompatActivity {
                 map.put("time", time);
                 map.put("contents", contents);
 
+                if (isEditMode) {
+                    item.put("contents", edit_contents.getText().toString());
+                    item.put("time", edit_time.getText().toString());
+                    item.put("category", category);
+                    item.put("limit", ms_limit);
+                }
+
+                progressDialog.setMessage("처리 중입니다.\n잠시만 기다려주세요.");
                 progressDialog.show();
                 new ParsePHP(Information.MAIN_SERVER_ADDRESS, map){
                     @Override
@@ -194,6 +230,11 @@ public class AddTuteeActivity extends AppCompatActivity {
 
             }
         });
+        if (isEditMode) {
+            addBtn.setText("편집하기");
+        } else {
+            addBtn.setText("기부받기");
+        }
 
         checkAddable();
 
@@ -237,12 +278,37 @@ public class AddTuteeActivity extends AppCompatActivity {
 
     }
 
+    private void fillForm() {
+
+        String contents = (String) item.get("contents");
+        String time = (String) item.get("time");
+        Long limit = (Long) item.get("limit");
+        String category = (String) item.get("category");
+
+        edit_contents.setText(contents);
+        edit_time.setText(time);
+
+        isLimit = true;
+        setDateBtn(limitBtn, AdditionalFunc.getDateString(limit));
+        ms_limit = limit;
+
+        isCategory = true;
+        setDateBtn(categoryBtn, category);
+
+        checkAddable();
+
+    }
+
     private class MyHandler extends Handler {
 
         public void handleMessage(Message msg)
         {
             switch (msg.what)
             {
+                case MSG_MESSAGE_FILL_FORM:
+                    progressDialog.hide();
+                    fillForm();
+                    break;
                 case MSG_MESSAGE_SAVE_SUCCESS:
                     progressDialog.hide();
                     final MaterialDialog dialog = new MaterialDialog(AddTuteeActivity.this);
@@ -255,7 +321,7 @@ public class AddTuteeActivity extends AppCompatActivity {
                         @Override
                         public void onBtnClick() {
                             dialog.dismiss();
-                            finish();
+                            redirectPreviousActivity();
                         }
                     });
                     break;
@@ -278,6 +344,15 @@ public class AddTuteeActivity extends AppCompatActivity {
                     break;
             }
         }
+    }
+
+    private void redirectPreviousActivity() {
+        if (isEditMode) {
+            Intent intent = new Intent();
+            intent.putExtra("item", item);
+            this.setResult(ShowTuetueActivity.EDIT_CONTENTS, intent);
+        }
+        this.finish();
     }
 
     public void showSnackbar(String msg){

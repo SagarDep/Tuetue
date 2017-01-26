@@ -21,7 +21,7 @@ import java.util.HashMap;
 import jp.wasabeef.picasso.transformations.CropCircleTransformation;
 import tk.twpooi.tuetue.util.AdditionalFunc;
 import tk.twpooi.tuetue.util.OnLoadMoreListener;
-import tk.twpooi.tuetue.util.OnVisibleListener;
+import tk.twpooi.tuetue.util.OnAdapterSupport;
 
 
 /**
@@ -32,9 +32,10 @@ public class TuteeListCustomAdapter extends RecyclerView.Adapter<TuteeListCustom
     // UI
     private Context context;
 
-    private OnVisibleListener onVisibleListener;
+    private OnAdapterSupport onAdapterSupport;
     private FileManager fileManager;
 
+    private int type;
     public ArrayList<HashMap<String, Object>> attractionList;
     private ArrayList<String> interestList;
 
@@ -45,10 +46,11 @@ public class TuteeListCustomAdapter extends RecyclerView.Adapter<TuteeListCustom
     private boolean loading = false;
 
     // 생성자
-    public TuteeListCustomAdapter(Context context, ArrayList<HashMap<String,Object>> attractionList, RecyclerView recyclerView, OnVisibleListener listener) {
+    public TuteeListCustomAdapter(Context context, ArrayList<HashMap<String, Object>> attractionList, RecyclerView recyclerView, OnAdapterSupport listener, int type) {
         this.context = context;
         this.attractionList = attractionList;
-        this.onVisibleListener = listener;
+        this.onAdapterSupport = listener;
+        this.type = type;
 
         fileManager = new FileManager(context);
         interestList = fileManager.readInterestListFile();
@@ -115,11 +117,13 @@ public class TuteeListCustomAdapter extends RecyclerView.Adapter<TuteeListCustom
             public void onClick(View view) {
 
                 Intent intent = new Intent(context, ShowTuetueActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 intent.putExtra("id", id);
                 intent.putExtra("index", pos);
-                intent.putExtra("type", false);
-                context.startActivity(intent);
+                intent.putExtra("type", type);
+//                context.startActivity(intent);
+                if (onAdapterSupport != null) {
+                    onAdapterSupport.redirectActivityForResult(intent);
+                }
 
             }
         });
@@ -129,9 +133,11 @@ public class TuteeListCustomAdapter extends RecyclerView.Adapter<TuteeListCustom
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(context, ProfileActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 intent.putExtra("userId", userId);
-                context.startActivity(intent);
+//                context.startActivity(intent);
+                if (onAdapterSupport != null) {
+                    onAdapterSupport.redirectActivity(intent);
+                }
             }
         });
 
@@ -144,14 +150,14 @@ public class TuteeListCustomAdapter extends RecyclerView.Adapter<TuteeListCustom
     }
 
     private void hideViews() {
-        if(onVisibleListener != null){
-            onVisibleListener.hideView();
+        if (onAdapterSupport != null) {
+            onAdapterSupport.hideView();
         }
     }
 
     private void showViews() {
-        if(onVisibleListener != null){
-            onVisibleListener.showView();
+        if (onAdapterSupport != null) {
+            onAdapterSupport.showView();
         }
     }
 

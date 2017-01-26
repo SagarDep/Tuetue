@@ -191,8 +191,8 @@ public class AdditionalFunc {
                 hashTemp.put("category", (String)temp.get("category"));
                 hashTemp.put("count", Integer.parseInt((String)temp.get("count")));
                 hashTemp.put("limit", Long.parseLong((String)temp.get("limit")));
-                hashTemp.put("start", Long.parseLong((String)temp.get("limit")));
-                hashTemp.put("finish", Long.parseLong((String)temp.get("limit")));
+                hashTemp.put("start", Long.parseLong((String) temp.get("start")));
+                hashTemp.put("finish", Long.parseLong((String) temp.get("finish")));
                 hashTemp.put("interest", Integer.parseInt((String)temp.get("interest")));
                 hashTemp.put("time", (String)temp.get("time"));
                 hashTemp.put("contents", (String)temp.get("contents"));

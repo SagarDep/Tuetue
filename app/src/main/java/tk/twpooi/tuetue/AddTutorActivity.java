@@ -59,10 +59,9 @@ import tk.twpooi.tuetue.util.ParsePHP;
 public class AddTutorActivity extends AppCompatActivity {
 
     private MyHandler handler = new MyHandler();
+    private final int MSG_MESSAGE_FILL_FORM = 500;
     private final int MSG_MESSAGE_SAVE_SUCCESS = 1000;
     private final int MSG_MESSAGE_SAVE_ERROR = 1001;
-
-//    private SweetAlertDialog pDialog;
 
     private TextView categoryBtn;
     private MaterialEditText edit_count;
@@ -84,15 +83,37 @@ public class AddTutorActivity extends AppCompatActivity {
     private long ms_finish;
 
     private ProgressDialog progressDialog;
-//    private SaveTutor saveTutor;
+
+    private boolean isEditMode;
+    private String id;
+    private HashMap<String, Object> item;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_tutor);
 
+        Intent intent = getIntent();
+        isEditMode = intent.getBooleanExtra("edit", false);
+        id = intent.getStringExtra("id");
 
         init();
+
+        if (isEditMode) {
+            progressDialog.setMessage("잠시만 기다려주세요.");
+            progressDialog.show();
+            HashMap<String, String> map = new HashMap<>();
+            map.put("id", id);
+            map.put("service", "getTutorList");
+            new ParsePHP(Information.MAIN_SERVER_ADDRESS, map) {
+                @Override
+                protected void afterThreadFinish(String data) {
+                    item.clear();
+                    item = AdditionalFunc.getTutorList(data).get(0);
+                    handler.sendMessage(handler.obtainMessage(MSG_MESSAGE_FILL_FORM));
+                }
+            }.start();
+        }
 
     }
 
@@ -119,6 +140,7 @@ public class AddTutorActivity extends AppCompatActivity {
 
     private void init(){
 
+        item = new HashMap<>();
         progressDialog = new ProgressDialog(this);
         TextWatcher textWatcher = new TextWatcher() {
             @Override
@@ -245,8 +267,13 @@ public class AddTutorActivity extends AppCompatActivity {
                     String category = categoryBtn.getText().toString();
 
                     HashMap<String, String> map = new HashMap<String, String>();
-                    map.put("service", "saveTutor");
-                    map.put("id", getID());
+                    if (isEditMode) {
+                        map.put("service", "updateTutor");
+                        map.put("id", id);
+                    } else {
+                        map.put("service", "saveTutor");
+                        map.put("id", getID());
+                    }
                     map.put("userid", StartActivity.USER_ID);
                     map.put("img", (String)user.get("img"));
                     map.put("email", (String)user.get("email"));
@@ -259,6 +286,17 @@ public class AddTutorActivity extends AppCompatActivity {
                     map.put("time", time);
                     map.put("contents", contents);
 
+                    if (isEditMode) {
+                        item.put("contents", edit_contents.getText().toString());
+                        item.put("count", Integer.parseInt(count));
+                        item.put("time", edit_time.getText().toString());
+                        item.put("category", category);
+                        item.put("limit", ms_limit);
+                        item.put("start", ms_start);
+                        item.put("finish", ms_finish);
+                    }
+
+                    progressDialog.setMessage("처리 중입니다.\n잠시만 기다려주세요.");
                     progressDialog.show();
                     new ParsePHP(Information.MAIN_SERVER_ADDRESS, map){
                         @Override
@@ -275,16 +313,15 @@ public class AddTutorActivity extends AppCompatActivity {
 
             }
         });
+        if (isEditMode) {
+            addBtn.setText("편집하기");
+        } else {
+            addBtn.setText("나눔하기");
+        }
 
         checkAddable();
 
     }
-
-//    private boolean isValid(MaterialEditText me){
-//
-//        return me.getText().toString().length() >= 1;
-//
-//    }
 
     private void checkAddable(){
 
@@ -325,12 +362,49 @@ public class AddTutorActivity extends AppCompatActivity {
         return id;
     }
 
+    private void fillForm() {
+
+        String contents = (String) item.get("contents");
+        int count = (int) item.get("count");
+        String time = (String) item.get("time");
+        Long limit = (Long) item.get("limit");
+        Long start = (Long) item.get("start");
+        Long finish = (Long) item.get("finish");
+        String category = (String) item.get("category");
+
+        edit_contents.setText(contents);
+        edit_count.setText(count + "");
+        edit_time.setText(time);
+
+        isLimit = true;
+        setDateBtn(limitBtn, AdditionalFunc.getDateString(limit));
+        ms_limit = limit;
+
+        isStart = true;
+        setDateBtn(startBtn, AdditionalFunc.getDateString(start));
+        ms_start = start;
+
+        isFinish = true;
+        setDateBtn(finishBtn, AdditionalFunc.getDateString(finish));
+        ms_finish = finish;
+
+        isCategory = true;
+        setDateBtn(categoryBtn, category);
+
+        checkAddable();
+
+    }
+
     private class MyHandler extends Handler {
 
         public void handleMessage(Message msg)
         {
             switch (msg.what)
             {
+                case MSG_MESSAGE_FILL_FORM:
+                    progressDialog.hide();
+                    fillForm();
+                    break;
                 case MSG_MESSAGE_SAVE_SUCCESS:
                     progressDialog.hide();
                     final MaterialDialog dialog = new MaterialDialog(AddTutorActivity.this);
@@ -343,7 +417,7 @@ public class AddTutorActivity extends AppCompatActivity {
                         @Override
                         public void onBtnClick() {
                             dialog.dismiss();
-                            finish();
+                            redirectPreviousActivity();
                         }
                     });
                     break;
@@ -368,6 +442,14 @@ public class AddTutorActivity extends AppCompatActivity {
         }
     }
 
+    private void redirectPreviousActivity() {
+        if (isEditMode) {
+            Intent intent = new Intent();
+            intent.putExtra("item", item);
+            this.setResult(ShowTuetueActivity.EDIT_CONTENTS, intent);
+        }
+        this.finish();
+    }
 
     public void showSnackbar(String msg){
         Snackbar snackbar = Snackbar.make(getWindow().getDecorView().getRootView(), msg, Snackbar.LENGTH_SHORT);

@@ -2,7 +2,6 @@ package tk.twpooi.tuetue;
 
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -12,14 +11,10 @@ import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 
-import com.flyco.dialog.listener.OnOperItemClickL;
-import com.flyco.dialog.widget.NormalListDialog;
 import com.getbase.floatingactionbutton.FloatingActionButton;
 import com.getbase.floatingactionbutton.FloatingActionsMenu;
 import com.wang.avi.AVLoadingIndicatorView;
@@ -33,14 +28,13 @@ import in.srain.cube.views.ptr.PtrHandler;
 import in.srain.cube.views.ptr.header.MaterialHeader;
 import in.srain.cube.views.ptr.util.PtrLocalDisplay;
 import tk.twpooi.tuetue.util.AdditionalFunc;
-import tk.twpooi.tuetue.util.OnLoadMoreListener;
-import tk.twpooi.tuetue.util.OnVisibleListener;
+import tk.twpooi.tuetue.util.OnAdapterSupport;
 import tk.twpooi.tuetue.util.ParsePHP;
 
 /**
  * Created by tw on 2016-08-16.
  */
-public class UserTuetueListFragment extends Fragment implements OnVisibleListener{
+public class UserTuetueListFragment extends Fragment implements OnAdapterSupport {
 
 
     private MyHandler handler = new MyHandler();
@@ -193,9 +187,9 @@ public class UserTuetueListFragment extends Fragment implements OnVisibleListene
     public void makeList(){
 
         if(type) {
-            adapter = new TutorListCustomAdapter(context, list, rv, this);
+            adapter = new TutorListCustomAdapter(context, list, rv, this, ShowTuetueActivity.TYPE_USER_TUTOR_LIST);
         }else{
-            adapter = new TuteeListCustomAdapter(context, list, rv, this);
+            adapter = new TuteeListCustomAdapter(context, list, rv, this, ShowTuetueActivity.TYPE_USER_TUTEE_LIST);
         }
 
         rv.setAdapter(adapter);
@@ -216,6 +210,22 @@ public class UserTuetueListFragment extends Fragment implements OnVisibleListene
         menu.setVisibility(View.INVISIBLE);
     }
 
+    @Override
+    public void redirectActivityForResult(Intent intent) {
+        getActivity().startActivityForResult(intent, 0);
+    }
+
+    @Override
+    public void redirectActivity(Intent intent) {
+        getActivity().startActivity(intent);
+    }
+
+    public void updateList(int index, HashMap<String, Object> data) {
+        if (index >= 0 && index < list.size()) {
+            list.set(index, data);
+            adapter.notifyItemChanged(index);
+        }
+    }
 
     private class MyHandler extends Handler {
 

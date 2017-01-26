@@ -19,6 +19,7 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.akexorcist.roundcornerprogressbar.TextRoundCornerProgressBar;
+import com.getbase.floatingactionbutton.FloatingActionButton;
 import com.squareup.picasso.Picasso;
 import com.wang.avi.AVLoadingIndicatorView;
 
@@ -38,6 +39,8 @@ public class ShowTuetueActivity extends AppCompatActivity {
     private final int MSG_MESSAGE_SET_BUTTON_TRUE = 503;
     private final int MSG_MESSAGE_SET_BUTTON_FALSE = 504;
     private final int MSG_MESSAGE_REFRESH_PROGRESS = 1001;
+
+    public final static int EDIT_CONTENTS = 1;
 
     private HashMap<String, Object> item;
     private HashMap<String, View> svItem;
@@ -59,9 +62,14 @@ public class ShowTuetueActivity extends AppCompatActivity {
     private ScrollView sv;
     private LinearLayout infoField;
 
+    private FloatingActionButton fabEdit;
     private TextView joinBtn;
 
-    private boolean type; // true : tutor, false : tutee
+    private int type;
+    public final static int TYPE_TUTOR_LIST = 0;
+    public final static int TYPE_TUTEE_LIST = 1;
+    public final static int TYPE_USER_TUTOR_LIST = 2;
+    public final static int TYPE_USER_TUTEE_LIST = 3;
 
     private int index;
     private String id;
@@ -78,7 +86,7 @@ public class ShowTuetueActivity extends AppCompatActivity {
         Intent intent = getIntent();
         id = intent.getStringExtra("id");
         index = intent.getIntExtra("index", -1);
-        type = intent.getBooleanExtra("type", false);
+        type = intent.getIntExtra("type", -1);
 
         item = new HashMap<>();
         svItem = new HashMap<>();
@@ -88,7 +96,7 @@ public class ShowTuetueActivity extends AppCompatActivity {
 
         HashMap<String, String> map = new HashMap<>();
         map.put("id", id);
-        if(type) {
+        if (isTutorContents()) {
             map.put("service", "getTutorList");
             new ParsePHP(Information.MAIN_SERVER_ADDRESS, map){
 
@@ -119,10 +127,18 @@ public class ShowTuetueActivity extends AppCompatActivity {
 
     }
 
+    private boolean isTutorContents() {
+        if (type == TYPE_TUTOR_LIST || type == TYPE_USER_TUTOR_LIST) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     private void init(){
 
         fm_progress = (FrameLayout)findViewById(R.id.fm_progress);
-        if(!type){
+        if (!isTutorContents()) {
             fm_progress.setVisibility(View.GONE);
         }
 
@@ -163,10 +179,33 @@ public class ShowTuetueActivity extends AppCompatActivity {
 //        });
         infoField = (LinearLayout)findViewById(R.id.li_info_field);
 
+        fabEdit = (FloatingActionButton) findViewById(R.id.fab_edit);
+        fabEdit.setTitle("편집");
+        fabEdit.setVisibility(View.GONE);
+        fabEdit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (isTutorContents()) {
+                    Intent intent = new Intent(getApplicationContext(), AddTutorActivity.class);
+                    intent.putExtra("edit", true);
+                    intent.putExtra("id", id);
+                    startAddActivity(intent);
+                } else {
+                    Intent intent = new Intent(getApplicationContext(), AddTuteeActivity.class);
+                    intent.putExtra("edit", true);
+                    intent.putExtra("id", id);
+                    startAddActivity(intent);
+                }
+            }
+        });
         joinBtn = (TextView)findViewById(R.id.join);
 
         setProgressBar();
 
+    }
+
+    private void startAddActivity(Intent intent) {
+        this.startActivityForResult(intent, 0);
     }
 
     private void onShow(){
@@ -220,7 +259,7 @@ public class ShowTuetueActivity extends AppCompatActivity {
 
     private void makeScrollView(){
 
-        if(type){ // Tutor
+        if (isTutorContents()) { // Tutor
 
             for(HashMap<String, String> map : AdditionalFunc.getShowTutorList()){
 
@@ -326,7 +365,7 @@ public class ShowTuetueActivity extends AppCompatActivity {
 
         }
 
-        if(type){
+        if (isTutorContents()) {
 
             fm_progress.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -372,6 +411,10 @@ public class ShowTuetueActivity extends AppCompatActivity {
             }
         });
 
+        if (StartActivity.USER_ID.equals((String) item.get("userid"))) {
+            fabEdit.setVisibility(View.VISIBLE);
+        }
+
     }
 
     private void setButton(boolean check){
@@ -384,7 +427,7 @@ public class ShowTuetueActivity extends AppCompatActivity {
         joinBtn.setVisibility(View.VISIBLE);
         if (((String)item.get("userid")).equals(StartActivity.USER_ID)) {
 
-            if(type){
+            if (isTutorContents()) {
                 joinBtn.setText("마감하기");
                 joinBtn.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.facebook_blue));
                 joinBtn.setOnClickListener(new View.OnClickListener() {
@@ -434,7 +477,7 @@ public class ShowTuetueActivity extends AppCompatActivity {
 
         }else{
 
-            if(type){
+            if (isTutorContents()) {
                 if(check){ // 참가하기
                     ArrayList<String> participant = (ArrayList<String>)item.get("participant");
                     int count = (int)item.get("count");
@@ -596,6 +639,44 @@ public class ShowTuetueActivity extends AppCompatActivity {
         View view = snackbar.getView();
         view.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.snackbar_color));
         snackbar.show();
+    }
+
+    @Override
+    public void onBackPressed() {
+        Intent intent = new Intent();
+        intent.putExtra("item", item);
+        intent.putExtra("index", index);
+        switch (type) {
+            case TYPE_TUTOR_LIST:
+                this.setResult(MainActivity.RESULT_CODE_TUTOR_LIST_FRAGMENT, intent);
+                break;
+            case TYPE_TUTEE_LIST:
+                this.setResult(MainActivity.RESULT_CODE_TUTEE_LIST_FRAGMENT, intent);
+                break;
+            case TYPE_USER_TUTOR_LIST:
+                this.setResult(MainActivity.RESULT_CODE_USER_TUTOR_LIST_FRAGMENT, intent);
+                break;
+            case TYPE_USER_TUTEE_LIST:
+                this.setResult(MainActivity.RESULT_CODE_USER_TUTEE_LIST_FRAGMENT, intent);
+                break;
+        }
+        super.onBackPressed();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        System.out.println("resultCode : " + resultCode);
+        switch (resultCode) {
+            case EDIT_CONTENTS:
+                item = (HashMap<String, Object>) data.getSerializableExtra("item");
+                System.out.println(item);
+                refreshView();
+                break;
+            default:
+                break;
+        }
+
     }
 
     @Override

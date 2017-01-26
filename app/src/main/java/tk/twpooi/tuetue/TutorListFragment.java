@@ -7,7 +7,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
@@ -35,13 +34,13 @@ import in.srain.cube.views.ptr.header.MaterialHeader;
 import in.srain.cube.views.ptr.util.PtrLocalDisplay;
 import tk.twpooi.tuetue.util.AdditionalFunc;
 import tk.twpooi.tuetue.util.OnLoadMoreListener;
-import tk.twpooi.tuetue.util.OnVisibleListener;
+import tk.twpooi.tuetue.util.OnAdapterSupport;
 import tk.twpooi.tuetue.util.ParsePHP;
 
 /**
  * Created by tw on 2016-08-16.
  */
-public class TutorListFragment extends Fragment implements OnVisibleListener{
+public class TutorListFragment extends Fragment implements OnAdapterSupport {
 
     private MyHandler handler = new MyHandler();
     private final int MSG_MESSAGE_MAKE_LIST = 500;
@@ -214,7 +213,6 @@ public class TutorListFragment extends Fragment implements OnVisibleListener{
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(context, AddTutorActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(intent);
                 menu.toggle();
             }
@@ -280,7 +278,7 @@ public class TutorListFragment extends Fragment implements OnVisibleListener{
 
     public void makeList(){
 
-        adapter = new TutorListCustomAdapter(context, list, rv, this);
+        adapter = new TutorListCustomAdapter(context, list, rv, this, ShowTuetueActivity.TYPE_TUTOR_LIST);
 
         rv.setAdapter(adapter);
 
@@ -314,6 +312,22 @@ public class TutorListFragment extends Fragment implements OnVisibleListener{
 //        ((MaterialNavigationDrawer)getActivity()).getSupportActionBar().hide();
     }
 
+    @Override
+    public void redirectActivityForResult(Intent intent) {
+        getActivity().startActivityForResult(intent, 0);
+    }
+
+    @Override
+    public void redirectActivity(Intent intent) {
+        getActivity().startActivity(intent);
+    }
+
+    public void updateList(int index, HashMap<String, Object> data) {
+        if (index >= 0 && index < list.size()) {
+            list.set(index, data);
+            adapter.notifyItemChanged(index);
+        }
+    }
 
     private class MyHandler extends Handler {
 

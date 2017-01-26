@@ -34,7 +34,14 @@ import tk.twpooi.tuetue.util.FacebookLogin;
 import tk.twpooi.tuetue.util.NaverLogin;
 import tk.twpooi.tuetue.util.ParsePHP;
 
+import static tk.twpooi.tuetue.ShowTuetueActivity.EDIT_CONTENTS;
+
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
+
+    public final static int RESULT_CODE_TUTOR_LIST_FRAGMENT = 3000;
+    public final static int RESULT_CODE_TUTEE_LIST_FRAGMENT = 3001;
+    public final static int RESULT_CODE_USER_TUTOR_LIST_FRAGMENT = 3002;
+    public final static int RESULT_CODE_USER_TUTEE_LIST_FRAGMENT = 3003;
 
     private MyHandler handler = new MyHandler();
     private final int MSG_MESSAGE_FINISH = 500;
@@ -266,6 +273,48 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     break;
             }
         }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        switch (resultCode) {
+            case RESULT_CODE_TUTOR_LIST_FRAGMENT: {
+                int index = data.getIntExtra("index", -1);
+                HashMap<String, Object> item = (HashMap<String, Object>) data.getSerializableExtra("item");
+
+                TutorListFragment fragment = (TutorListFragment) getSupportFragmentManager().findFragmentByTag("nav_tutor");
+                fragment.updateList(index, item);
+                break;
+            }
+            case RESULT_CODE_TUTEE_LIST_FRAGMENT: {
+                int index = data.getIntExtra("index", -1);
+                HashMap<String, Object> item = (HashMap<String, Object>) data.getSerializableExtra("item");
+
+                TuteeListFragment fragment = (TuteeListFragment) getSupportFragmentManager().findFragmentByTag("nav_tutee");
+                fragment.updateList(index, item);
+                break;
+            }
+            case RESULT_CODE_USER_TUTOR_LIST_FRAGMENT: {
+                int index = data.getIntExtra("index", -1);
+                HashMap<String, Object> item = (HashMap<String, Object>) data.getSerializableExtra("item");
+
+                UserTuetueListFragment fragment = (UserTuetueListFragment) getSupportFragmentManager().findFragmentByTag("nav_my_tutor");
+                fragment.updateList(index, item);
+                break;
+            }
+            case RESULT_CODE_USER_TUTEE_LIST_FRAGMENT: {
+                int index = data.getIntExtra("index", -1);
+                HashMap<String, Object> item = (HashMap<String, Object>) data.getSerializableExtra("item");
+
+                UserTuetueListFragment fragment = (UserTuetueListFragment) getSupportFragmentManager().findFragmentByTag("nav_my_tutee");
+                fragment.updateList(index, item);
+                break;
+            }
+            default:
+                break;
+        }
+
     }
 
     private void redirectStartPage(){

@@ -2,7 +2,6 @@ package tk.twpooi.tuetue;
 
 import android.content.Context;
 import android.content.Intent;
-import android.os.Bundle;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -21,7 +20,7 @@ import java.util.HashMap;
 import jp.wasabeef.picasso.transformations.CropCircleTransformation;
 import tk.twpooi.tuetue.util.AdditionalFunc;
 import tk.twpooi.tuetue.util.OnLoadMoreListener;
-import tk.twpooi.tuetue.util.OnVisibleListener;
+import tk.twpooi.tuetue.util.OnAdapterSupport;
 
 
 /**
@@ -33,9 +32,10 @@ public class TutorListCustomAdapter extends RecyclerView.Adapter<TutorListCustom
     private Context context;
 
 //    private MaterialNavigationDrawer activity;
-    private OnVisibleListener onVisibleListener;
+private OnAdapterSupport onAdapterSupport;
     private FileManager fileManager;
 
+    private int type;
     public ArrayList<HashMap<String, Object>> attractionList;
 
     // 무한 스크롤
@@ -45,10 +45,11 @@ public class TutorListCustomAdapter extends RecyclerView.Adapter<TutorListCustom
     private boolean loading = false;
 
     // 생성자
-    public TutorListCustomAdapter(Context context, ArrayList<HashMap<String,Object>> attractionList, RecyclerView recyclerView, OnVisibleListener listener) {
+    public TutorListCustomAdapter(Context context, ArrayList<HashMap<String, Object>> attractionList, RecyclerView recyclerView, OnAdapterSupport listener, int type) {
         this.context = context;
         this.attractionList = attractionList;
-        this.onVisibleListener = listener;
+        this.onAdapterSupport = listener;
+        this.type = type;
 //        this.activity = activity;
 
         fileManager = new FileManager(context);
@@ -116,20 +117,15 @@ public class TutorListCustomAdapter extends RecyclerView.Adapter<TutorListCustom
             @Override
             public void onClick(View view) {
 
-//                ShowTuetueFragment fragment = new ShowTuetueFragment();
-//                Bundle bdl = new Bundle(1);
-//                bdl.putString("id", id);
-//                bdl.putInt("index", pos);
-//                bdl.putBoolean("type", true);
-//                fragment.setArguments(bdl);
-//                activity.setFragmentChild(fragment, "상세보기");
-
                 Intent intent = new Intent(context, ShowTuetueActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 intent.putExtra("id", id);
                 intent.putExtra("index", pos);
-                intent.putExtra("type", true);
-                context.startActivity(intent);
+                intent.putExtra("type", type);
+//                context.startActivity(intent);
+
+                if (onAdapterSupport != null) {
+                    onAdapterSupport.redirectActivityForResult(intent);
+                }
 
             }
         });
@@ -138,9 +134,12 @@ public class TutorListCustomAdapter extends RecyclerView.Adapter<TutorListCustom
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(context, ProfileActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 intent.putExtra("userId", userId);
-                context.startActivity(intent);
+//                context.startActivity(intent);
+
+                if (onAdapterSupport != null) {
+                    onAdapterSupport.redirectActivity(intent);
+                }
             }
         });
 
@@ -153,14 +152,14 @@ public class TutorListCustomAdapter extends RecyclerView.Adapter<TutorListCustom
     }
 
     private void hideViews() {
-        if(onVisibleListener != null){
-            onVisibleListener.hideView();
+        if (onAdapterSupport != null) {
+            onAdapterSupport.hideView();
         }
     }
 
     private void showViews() {
-        if(onVisibleListener != null){
-            onVisibleListener.showView();
+        if (onAdapterSupport != null) {
+            onAdapterSupport.showView();
         }
     }
 
