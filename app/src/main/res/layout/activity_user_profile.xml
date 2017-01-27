@@ -53,4 +53,23 @@
 
     </FrameLayout>
 
+
+    <RelativeLayout android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        xmlns:fab="http://schemas.android.com/apk/res-auto">
+
+        <com.getbase.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fab_edit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentRight="true"
+            fab:fab_size="mini"
+            fab:fab_icon="@drawable/ic_pencil_grey600_24dp"
+            fab:fab_colorNormal="@color/white"
+            fab:fab_title="Action A"
+            fab:fab_colorPressed="@color/light_gray" />
+
+    </RelativeLayout>
+
 </FrameLayout>

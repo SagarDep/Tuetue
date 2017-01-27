@@ -33,6 +33,8 @@ public class WtInfoActivity extends AppCompatActivity {
 
     private MyHandler handler = new MyHandler();
     private final int MSG_MESSAGE_FINISH = 500;
+    private final int MSG_MESSAGE_UPDATE_PROFILE = 501;
+    private final int MSG_MESSAGE_UPDATE_PROFILE_FINISH = 502;
 
     // UI
     private ImageView profileImage;
@@ -48,7 +50,6 @@ public class WtInfoActivity extends AppCompatActivity {
     private LinearLayout interestField;
     private TextView interestBtn;
 
-
     // User Data
     private String id;
     private String img;
@@ -57,6 +58,9 @@ public class WtInfoActivity extends AppCompatActivity {
     private ArrayList<String> interest;
 
     private ProgressDialog progressDialog;
+
+    private HashMap<String, Object> item;
+    private boolean isEditMode;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,17 +71,40 @@ public class WtInfoActivity extends AppCompatActivity {
 
         init();
 
+        if (isEditMode) {
+            progressDialog.setMessage("잠시만 기다려주세요.");
+            progressDialog.show();
+
+            HashMap<String, String> map = new HashMap<>();
+            map.put("service", "getUserInfo");
+            map.put("id", id);
+
+            new ParsePHP(Information.MAIN_SERVER_ADDRESS, map) {
+                @Override
+                protected void afterThreadFinish(String data) {
+                    item.clear();
+                    item = AdditionalFunc.getUserInfo(data);
+                    handler.sendMessage(handler.obtainMessage(MSG_MESSAGE_UPDATE_PROFILE));
+                }
+            }.start();
+        }
+
     }
 
     private void initData(){
 
         Intent intent = getIntent();
-
+        isEditMode = intent.getBooleanExtra("edit", false);
         id = intent.getStringExtra("id");
-        img = intent.getStringExtra("img");
-        name = intent.getStringExtra("name");
-        email = intent.getStringExtra("email");
+
+        if (!isEditMode) {
+            img = intent.getStringExtra("img");
+            name = intent.getStringExtra("name");
+            email = intent.getStringExtra("email");
+        }
+
         interest = new ArrayList<>();
+        item = new HashMap<>();
 
     }
 
@@ -106,6 +133,9 @@ public class WtInfoActivity extends AppCompatActivity {
                 saveUserInformation();
             }
         });
+        if (isEditMode) {
+            nextBtn.setText("편집하기");
+        }
 
         setNextButton(false);
 
@@ -131,15 +161,16 @@ public class WtInfoActivity extends AppCompatActivity {
         editIntro.addTextChangedListener(textWatcher);
         editEmail.addTextChangedListener(textWatcher);
 
+        if (!isEditMode) {
+            Picasso.with(getApplicationContext())
+                    .load(img)
+                    .transform(new CropCircleTransformation())
+                    .into(profileImage);
+            profileName.setText(name + "님");
 
-        Picasso.with(getApplicationContext())
-                .load(img)
-                .transform(new CropCircleTransformation())
-                .into(profileImage);
-        profileName.setText(name + "님");
-
-        editEmail.setText(email);
-        editContact.setText(email);
+            editEmail.setText(email);
+            editContact.setText(email);
+        }
 
         progressDialog = new ProgressDialog(this);
 
@@ -258,16 +289,14 @@ public class WtInfoActivity extends AppCompatActivity {
         String nickname = AdditionalFunc.replaceNewLineString(editNickName.getText().toString());
         String intro = AdditionalFunc.replaceNewLineString(editIntro.getText().toString());
         String contact = AdditionalFunc.replaceNewLineString(editContact.getText().toString());
-        String inter = "";
-        for(int i=0; i<interest.size(); i++){
-            inter += interest.get(i);
-            if(i+1 < interest.size()){
-                inter += ",";
-            }
-        }
+        String inter = AdditionalFunc.arrayListToString(interest);
 
         HashMap<String, String> map = new HashMap<>();
-        map.put("service", "saveUser");
+        if (isEditMode) {
+            map.put("service", "updateUser");
+        } else {
+            map.put("service", "saveUser");
+        }
         map.put("id", id);
         map.put("img", img);
         map.put("name", name);
@@ -276,7 +305,6 @@ public class WtInfoActivity extends AppCompatActivity {
         map.put("intro", intro);
         map.put("contact", contact);
         map.put("interest", inter);
-
 
         progressDialog.show();
         new ParsePHP(Information.MAIN_SERVER_ADDRESS, map){
@@ -292,7 +320,11 @@ public class WtInfoActivity extends AppCompatActivity {
                         @Override
                         protected void afterThreadFinish(String data) {
                             StartActivity.USER_DATA = AdditionalFunc.getUserInfo(data);
-                            handler.sendMessage(handler.obtainMessage(MSG_MESSAGE_FINISH));
+                            if (isEditMode) {
+                                handler.sendMessage(handler.obtainMessage(MSG_MESSAGE_UPDATE_PROFILE_FINISH));
+                            } else {
+                                handler.sendMessage(handler.obtainMessage(MSG_MESSAGE_FINISH));
+                            }
                         }
                     }.start();
 
@@ -312,16 +344,45 @@ public class WtInfoActivity extends AppCompatActivity {
                     progressDialog.hide();
                     redirectMainActivity();
                     break;
+                case MSG_MESSAGE_UPDATE_PROFILE:
+                    progressDialog.hide();
+                    fillField();
+                    break;
+                case MSG_MESSAGE_UPDATE_PROFILE_FINISH:
+                    progressDialog.hide();
+                    redirectPreviousActivity();
+                    break;
                 default:
                     break;
             }
         }
     }
 
-    public void redirectSelectActivity() {
-        Intent intent = new Intent(this, SelectInterestActivity.class);
-        intent.putStringArrayListExtra("interest", interest);
-        startActivityForResult(intent, 0);
+    private void fillField() {
+
+        img = (String) item.get("img");
+        name = (String) item.get("name");
+        String nickname = (String) item.get("nickname");
+        String contact = (String) item.get("contact");
+        String intro = (String) item.get("intro");
+        String email = (String) item.get("email");
+        this.interest = (ArrayList<String>) item.get("interest");
+
+        Picasso.with(getApplicationContext())
+                .load(img)
+                .transform(new CropCircleTransformation())
+                .into(profileImage);
+        profileName.setText(name + "님");
+
+        editNickName.setText(nickname);
+        editContact.setText(contact);
+        editIntro.setText(intro);
+        editEmail.setText(email);
+
+        setInterestField();
+
+        checkEditText();
+
     }
 
     @Override
@@ -358,10 +419,22 @@ public class WtInfoActivity extends AppCompatActivity {
         }
     }
 
+    public void redirectSelectActivity() {
+        Intent intent = new Intent(this, SelectInterestActivity.class);
+        intent.putStringArrayListExtra("interest", interest);
+        startActivityForResult(intent, 0);
+    }
 
     public void redirectMainActivity() {
         Intent intent = new Intent(this, MainActivity.class);
         startActivity(intent);
+        finish();
+    }
+
+    private void redirectPreviousActivity() {
+        Intent intent = new Intent();
+        intent.putExtra("item", StartActivity.USER_DATA);
+        setResult(ProfileActivity.EDIT_PROFILE, intent);
         finish();
     }
 

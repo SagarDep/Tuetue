@@ -48,7 +48,6 @@ public class ProfileCustomAdapter extends RecyclerView.Adapter<RecyclerView.View
     private Context context;
     private View mainView;
     private View header;
-    private String img;
 
     // Data
     private ArrayList<HashMap<String, String>> list;
@@ -56,13 +55,26 @@ public class ProfileCustomAdapter extends RecyclerView.Adapter<RecyclerView.View
 
 
     // 생성자
-    public ProfileCustomAdapter(Context context, ArrayList<HashMap<String,String>> list, String img, View view, View header, Activity activity) {
+    public ProfileCustomAdapter(Context context, ArrayList<HashMap<String, String>> list, RecyclerView recyclerView, View view, View header, Activity activity) {
         this.context = context;
         this.list = list;
         this.mainView = view;
         this.header = header;
-        this.img = img;
         this.activity = activity;
+
+        if (recyclerView.getLayoutManager() instanceof LinearLayoutManager) {
+            recyclerView.addOnScrollListener(new ScrollListener() {
+                @Override
+                public void onHide() {
+                    hideViews();
+                }
+
+                @Override
+                public void onShow() {
+                    showViews();
+                }
+            });
+        }
     }
 
     @Override
@@ -248,6 +260,49 @@ public class ProfileCustomAdapter extends RecyclerView.Adapter<RecyclerView.View
             return TYPE_HEADER;
         }
         return TYPE_ITEM;
+    }
+
+    private void hideViews() {
+        if (activity != null) {
+            ((ProfileActivity) activity).hideView();
+        }
+    }
+
+    private void showViews() {
+        if (activity != null) {
+            ((ProfileActivity) activity).showView();
+        }
+    }
+
+    public abstract class ScrollListener extends RecyclerView.OnScrollListener {
+        private static final int HIDE_THRESHOLD = 20;
+        private int scrolledDistance = 0;
+        private boolean controlsVisible = true;
+
+        @Override
+        public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+            super.onScrolled(recyclerView, dx, dy);
+
+            if (scrolledDistance > HIDE_THRESHOLD && controlsVisible) {
+                onHide();
+                controlsVisible = false;
+                scrolledDistance = 0;
+            } else if (scrolledDistance < -HIDE_THRESHOLD && !controlsVisible) {
+                onShow();
+                controlsVisible = true;
+                scrolledDistance = 0;
+            }
+
+            if ((controlsVisible && dy > 0) || (!controlsVisible && dy < 0)) {
+                scrolledDistance += dy;
+            }
+            // 여기까지 툴바 숨기기
+        }
+
+        public abstract void onHide();
+
+        public abstract void onShow();
+
     }
 
     private final static class HeaderViewHolder extends RecyclerView.ViewHolder {

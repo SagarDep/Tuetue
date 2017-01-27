@@ -1,6 +1,7 @@
 package tk.twpooi.tuetue;
 
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -24,6 +25,11 @@ import android.view.MenuItem;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.flyco.animation.FadeEnter.FadeEnter;
+import com.flyco.animation.FadeExit.FadeExit;
+import com.flyco.animation.FlipEnter.FlipVerticalSwingEnter;
+import com.flyco.dialog.listener.OnBtnClickL;
+import com.flyco.dialog.widget.MaterialDialog;
 import com.nhn.android.naverlogin.ui.view.OAuthLoginButton;
 import com.squareup.picasso.Picasso;
 
@@ -118,7 +124,29 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
-            super.onBackPressed();
+            final MaterialDialog dialog = new MaterialDialog(MainActivity.this);
+            dialog.content("앱을 종료하시겠습니까?")
+                    .title("경고")
+                    .btnText("취소", "확인")
+                    .showAnim(new FadeEnter())
+                    .show();
+            OnBtnClickL left = new OnBtnClickL() {
+                @Override
+                public void onBtnClick() {
+                    dialog.hide();
+                    dialog.dismiss();
+                }
+            };
+            OnBtnClickL right = new OnBtnClickL() {
+                @Override
+                public void onBtnClick() {
+                    dialog.hide();
+                    dialog.dismiss();
+                    MainActivity.super.onBackPressed();
+                }
+            };
+            dialog.setOnBtnClickL(left, right);
+//            super.onBackPressed();
         }
     }
 

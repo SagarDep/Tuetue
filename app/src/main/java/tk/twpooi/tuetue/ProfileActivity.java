@@ -35,6 +35,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.flyco.dialog.widget.NormalListDialog;
+import com.getbase.floatingactionbutton.FloatingActionButton;
 import com.sackcentury.shinebuttonlib.ShineButton;
 import com.squareup.picasso.Picasso;
 
@@ -50,6 +51,8 @@ import tk.twpooi.tuetue.util.ParsePHP;
 
 public class ProfileActivity extends Activity {
 
+    public final static int EDIT_PROFILE = 100;
+
     private MyHandler handler = new MyHandler();
     private final int MSG_MESSAGE_UPDATE_TUTOR_ITEM = 500;
     private final int MSG_MESSAGE_UPDATE_TUTEE_ITEM = 502;
@@ -58,10 +61,8 @@ public class ProfileActivity extends Activity {
     // User Data
     private HashMap<String, Object> item;
     private String userId;
-    private String img;
     private ArrayList<HashMap<String, Object>> tutorList;
     private ArrayList<HashMap<String, Object>> tuteeList;
-    private int interestCount = 0;
 
     // Basic UI
     private FrameLayout root;
@@ -69,6 +70,7 @@ public class ProfileActivity extends Activity {
     private int mActionBarHeight;
     private int mHeaderHeight;
     private int mMinHeaderTranslation;
+    private FloatingActionButton fabEdit;
     private ImageView mHeaderPicture;
     private ImageView mHeaderLogo;
     private View mHeader;
@@ -138,6 +140,23 @@ public class ProfileActivity extends Activity {
 
         mSpannableString = new SpannableString("Profile");
 
+        fabEdit = (FloatingActionButton) findViewById(R.id.fab_edit);
+        fabEdit.setTitle("편집");
+        fabEdit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getApplicationContext(), WtInfoActivity.class);
+                intent.putExtra("edit", true);
+                intent.putExtra("id", StartActivity.USER_ID);
+                startActivityForResult(intent, 0);
+            }
+        });
+        if (StartActivity.USER_ID.equals(userId)) {
+            fabEdit.setVisibility(View.VISIBLE);
+        } else {
+            fabEdit.setVisibility(View.GONE);
+        }
+
         setupActionBar();
         setupListView();
 
@@ -145,7 +164,7 @@ public class ProfileActivity extends Activity {
 
     public void makeList(){
 
-        adapter = new ProfileCustomAdapter(getApplicationContext(), list, img, getWindow().getDecorView().getRootView(), mPlaceHolderView, this);
+        adapter = new ProfileCustomAdapter(getApplicationContext(), list, rv, getWindow().getDecorView().getRootView(), mPlaceHolderView, this);
 
         rv.setAdapter(adapter);
 
@@ -209,12 +228,71 @@ public class ProfileActivity extends Activity {
     }
 
     private void setAdditionUI(){
-        img = (String)item.get("img");
+        String img = (String) item.get("img");
         Picasso.with(getApplicationContext())
                 .load(img)
                 .transform(new CropCircleTransformation())
                 .into(mHeaderLogo);
         mSpannableString = new SpannableString((String)item.get("nickname"));
+    }
+
+    private void setTutorUI() {
+        for (int i = 0; i < list.size(); i++) {
+            HashMap<String, String> map = list.get(i);
+            if ("나눔한 재능".equals((String) map.get("title"))) {
+                map.put("content", tutorList.size() + "개");
+                adapter.updateList(i, tutorList.size() + "개");
+            }
+        }
+    }
+
+    private void setTuteeUI() {
+        for (int i = 0; i < list.size(); i++) {
+            HashMap<String, String> map = list.get(i);
+            if ("나눔 받은 재능".equals((String) map.get("title"))) {
+                map.put("content", tuteeList.size() + "개");
+                adapter.updateList(i, tuteeList.size() + "개");
+            }
+        }
+    }
+
+    private void setMainUI() {
+        setAdditionUI();
+        for (int i = 0; i < list.size(); i++) {
+            HashMap<String, String> map = list.get(i);
+            switch (map.get("title")) {
+                case "닉네임":
+                    map.put("content", (String) item.get("nickname"));
+                    adapter.updateList(i, (String) item.get("nickname"));
+                    break;
+                case "이메일":
+                    map.put("content", (String) item.get("email"));
+                    adapter.updateList(i, (String) item.get("email"));
+                    break;
+                case "연락수단":
+                    map.put("content", (String) item.get("contact"));
+                    adapter.updateList(i, (String) item.get("contact"));
+                    break;
+                case "관심분야":
+                    String interest = "";
+                    ArrayList<String> inter = (ArrayList<String>) item.get("interest");
+                    if (inter != null) {
+                        for (int j = 0; j < inter.size(); j++) {
+                            interest += inter.get(j);
+                            if (j + 1 < inter.size()) {
+                                interest += ",";
+                            }
+                        }
+                    }
+                    map.put("content", interest);
+                    adapter.updateList(i, interest);
+                    break;
+                case "소개":
+                    map.put("content", (String) item.get("intro"));
+                    adapter.updateList(i, (String) item.get("intro"));
+                    break;
+            }
+        }
     }
 
     private class MyHandler extends Handler {
@@ -224,60 +302,13 @@ public class ProfileActivity extends Activity {
             switch (msg.what)
             {
                 case MSG_MESSAGE_UPDATE_TUTOR_ITEM:
-                    for(int i=0; i<list.size(); i++){
-                        HashMap<String, String> map = list.get(i);
-                        if("나눔한 재능".equals((String)map.get("title"))){
-                            map.put("content", tutorList.size() + "개");
-                            adapter.updateList(i, tutorList.size() + "개");
-                        }
-                    }
+                    setTutorUI();
                     break;
                 case MSG_MESSAGE_UPDATE_TUTEE_ITEM:
-                    for(int i=0; i<list.size(); i++){
-                        HashMap<String, String> map = list.get(i);
-                        if("나눔 받은 재능".equals((String)map.get("title"))){
-                            map.put("content", tuteeList.size() + "개");
-                            adapter.updateList(i, tuteeList.size() + "개");
-                        }
-                    }
+                    setTuteeUI();
                     break;
                 case MSG_MESSAGE_PROGRESS_FINISH:
-                    setAdditionUI();
-                    for(int i=0; i<list.size(); i++){
-                        HashMap<String, String> map = list.get(i);
-                        switch (map.get("title")){
-                            case "닉네임":
-                                map.put("content", (String)item.get("nickname"));
-                                adapter.updateList(i, (String)item.get("nickname"));
-                                break;
-                            case "이메일":
-                                map.put("content", (String)item.get("email"));
-                                adapter.updateList(i, (String)item.get("email"));
-                                break;
-                            case "연락수단":
-                                map.put("content", (String)item.get("contact"));
-                                adapter.updateList(i, (String)item.get("contact"));
-                                break;
-                            case "관심분야":
-                                String interest = "";
-                                ArrayList<String> inter = (ArrayList<String>)item.get("interest");
-                                if(inter != null){
-                                    for(int j=0; j<inter.size(); j++){
-                                        interest += inter.get(j);
-                                        if(j+1 < inter.size()){
-                                            interest += ",";
-                                        }
-                                    }
-                                }
-                                map.put("content", interest);
-                                adapter.updateList(i, interest);
-                                break;
-                            case "소개":
-                                map.put("content", (String)item.get("intro"));
-                                adapter.updateList(i, (String)item.get("intro"));
-                                break;
-                        }
-                    }
+                    setMainUI();
                     break;
                 default:
                     break;
@@ -341,6 +372,33 @@ public class ProfileActivity extends Activity {
                 .titleTextSize_SP(14.5f)
                 .show();
 
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        System.out.println("resultCode : " + resultCode);
+        switch (resultCode) {
+            case EDIT_PROFILE:
+                item = (HashMap<String, Object>) data.getSerializableExtra("item");
+                System.out.println(item);
+                getUserTutorList();
+                getUserTuteeList();
+                handler.sendMessage(handler.obtainMessage(MSG_MESSAGE_PROGRESS_FINISH));
+                makeList();
+                break;
+            default:
+                break;
+        }
+
+    }
+
+    public void showView() {
+        fabEdit.setVisibility(View.VISIBLE);
+    }
+
+    public void hideView() {
+        fabEdit.setVisibility(View.GONE);
     }
 
     public void showSnackbar(String msg){

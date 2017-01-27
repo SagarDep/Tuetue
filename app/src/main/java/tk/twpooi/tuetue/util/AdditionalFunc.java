@@ -122,6 +122,20 @@ public class AdditionalFunc {
 
     }
 
+    public static String arrayListToString(ArrayList<String> list) {
+
+        String str = "";
+        for (int i = 0; i < list.size(); i++) {
+            str += list.get(i);
+            if (i + 1 < list.size()) {
+                str += ",";
+            }
+        }
+
+        return str;
+
+    }
+
     public static HashMap<String, Object> getUserInfo(String data){
 
         HashMap<String, Object> item = new HashMap<>();

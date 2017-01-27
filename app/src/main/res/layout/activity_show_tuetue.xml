@@ -242,10 +242,10 @@
                 android:layout_alignParentBottom="true"
                 android:layout_alignParentRight="true"
                 fab:fab_size="mini"
-                fab:fab_icon="@drawable/ic_pencil_white_24dp"
-                fab:fab_colorNormal="@color/colorAccent"
+                fab:fab_icon="@drawable/ic_pencil_grey600_24dp"
+                fab:fab_colorNormal="@color/white"
                 fab:fab_title="Action A"
-                fab:fab_colorPressed="@color/colorAccent" />
+                fab:fab_colorPressed="@color/light_gray" />
 
         </RelativeLayout>
 
