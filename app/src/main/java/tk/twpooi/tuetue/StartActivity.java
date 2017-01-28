@@ -21,6 +21,7 @@ import com.facebook.FacebookException;
 import com.facebook.Profile;
 import com.flaviofaria.kenburnsview.KenBurnsView;
 import com.nhn.android.naverlogin.ui.view.OAuthLoginButton;
+import com.squareup.picasso.MemoryPolicy;
 import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;
@@ -101,6 +102,7 @@ public class StartActivity extends AppCompatActivity implements FacebookLoginSup
         kenBurnsView = (KenBurnsView)findViewById(R.id.image);
         Picasso.with(getApplicationContext())
                 .load(Information.LODING_IMAGE_URL)
+                .memoryPolicy(MemoryPolicy.NO_CACHE)
                 .into(kenBurnsView);
         rl_background = (RelativeLayout) findViewById(R.id.rl_background);
         rl_background.setVisibility(View.INVISIBLE);
@@ -340,6 +342,7 @@ public class StartActivity extends AppCompatActivity implements FacebookLoginSup
     @Override
     public void onDestroy(){
         super.onDestroy();
+        AdditionalFunc.clearApplicationCache(getApplicationContext(), null);
 //        if(progressDialog != null){
 //            progressDialog.dismiss();
 //        }

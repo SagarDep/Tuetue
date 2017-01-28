@@ -1,17 +1,14 @@
 package tk.twpooi.tuetue;
 
 import android.app.ProgressDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -20,27 +17,25 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.flyco.animation.FadeEnter.FadeEnter;
-import com.flyco.animation.FadeExit.FadeExit;
-import com.flyco.animation.FlipEnter.FlipVerticalSwingEnter;
 import com.flyco.dialog.listener.OnBtnClickL;
 import com.flyco.dialog.widget.MaterialDialog;
 import com.nhn.android.naverlogin.ui.view.OAuthLoginButton;
+import com.squareup.picasso.MemoryPolicy;
 import com.squareup.picasso.Picasso;
 
 import java.util.HashMap;
 
 import jp.wasabeef.picasso.transformations.CropCircleTransformation;
+import tk.twpooi.tuetue.util.AdditionalFunc;
 import tk.twpooi.tuetue.util.FacebookLogin;
 import tk.twpooi.tuetue.util.NaverLogin;
 import tk.twpooi.tuetue.util.ParsePHP;
 
-import static tk.twpooi.tuetue.ShowTuetueActivity.EDIT_CONTENTS;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
@@ -98,11 +93,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         ImageView backgroundImg = (ImageView)headerView.findViewById(R.id.img_background);
         Picasso.with(this)
                 .load(Information.PROFILE_DEFAULT_IAMGE_URL)
+                .memoryPolicy(MemoryPolicy.NO_CACHE)
                 .into(backgroundImg);
         ImageView profileImg = (ImageView)headerView.findViewById(R.id.profileImg);
         Picasso.with(this)
                 .load(img)
                 .transform(new CropCircleTransformation())
+                .memoryPolicy(MemoryPolicy.NO_CACHE)
                 .into(profileImg);
         TextView tv_nickname = (TextView)headerView.findViewById(R.id.tv_nickname);
         tv_nickname.setText(nickname);
@@ -365,6 +362,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if(progressDialog != null){
             progressDialog.dismiss();
         }
+        AdditionalFunc.clearApplicationCache(getApplicationContext(), null);
     }
+
 
 }

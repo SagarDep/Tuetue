@@ -16,22 +16,13 @@ import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.flyco.dialog.listener.OnOperItemClickL;
-import com.flyco.dialog.widget.NormalListDialog;
-import com.squareup.picasso.Picasso;
 import com.wang.avi.AVLoadingIndicatorView;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-
-import jp.wasabeef.picasso.transformations.CropCircleTransformation;
-import tk.twpooi.tuetue.util.AdditionalFunc;
-import tk.twpooi.tuetue.util.ParsePHP;
 
 import static android.view.View.GONE;
 

@@ -13,6 +13,7 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.squareup.picasso.MemoryPolicy;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -92,6 +93,7 @@ public class TuteeListCustomAdapter extends RecyclerView.Adapter<TuteeListCustom
         Picasso.with(context)
                 .load(profileImg)
                 .transform(new CropCircleTransformation())
+                .memoryPolicy(MemoryPolicy.NO_CACHE)
                 .into(holder.profileImg);
 
         String nickname = (String)noticeData.get("nickname");

@@ -2,10 +2,7 @@ package tk.twpooi.tuetue;
 
 import android.app.ActionBar;
 import android.app.Activity;
-import android.app.ProgressDialog;
 import android.content.Intent;
-import android.graphics.Paint;
-import android.graphics.Rect;
 import android.graphics.RectF;
 import android.os.Build;
 import android.os.Bundle;
@@ -13,37 +10,27 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Spannable;
 import android.text.SpannableString;
-import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.animation.AccelerateDecelerateInterpolator;
-import android.widget.AbsListView;
-import android.widget.ArrayAdapter;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.ListView;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import com.flyco.dialog.widget.NormalListDialog;
 import com.getbase.floatingactionbutton.FloatingActionButton;
-import com.sackcentury.shinebuttonlib.ShineButton;
+import com.squareup.picasso.MemoryPolicy;
 import com.squareup.picasso.Picasso;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import jp.wasabeef.picasso.transformations.BlurTransformation;
 import jp.wasabeef.picasso.transformations.CropCircleTransformation;
 import tk.twpooi.tuetue.util.AdditionalFunc;
 import tk.twpooi.tuetue.util.AlphaForegroundColorSpan;
@@ -130,7 +117,7 @@ public class ProfileActivity extends Activity {
         mHeaderPicture = (ImageView) findViewById(R.id.header_picture);
         Picasso.with(getApplicationContext())
                 .load(Information.PROFILE_DEFAULT_IAMGE_URL)
-                .transform(new BlurTransformation(getApplicationContext()))
+                .memoryPolicy(MemoryPolicy.NO_CACHE)
                 .into(mHeaderPicture);
         mHeaderLogo = (ImageView) findViewById(R.id.header_logo);
 
@@ -232,6 +219,7 @@ public class ProfileActivity extends Activity {
         Picasso.with(getApplicationContext())
                 .load(img)
                 .transform(new CropCircleTransformation())
+                .memoryPolicy(MemoryPolicy.NO_CACHE)
                 .into(mHeaderLogo);
         mSpannableString = new SpannableString((String)item.get("nickname"));
     }
@@ -503,6 +491,12 @@ public class ProfileActivity extends Activity {
             window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
             window.setStatusBarColor(ContextCompat.getColor(getApplicationContext(), R.color.colorPrimary));
         }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        AdditionalFunc.clearApplicationCache(getApplicationContext(), null);
     }
 
 }

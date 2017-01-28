@@ -8,67 +8,110 @@
     android:layout_height="match_parent"
     android:background="@color/background_color">
 
-    <android.support.v7.widget.Toolbar
-        android:id="@+id/toolbar"
-        app:contentInsetStart="0dp"
-        android:layout_height="wrap_content"
+    <!--<android.support.v7.widget.Toolbar-->
+    <!--android:id="@+id/toolbar"-->
+    <!--app:contentInsetStart="0dp"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--android:layout_width="match_parent"-->
+    <!--android:minHeight="?attr/actionBarSize"-->
+    <!--android:background="@color/colorPrimary"-->
+    <!--&gt;-->
+
+
+    <!--<RelativeLayout-->
+    <!--android:layout_width="match_parent"-->
+    <!--android:layout_height="?attr/actionBarSize">-->
+
+    <!--<TextView-->
+    <!--android:id="@+id/toolbar_title"-->
+    <!--android:layout_width="wrap_content"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--android:text="Profile"-->
+    <!--android:textColor="@color/white"-->
+    <!--android:textSize="20sp"-->
+    <!--android:layout_centerInParent="true"-->
+    <!--/>-->
+
+    <!--</RelativeLayout>-->
+
+
+    <!--</android.support.v7.widget.Toolbar>-->
+
+    <FrameLayout
         android:layout_width="match_parent"
-        android:minHeight="?attr/actionBarSize"
-        android:background="@color/colorPrimary"
-        >
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/backgroundImg"
+            android:layout_width="match_parent"
+            android:layout_height="230dp"
+            android:scaleType="centerCrop"
+            android:background="@color/colorPrimary" />
+
+    </FrameLayout>
+
+
+    <Button
+        android:id="@+id/nextBtn"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:background="@color/dark_gray"
+        android:text="계속"
+        android:textColor="@color/light_gray"
+        android:gravity="center"
+        android:layout_alignParentBottom="true" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingTop="180dp"
+        android:background="@color/transparency"
+        android:layout_above="@id/nextBtn"
+        android:clipToPadding="false">
 
 
         <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize">
-
-            <TextView
-                android:id="@+id/toolbar_title"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Profile"
-                android:textColor="@color/white"
-                android:textSize="20sp"
-                android:layout_centerInParent="true"
-                />
-
-        </RelativeLayout>
-
-
-
-    </android.support.v7.widget.Toolbar>
-
-
-        <ScrollView
+            android:background="@color/transparency"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_below="@+id/toolbar"
-            android:layout_above="@+id/nextBtn"
             >
 
-
-            <RelativeLayout
-                android:background="@color/background_color"
+            <FrameLayout
+                android:id="@+id/fm_profile_img"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                >
+                android:layout_height="wrap_content">
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:layout_gravity="bottom"
+                    android:background="@color/background_color" />
 
                 <ImageView
                     android:id="@+id/profileImg"
                     android:layout_width="100dp"
                     android:layout_height="100dp"
-                    android:layout_centerHorizontal="true"
-                    android:layout_margin="10dp"
+                    android:layout_gravity="center_horizontal"
+                    android:background="@drawable/round_background"
                     />
+
+            </FrameLayout>
+
+            <RelativeLayout
+                android:layout_below="@+id/fm_profile_img"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/background_color">
+
 
                 <TextView
                     android:id="@+id/profileName"
-                    android:layout_below="@+id/profileImg"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="name"
                     android:padding="5dp"
                     android:gravity="center"
+                    android:layout_marginTop="10dp"
                     />
 
                 <LinearLayout
@@ -275,20 +318,9 @@
 
             </RelativeLayout>
 
-        </ScrollView>
+        </RelativeLayout>
 
-
-
-        <Button
-            android:id="@+id/nextBtn"
-            android:layout_width="match_parent"
-            android:layout_height="40dp"
-            android:background="@color/dark_gray"
-            android:text="계속"
-            android:textColor="@color/light_gray"
-            android:gravity="center"
-            android:layout_alignParentBottom="true"
-            />
+    </ScrollView>
 
     <!--</RelativeLayout>-->
 

@@ -12,10 +12,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.squareup.picasso.MemoryPolicy;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -65,6 +65,7 @@ public class ParticipantListCustomAdapter extends RecyclerView.Adapter<Participa
         Picasso.with(context)
                 .load(img)
                 .transform(new CropCircleTransformation())
+                .memoryPolicy(MemoryPolicy.NO_CACHE)
                 .into(holder.img_profile);
 
         holder.root.setOnClickListener(new View.OnClickListener() {

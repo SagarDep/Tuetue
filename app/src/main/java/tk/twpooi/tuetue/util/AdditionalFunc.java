@@ -364,4 +364,19 @@ public class AdditionalFunc {
 
     }
 
+    public static void clearApplicationCache(Context context, java.io.File dir) {
+        if (dir == null)
+            dir = context.getCacheDir();
+        if (dir == null)
+            return;
+        java.io.File[] children = dir.listFiles();
+        try {
+            for (int i = 0; i < children.length; i++)
+                if (children[i].isDirectory())
+                    clearApplicationCache(context, children[i]);
+                else children[i].delete();
+        } catch (Exception e) {
+        }
+    }
+
 }

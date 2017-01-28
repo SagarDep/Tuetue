@@ -15,6 +15,7 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.squareup.picasso.MemoryPolicy;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -68,6 +69,7 @@ public class ParticipantSelectListCustomAdapter extends RecyclerView.Adapter<Par
         Picasso.with(context)
                 .load(img)
                 .transform(new CropCircleTransformation())
+                .memoryPolicy(MemoryPolicy.NO_CACHE)
                 .into(holder.img_profile);
 
         holder.showInfoBtn.setOnClickListener(new View.OnClickListener() {

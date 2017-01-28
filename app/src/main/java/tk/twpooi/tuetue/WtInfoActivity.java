@@ -20,6 +20,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.rengwuxian.materialedittext.MaterialEditText;
+import com.squareup.picasso.MemoryPolicy;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -37,6 +38,7 @@ public class WtInfoActivity extends AppCompatActivity {
     private final int MSG_MESSAGE_UPDATE_PROFILE_FINISH = 502;
 
     // UI
+    private ImageView backgroundImage;
     private ImageView profileImage;
     private TextView profileName;
 
@@ -110,6 +112,7 @@ public class WtInfoActivity extends AppCompatActivity {
 
     private void init(){
 
+        backgroundImage = (ImageView) findViewById(R.id.backgroundImg);
         profileImage = (ImageView)findViewById(R.id.profileImg);
         profileName = (TextView)findViewById(R.id.profileName);
 
@@ -163,8 +166,13 @@ public class WtInfoActivity extends AppCompatActivity {
 
         if (!isEditMode) {
             Picasso.with(getApplicationContext())
+                    .load(Information.PROFILE_DEFAULT_IAMGE_URL)
+                    .memoryPolicy(MemoryPolicy.NO_CACHE)
+                    .into(backgroundImage);
+            Picasso.with(getApplicationContext())
                     .load(img)
                     .transform(new CropCircleTransformation())
+                    .memoryPolicy(MemoryPolicy.NO_CACHE)
                     .into(profileImage);
             profileName.setText(name + "님");
 
@@ -368,9 +376,15 @@ public class WtInfoActivity extends AppCompatActivity {
         String email = (String) item.get("email");
         this.interest = (ArrayList<String>) item.get("interest");
 
+
+        Picasso.with(getApplicationContext())
+                .load(Information.PROFILE_DEFAULT_IAMGE_URL)
+                .memoryPolicy(MemoryPolicy.NO_CACHE)
+                .into(backgroundImage);
         Picasso.with(getApplicationContext())
                 .load(img)
                 .transform(new CropCircleTransformation())
+                .memoryPolicy(MemoryPolicy.NO_CACHE)
                 .into(profileImage);
         profileName.setText(name + "님");
 
@@ -451,6 +465,7 @@ public class WtInfoActivity extends AppCompatActivity {
         if(progressDialog != null){
             progressDialog.dismiss();
         }
+        AdditionalFunc.clearApplicationCache(getApplicationContext(), null);
     }
 
 }

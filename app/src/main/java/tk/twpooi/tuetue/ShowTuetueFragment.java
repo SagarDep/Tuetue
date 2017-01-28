@@ -9,7 +9,6 @@ import android.os.Message;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -22,6 +21,7 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.akexorcist.roundcornerprogressbar.TextRoundCornerProgressBar;
+import com.squareup.picasso.MemoryPolicy;
 import com.squareup.picasso.Picasso;
 import com.wang.avi.AVLoadingIndicatorView;
 
@@ -262,6 +262,7 @@ public class ShowTuetueFragment extends Fragment {
         Picasso.with(context)
                 .load((String)item.get("img"))
                 .transform(new CropCircleTransformation())
+                .memoryPolicy(MemoryPolicy.NO_CACHE)
                 .into(profileImg);
         tv_nickname.setText((String)item.get("nickname"));
         tv_email.setText((String)item.get("email"));

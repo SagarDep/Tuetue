@@ -2,7 +2,6 @@ package tk.twpooi.tuetue.util;
 
 import android.app.Activity;
 import android.content.Context;
-import android.icu.text.IDNA;
 import android.os.AsyncTask;
 import android.util.Log;
 

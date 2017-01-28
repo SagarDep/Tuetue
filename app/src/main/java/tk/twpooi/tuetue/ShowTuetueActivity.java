@@ -20,6 +20,7 @@ import android.widget.TextView;
 
 import com.akexorcist.roundcornerprogressbar.TextRoundCornerProgressBar;
 import com.getbase.floatingactionbutton.FloatingActionButton;
+import com.squareup.picasso.MemoryPolicy;
 import com.squareup.picasso.Picasso;
 import com.wang.avi.AVLoadingIndicatorView;
 
@@ -307,6 +308,7 @@ public class ShowTuetueActivity extends AppCompatActivity {
         Picasso.with(getApplicationContext())
                 .load((String)item.get("img"))
                 .transform(new CropCircleTransformation())
+                .memoryPolicy(MemoryPolicy.NO_CACHE)
                 .into(profileImg);
         tv_nickname.setText((String)item.get("nickname"));
         tv_email.setText((String)item.get("email"));
