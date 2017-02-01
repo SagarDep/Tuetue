@@ -69,6 +69,10 @@ dependencies {
     compile 'com.wang.avi:library:2.1.2'
     // Date
     compile 'com.wdullaer:materialdatetimepicker:3.1.0'
+    // image pinch zoom
+    compile 'com.github.chrisbanes:PhotoView:1.3.0'
+    // circle image
+    compile 'de.hdodenhof:circleimageview:2.1.0'
     // Facebook
     compile 'com.facebook.android:facebook-android-sdk:[4,5)'
     compile files('libs/3rdparty_login_library_android_4.1.4_source.jar')

@@ -5,9 +5,12 @@ import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
 import android.view.View;
+import android.widget.ImageView;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -157,6 +160,8 @@ public class AdditionalFunc {
                 item.put("name", (String)temp.get("name"));
                 item.put("email", (String)temp.get("email"));
                 item.put("img", (String)temp.get("img"));
+                item.put("default_img", (String) temp.get("default_img"));
+                item.put("background", (String) temp.get("background"));
                 item.put("nickname", (String)temp.get("nickname"));
                 item.put("contact", (String)temp.get("contact"));
                 item.put("intro", (String)temp.get("intro"));
@@ -377,6 +382,11 @@ public class AdditionalFunc {
                 else children[i].delete();
         } catch (Exception e) {
         }
+    }
+
+    public static Bitmap getBitmapFromImageView(ImageView imageView) {
+        Bitmap bitmap = ((BitmapDrawable) imageView.getDrawable()).getBitmap();
+        return bitmap;
     }
 
 }

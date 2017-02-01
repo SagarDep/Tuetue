@@ -1,12 +1,20 @@
 package tk.twpooi.tuetue;
 
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.Path;
 import android.graphics.Rect;
+import android.graphics.drawable.BitmapDrawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.provider.MediaStore;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -18,28 +26,40 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.rengwuxian.materialedittext.MaterialEditText;
 import com.squareup.picasso.MemoryPolicy;
+import com.squareup.picasso.NetworkPolicy;
 import com.squareup.picasso.Picasso;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import de.hdodenhof.circleimageview.CircleImageView;
 import jp.wasabeef.picasso.transformations.CropCircleTransformation;
+import tk.twpooi.tuetue.image.ShowImageActivity;
+import tk.twpooi.tuetue.image.UploadImage;
+import tk.twpooi.tuetue.image.UploadImageWithThread;
 import tk.twpooi.tuetue.util.AdditionalFunc;
 import tk.twpooi.tuetue.util.ParsePHP;
 
 public class WtInfoActivity extends AppCompatActivity {
 
+    private static final int EDIT_PROFILE = 3000;
+    private static final int EDIT_BACKGROUND = 30001;
+
     private MyHandler handler = new MyHandler();
     private final int MSG_MESSAGE_FINISH = 500;
     private final int MSG_MESSAGE_UPDATE_PROFILE = 501;
     private final int MSG_MESSAGE_UPDATE_PROFILE_FINISH = 502;
+    private final int MSG_MESSAGE_SAVE_USER_PROFILE = 503;
 
     // UI
     private ImageView backgroundImage;
-    private ImageView profileImage;
+    private CircleImageView profileImage;
     private TextView profileName;
 
     private MaterialEditText editNickName;
@@ -55,6 +75,8 @@ public class WtInfoActivity extends AppCompatActivity {
     // User Data
     private String id;
     private String img;
+    private String default_img;
+    private String background;
     private String name;
     private String email;
     private ArrayList<String> interest;
@@ -63,6 +85,9 @@ public class WtInfoActivity extends AppCompatActivity {
 
     private HashMap<String, Object> item;
     private boolean isEditMode;
+
+    private boolean isProfileImageChange;
+    private boolean isBackgroundImageChange;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -101,6 +126,8 @@ public class WtInfoActivity extends AppCompatActivity {
 
         if (!isEditMode) {
             img = intent.getStringExtra("img");
+            default_img = img;
+            background = Information.PROFILE_DEFAULT_IAMGE_URL;
             name = intent.getStringExtra("name");
             email = intent.getStringExtra("email");
         }
@@ -113,7 +140,19 @@ public class WtInfoActivity extends AppCompatActivity {
     private void init(){
 
         backgroundImage = (ImageView) findViewById(R.id.backgroundImg);
-        profileImage = (ImageView)findViewById(R.id.profileImg);
+        backgroundImage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+//                redirectShowImageActivity(AdditionalFunc.getBitmapFromImageView(backgroundImage), EDIT_BACKGROUND, false, false, null);
+            }
+        });
+        profileImage = (CircleImageView) findViewById(R.id.profileImg);
+        profileImage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                redirectShowImageActivity(AdditionalFunc.getBitmapFromImageView(profileImage), EDIT_PROFILE, true, true, (String) item.get("default_img"));
+            }
+        });
         profileName = (TextView)findViewById(R.id.profileName);
 
         editNickName = (MaterialEditText)findViewById(R.id.edit_nickname);
@@ -133,7 +172,8 @@ public class WtInfoActivity extends AppCompatActivity {
         nextBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                saveUserInformation();
+                progressDialog.show();
+                handler.sendMessage(handler.obtainMessage(MSG_MESSAGE_SAVE_USER_PROFILE));
             }
         });
         if (isEditMode) {
@@ -166,13 +206,15 @@ public class WtInfoActivity extends AppCompatActivity {
 
         if (!isEditMode) {
             Picasso.with(getApplicationContext())
-                    .load(Information.PROFILE_DEFAULT_IAMGE_URL)
+                    .load(background)
                     .memoryPolicy(MemoryPolicy.NO_CACHE)
+                    .networkPolicy(NetworkPolicy.NO_CACHE)
                     .into(backgroundImage);
             Picasso.with(getApplicationContext())
                     .load(img)
                     .transform(new CropCircleTransformation())
                     .memoryPolicy(MemoryPolicy.NO_CACHE)
+                    .networkPolicy(NetworkPolicy.NO_CACHE)
                     .into(profileImage);
             profileName.setText(name + "님");
 
@@ -293,6 +335,28 @@ public class WtInfoActivity extends AppCompatActivity {
 
     private void saveUserInformation(){
 
+        if (isProfileImageChange) {
+            UploadImageWithThread profileUpload = new UploadImageWithThread(Information.USER_IMAGE_SAVE_ADDRESS, AdditionalFunc.getBitmapFromImageView(profileImage), id, "profile");
+            profileUpload.start();
+            try {
+                profileUpload.join();
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
+            img = Information.USER_PROFILE_URL + id + ".jpg";
+        }
+        if (isBackgroundImageChange) {
+            UploadImageWithThread backgroundUpload = new UploadImageWithThread(Information.USER_IMAGE_SAVE_ADDRESS, AdditionalFunc.getBitmapFromImageView(backgroundImage), id, "background");
+            backgroundUpload.start();
+            try {
+                backgroundUpload.join();
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
+            background = Information.USER_BACKGROUND_URL + id + ".jpg";
+        }
+
+
         email = editEmail.getText().toString();
         String nickname = AdditionalFunc.replaceNewLineString(editNickName.getText().toString());
         String intro = AdditionalFunc.replaceNewLineString(editIntro.getText().toString());
@@ -307,6 +371,8 @@ public class WtInfoActivity extends AppCompatActivity {
         }
         map.put("id", id);
         map.put("img", img);
+        map.put("default_img", default_img);
+        map.put("background", background);
         map.put("name", name);
         map.put("email", email);
         map.put("nickname", nickname);
@@ -314,7 +380,7 @@ public class WtInfoActivity extends AppCompatActivity {
         map.put("contact", contact);
         map.put("interest", inter);
 
-        progressDialog.show();
+//        progressDialog.show();
         new ParsePHP(Information.MAIN_SERVER_ADDRESS, map){
             @Override
             protected void afterThreadFinish(String data) {
@@ -360,6 +426,9 @@ public class WtInfoActivity extends AppCompatActivity {
                     progressDialog.hide();
                     redirectPreviousActivity();
                     break;
+                case MSG_MESSAGE_SAVE_USER_PROFILE:
+                    saveUserInformation();
+                    break;
                 default:
                     break;
             }
@@ -369,6 +438,8 @@ public class WtInfoActivity extends AppCompatActivity {
     private void fillField() {
 
         img = (String) item.get("img");
+        default_img = (String) item.get("default_img");
+        background = (String) item.get("background");
         name = (String) item.get("name");
         String nickname = (String) item.get("nickname");
         String contact = (String) item.get("contact");
@@ -378,13 +449,15 @@ public class WtInfoActivity extends AppCompatActivity {
 
 
         Picasso.with(getApplicationContext())
-                .load(Information.PROFILE_DEFAULT_IAMGE_URL)
+                .load(background)
                 .memoryPolicy(MemoryPolicy.NO_CACHE)
+                .networkPolicy(NetworkPolicy.NO_CACHE)
                 .into(backgroundImage);
         Picasso.with(getApplicationContext())
                 .load(img)
                 .transform(new CropCircleTransformation())
                 .memoryPolicy(MemoryPolicy.NO_CACHE)
+                .networkPolicy(NetworkPolicy.NO_CACHE)
                 .into(profileImage);
         profileName.setText(name + "님");
 
@@ -428,18 +501,89 @@ public class WtInfoActivity extends AppCompatActivity {
 
                 checkEditText();
                 break;
+            case EDIT_PROFILE: {
+                Uri uri = data.getParcelableExtra("uri");
+                if (uri != null) {
+                    Picasso.with(getApplicationContext())
+                            .load(uri)
+                            .transform(new CropCircleTransformation())
+                            .networkPolicy(NetworkPolicy.NO_CACHE)
+                            .memoryPolicy(MemoryPolicy.NO_CACHE)
+                            .into(profileImage);
+                } else {
+                    Bitmap bitmap = BitmapFactory.decodeByteArray(data.getByteArrayExtra("bitmap"), 0, data.getByteArrayExtra("bitmap").length);
+                    profileImage.setImageBitmap(bitmap);
+                }
+                isProfileImageChange = true;
+                break;
+            }
+            case EDIT_BACKGROUND: {
+                Uri uri = data.getParcelableExtra("uri");
+                if (uri != null) {
+                    Picasso.with(getApplicationContext())
+                            .load(uri)
+                            .networkPolicy(NetworkPolicy.NO_CACHE)
+                            .memoryPolicy(MemoryPolicy.NO_CACHE)
+                            .into(backgroundImage);
+                } else {
+                    Bitmap bitmap = BitmapFactory.decodeByteArray(data.getByteArrayExtra("bitmap"), 0, data.getByteArrayExtra("bitmap").length);
+                    backgroundImage.setImageBitmap(bitmap);
+                }
+                isBackgroundImageChange = true;
+                break;
+            }
             default:
                 break;
         }
     }
 
-    public void redirectSelectActivity() {
+    public Bitmap getRoundedShape(Bitmap scaleBitmapImage) {
+        int targetWidth = scaleBitmapImage.getWidth();
+        int targetHeight = scaleBitmapImage.getHeight();
+        Bitmap targetBitmap = Bitmap.createBitmap(targetWidth,
+                targetHeight, Bitmap.Config.ARGB_8888);
+
+        Canvas canvas = new Canvas(targetBitmap);
+        Path path = new Path();
+        path.addCircle(((float) targetWidth - 1) / 2,
+                ((float) targetHeight - 1) / 2,
+                (Math.min(((float) targetWidth),
+                        ((float) targetHeight)) / 2),
+                Path.Direction.CCW);
+
+        canvas.clipPath(path);
+        Bitmap sourceBitmap = scaleBitmapImage;
+        canvas.drawBitmap(sourceBitmap,
+                new Rect(0, 0, sourceBitmap.getWidth(),
+                        sourceBitmap.getHeight()),
+                new Rect(0, 0, targetWidth, targetHeight), null);
+        return targetBitmap;
+    }
+
+    private void redirectShowImageActivity(Bitmap bitmap, int code, boolean isNeedCrop, boolean isProfile, String defaultProfileImageUrl) {
+
+        ByteArrayOutputStream bs = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, bs);
+
+        Intent intent = new Intent(this, ShowImageActivity.class);
+        intent.putExtra("code", code);
+        intent.putExtra("bitmap", bs.toByteArray());
+        intent.putExtra("edit", true);
+        intent.putExtra("crop", isNeedCrop);
+        intent.putExtra("isProfile", isProfile);
+        if (defaultProfileImageUrl != null) {
+            intent.putExtra("defaultProfile", defaultProfileImageUrl);
+        }
+        startActivityForResult(intent, 0);
+    }
+
+    private void redirectSelectActivity() {
         Intent intent = new Intent(this, SelectInterestActivity.class);
         intent.putStringArrayListExtra("interest", interest);
         startActivityForResult(intent, 0);
     }
 
-    public void redirectMainActivity() {
+    private void redirectMainActivity() {
         Intent intent = new Intent(this, MainActivity.class);
         startActivity(intent);
         finish();
@@ -452,7 +596,7 @@ public class WtInfoActivity extends AppCompatActivity {
         finish();
     }
 
-    public void showSnackbar(String msg){
+    private void showSnackbar(String msg) {
         Snackbar snackbar = Snackbar.make(getWindow().getDecorView().getRootView(), msg, Snackbar.LENGTH_SHORT);
         View view = snackbar.getView();
         view.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.snackbar_color));

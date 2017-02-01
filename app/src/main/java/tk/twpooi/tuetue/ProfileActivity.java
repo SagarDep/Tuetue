@@ -26,6 +26,7 @@ import android.widget.ImageView;
 import com.flyco.dialog.widget.NormalListDialog;
 import com.getbase.floatingactionbutton.FloatingActionButton;
 import com.squareup.picasso.MemoryPolicy;
+import com.squareup.picasso.NetworkPolicy;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -115,10 +116,10 @@ public class ProfileActivity extends Activity {
 
         mHeader = findViewById(R.id.header);
         mHeaderPicture = (ImageView) findViewById(R.id.header_picture);
-        Picasso.with(getApplicationContext())
-                .load(Information.PROFILE_DEFAULT_IAMGE_URL)
-                .memoryPolicy(MemoryPolicy.NO_CACHE)
-                .into(mHeaderPicture);
+//        Picasso.with(getApplicationContext())
+//                .load(Information.PROFILE_DEFAULT_IAMGE_URL)
+//                .memoryPolicy(MemoryPolicy.NO_CACHE)
+//                .into(mHeaderPicture);
         mHeaderLogo = (ImageView) findViewById(R.id.header_logo);
 
         mActionBarTitleColor = ContextCompat.getColor(getApplicationContext(), R.color.dark_gray);
@@ -220,7 +221,13 @@ public class ProfileActivity extends Activity {
                 .load(img)
                 .transform(new CropCircleTransformation())
                 .memoryPolicy(MemoryPolicy.NO_CACHE)
+                .networkPolicy(NetworkPolicy.NO_CACHE)
                 .into(mHeaderLogo);
+        Picasso.with(getApplicationContext())
+                .load((String) item.get("background"))
+                .memoryPolicy(MemoryPolicy.NO_CACHE)
+                .networkPolicy(NetworkPolicy.NO_CACHE)
+                .into(mHeaderPicture);
         mSpannableString = new SpannableString((String)item.get("nickname"));
     }
 
@@ -369,10 +376,9 @@ public class ProfileActivity extends Activity {
         switch (resultCode) {
             case EDIT_PROFILE:
                 item = (HashMap<String, Object>) data.getSerializableExtra("item");
-                System.out.println(item);
                 getUserTutorList();
                 getUserTuteeList();
-                handler.sendMessage(handler.obtainMessage(MSG_MESSAGE_PROGRESS_FINISH));
+                setMainUI();
                 makeList();
                 break;
             default:

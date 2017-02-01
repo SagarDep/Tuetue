@@ -26,6 +26,7 @@ import com.flyco.dialog.listener.OnBtnClickL;
 import com.flyco.dialog.widget.MaterialDialog;
 import com.nhn.android.naverlogin.ui.view.OAuthLoginButton;
 import com.squareup.picasso.MemoryPolicy;
+import com.squareup.picasso.NetworkPolicy;
 import com.squareup.picasso.Picasso;
 
 import java.util.HashMap;
@@ -88,18 +89,21 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         String nickname = (String)StartActivity.USER_DATA.get("nickname");
         String email = (String)StartActivity.USER_DATA.get("email");
         String img = (String)StartActivity.USER_DATA.get("img");
+        String background = (String) StartActivity.USER_DATA.get("background");
 
         View headerView = navigationView.getHeaderView(0);
         ImageView backgroundImg = (ImageView)headerView.findViewById(R.id.img_background);
         Picasso.with(this)
-                .load(Information.PROFILE_DEFAULT_IAMGE_URL)
+                .load(background)
                 .memoryPolicy(MemoryPolicy.NO_CACHE)
+                .networkPolicy(NetworkPolicy.NO_CACHE)
                 .into(backgroundImg);
         ImageView profileImg = (ImageView)headerView.findViewById(R.id.profileImg);
         Picasso.with(this)
                 .load(img)
                 .transform(new CropCircleTransformation())
                 .memoryPolicy(MemoryPolicy.NO_CACHE)
+                .networkPolicy(NetworkPolicy.NO_CACHE)
                 .into(profileImg);
         TextView tv_nickname = (TextView)headerView.findViewById(R.id.tv_nickname);
         tv_nickname.setText(nickname);
