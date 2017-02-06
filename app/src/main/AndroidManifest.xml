@@ -139,6 +139,18 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".sub.OpenSourceActivity"
+            android:theme="@style/AppTheme"
+            android:windowSoftInputMode="adjustPan"
+            android:configChanges="orientation|keyboardHidden|screenSize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="tk.twpooi.tuetue" />
+            </intent-filter>
+        </activity>
+
 
         <!-- Facebook Activity -->
         <activity android:name="com.facebook.FacebookActivity"

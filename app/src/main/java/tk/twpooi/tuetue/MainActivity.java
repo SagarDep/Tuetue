@@ -1,8 +1,11 @@
 package tk.twpooi.tuetue;
 
+import android.app.ActivityOptions;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -32,6 +35,7 @@ import com.squareup.picasso.Picasso;
 import java.util.HashMap;
 
 import jp.wasabeef.picasso.transformations.CropCircleTransformation;
+import tk.twpooi.tuetue.sub.OpenSourceActivity;
 import tk.twpooi.tuetue.util.AdditionalFunc;
 import tk.twpooi.tuetue.util.FacebookLogin;
 import tk.twpooi.tuetue.util.NaverLogin;
@@ -162,7 +166,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if (id == R.id.nav_show_profile) {
 
             Intent intent = new Intent(getApplicationContext(), ProfileActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             intent.putExtra("userId", StartActivity.USER_ID);
             startActivity(intent);
 
@@ -224,8 +227,23 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
             }
         } else if(id == R.id.nav_info){
-//            showFragment("nav_info", new Fragment());
-            showSnackbar("정보");
+
+            String text = getResources().getString(R.string.app_name) + " " + getVersion() + " (" + getVersionCode() + ")";
+
+            final MaterialDialog dialog = new MaterialDialog(MainActivity.this);
+            dialog.content(text)
+                    .title("정보")
+                    .btnNum(1)
+                    .btnText("확인")
+                    .showAnim(new FadeEnter())
+                    .show();
+            dialog.setOnBtnClickL(new OnBtnClickL() {
+                @Override
+                public void onBtnClick() {
+                    dialog.dismiss();
+                }
+            });
+
         } else if(id == R.id.nav_report){
 //            showFragment("nav_report", new Fragment());
             showSnackbar("오류제보");
@@ -233,8 +251,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 //            showFragment("nav_help", new Fragment());
             showSnackbar("도움말");
         } else if(id == R.id.nav_open_source){
-//            showFragment("nav_open_source", new Fragment());
-            showSnackbar("Open source");
+            Intent intent = new Intent(getApplicationContext(), OpenSourceActivity.class);
+            startActivity(intent);
         }
 
         if (getSupportActionBar() != null && title != null) {
@@ -344,6 +362,27 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 break;
         }
 
+    }
+
+    private String getVersionCode() {
+        String version = "";
+        try {
+            PackageInfo i = getApplicationContext().getPackageManager().getPackageInfo(getApplicationContext().getPackageName(), 0);
+            version = Integer.toString(i.versionCode);
+        } catch (PackageManager.NameNotFoundException e) {
+        }
+        return version;
+    }
+
+    private String getVersion() {
+        String version = "";
+        try {
+            PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+            version = pInfo.versionName;
+        } catch (Exception e) {
+
+        }
+        return version;
     }
 
     private void redirectStartPage(){
