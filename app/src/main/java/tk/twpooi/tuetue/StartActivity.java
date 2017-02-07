@@ -100,10 +100,11 @@ public class StartActivity extends AppCompatActivity implements FacebookLoginSup
 //        progressDialog = new ProgressDialog(this);
 
         kenBurnsView = (KenBurnsView)findViewById(R.id.image);
-        Picasso.with(getApplicationContext())
-                .load(Information.LODING_IMAGE_URL)
-                .memoryPolicy(MemoryPolicy.NO_CACHE)
-                .into(kenBurnsView);
+        kenBurnsView.setImageResource(R.drawable.loading);
+//        Picasso.with(getApplicationContext())
+//                .load(Information.LODING_IMAGE_URL)
+//                .memoryPolicy(MemoryPolicy.NO_CACHE)
+//                .into(kenBurnsView);
         rl_background = (RelativeLayout) findViewById(R.id.rl_background);
         rl_background.setVisibility(View.INVISIBLE);
 //        li_login = (LinearLayout)findViewById(R.id.li_login);

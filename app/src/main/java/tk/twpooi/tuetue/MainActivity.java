@@ -228,7 +228,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
         } else if(id == R.id.nav_info){
 
-            String text = getResources().getString(R.string.app_name) + " " + getVersion() + " (" + getVersionCode() + ")";
+            String text = getResources().getString(R.string.app_name) + " " + getVersion() + "(build " + getVersionCode() + ")";
 
             final MaterialDialog dialog = new MaterialDialog(MainActivity.this);
             dialog.content(text)
@@ -245,10 +245,21 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             });
 
         } else if(id == R.id.nav_report){
-//            showFragment("nav_report", new Fragment());
-            showSnackbar("오류제보");
+
+            String text = getResources().getString(R.string.app_name) + " " + getVersion() + "(build " + getVersionCode() + ") 오류제보";
+
+            Intent i = new Intent(Intent.ACTION_SEND);
+            i.setType("message/rfc822");
+            i.putExtra(Intent.EXTRA_EMAIL, new String[]{Information.ADMINISTRATOR_EMAIL});
+            i.putExtra(Intent.EXTRA_SUBJECT, text);
+            i.putExtra(Intent.EXTRA_TEXT, "내용을 입력해주세요.");
+            try {
+                startActivity(Intent.createChooser(i, "Send mail..."));
+            } catch (android.content.ActivityNotFoundException ex) {
+                showSnackbar("설치된 이메일 클라이언트가 존재하지 않습니다.");
+            }
+
         } else if(id == R.id.nav_help){
-//            showFragment("nav_help", new Fragment());
             showSnackbar("도움말");
         } else if(id == R.id.nav_open_source){
             Intent intent = new Intent(getApplicationContext(), OpenSourceActivity.class);

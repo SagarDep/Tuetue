@@ -104,7 +104,8 @@ public class TuteeListCustomAdapter extends RecyclerView.Adapter<TuteeListCustom
 
         int dday = AdditionalFunc.getDday((Long)noticeData.get("limit"));
         if(dday < 0){
-            holder.tv_dday.setText("D+"+Math.abs(dday));
+//            holder.tv_dday.setText("D+"+Math.abs(dday));
+            holder.tv_dday.setText("마감");
         }else if(dday == 0){
             holder.tv_dday.setText("D-day");
         }else{

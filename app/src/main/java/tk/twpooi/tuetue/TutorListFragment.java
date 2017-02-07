@@ -16,6 +16,8 @@ import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
 import android.widget.AdapterView;
 
 import com.flyco.dialog.listener.OnOperItemClickL;
@@ -299,17 +301,29 @@ public class TutorListFragment extends Fragment implements OnAdapterSupport {
     @Override
     public void showView() {
         menu.setVisibility(View.VISIBLE);
+        setFadeInAnimation(menu);
 //        mToolbar.animate().translationY(0).setInterpolator(new DecelerateInterpolator(2));
 //        getActivity().getActionBar().show();
-//        ((MaterialNavigationDrawer)getActivity()).getSupportActionBar().show();
     }
 
     @Override
     public void hideView() {
         menu.setVisibility(View.INVISIBLE);
+        setFadeOutAnimation(menu);
 //        mToolbar.animate().translationY(-mToolbar.getHeight()).setInterpolator(new AccelerateInterpolator(2));
 //        getActivity().getActionBar().hide();
-//        ((MaterialNavigationDrawer)getActivity()).getSupportActionBar().hide();
+    }
+
+    private void setFadeInAnimation(View view) {
+        Animation animation = new AlphaAnimation(0, 1);
+        animation.setDuration(500);
+        view.setAnimation(animation);
+    }
+
+    private void setFadeOutAnimation(View view) {
+        Animation animation = new AlphaAnimation(1, 0);
+        animation.setDuration(500);
+        view.setAnimation(animation);
     }
 
     @Override
@@ -321,6 +335,7 @@ public class TutorListFragment extends Fragment implements OnAdapterSupport {
     public void redirectActivity(Intent intent) {
         getActivity().startActivity(intent);
     }
+
 
     public void updateList(int index, HashMap<String, Object> data) {
         if (index >= 0 && index < list.size()) {

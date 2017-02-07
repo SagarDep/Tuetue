@@ -75,6 +75,8 @@ public class ShowTuetueActivity extends AppCompatActivity {
     private int index;
     private String id;
 
+    private boolean isFinishLoading;
+
     private TextRoundCornerProgressBar progressBar;
 
     private ProgressDialog progressDialog;
@@ -105,6 +107,7 @@ public class ShowTuetueActivity extends AppCompatActivity {
                 protected void afterThreadFinish(String data) {
                     item.clear();
                     item = AdditionalFunc.getTutorList(data).get(0);
+                    isFinishLoading = true;
                     handler.sendMessage(handler.obtainMessage(MSG_MESSAGE_MAKE_LIST));
                 }
             }.start();
@@ -116,6 +119,7 @@ public class ShowTuetueActivity extends AppCompatActivity {
                 protected void afterThreadFinish(String data) {
                     item.clear();
                     item = AdditionalFunc.getTuteeList(data).get(0);
+                    isFinishLoading = true;
                     handler.sendMessage(handler.obtainMessage(MSG_MESSAGE_MAKE_LIST));
                 }
             }.start();
@@ -314,7 +318,8 @@ public class ShowTuetueActivity extends AppCompatActivity {
         tv_email.setText((String)item.get("email"));
         int dday = AdditionalFunc.getDday((Long)item.get("limit"));
         if(dday < 0){
-            tv_dday.setText("D+"+Math.abs(dday));
+//            tv_dday.setText("D+"+Math.abs(dday));
+            tv_dday.setText("마감");
         }else if(dday == 0){
             tv_dday.setText("D-day");
         }else{
@@ -645,22 +650,24 @@ public class ShowTuetueActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        Intent intent = new Intent();
-        intent.putExtra("item", item);
-        intent.putExtra("index", index);
-        switch (type) {
-            case TYPE_TUTOR_LIST:
-                this.setResult(MainActivity.RESULT_CODE_TUTOR_LIST_FRAGMENT, intent);
-                break;
-            case TYPE_TUTEE_LIST:
-                this.setResult(MainActivity.RESULT_CODE_TUTEE_LIST_FRAGMENT, intent);
-                break;
-            case TYPE_USER_TUTOR_LIST:
-                this.setResult(MainActivity.RESULT_CODE_USER_TUTOR_LIST_FRAGMENT, intent);
-                break;
-            case TYPE_USER_TUTEE_LIST:
-                this.setResult(MainActivity.RESULT_CODE_USER_TUTEE_LIST_FRAGMENT, intent);
-                break;
+        if (isFinishLoading) {
+            Intent intent = new Intent();
+            intent.putExtra("item", item);
+            intent.putExtra("index", index);
+            switch (type) {
+                case TYPE_TUTOR_LIST:
+                    this.setResult(MainActivity.RESULT_CODE_TUTOR_LIST_FRAGMENT, intent);
+                    break;
+                case TYPE_TUTEE_LIST:
+                    this.setResult(MainActivity.RESULT_CODE_TUTEE_LIST_FRAGMENT, intent);
+                    break;
+                case TYPE_USER_TUTOR_LIST:
+                    this.setResult(MainActivity.RESULT_CODE_USER_TUTOR_LIST_FRAGMENT, intent);
+                    break;
+                case TYPE_USER_TUTEE_LIST:
+                    this.setResult(MainActivity.RESULT_CODE_USER_TUTEE_LIST_FRAGMENT, intent);
+                    break;
+            }
         }
         super.onBackPressed();
     }
