@@ -146,6 +146,11 @@ private OnAdapterSupport onAdapterSupport;
             }
         });
 
+        String isFinish = (String) noticeData.get("isFinish");
+        if ("1".equals(isFinish)) {
+            holder.tv_dday.setText("마감");
+        }
+
     }
 
 

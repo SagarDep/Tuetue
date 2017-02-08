@@ -87,7 +87,6 @@ public class TuteeListCustomAdapter extends RecyclerView.Adapter<TuteeListCustom
         final String id = (String)noticeData.get("id");
         final String userId = (String)noticeData.get("userid");
         ArrayList<String> par = (ArrayList<String>)noticeData.get("participant");
-        String isFinish = (String)noticeData.get("isFinish");
 
         final String profileImg = (String)noticeData.get("img");
         Picasso.with(context)
@@ -143,6 +142,12 @@ public class TuteeListCustomAdapter extends RecyclerView.Adapter<TuteeListCustom
                 }
             }
         });
+
+
+        String isFinish = (String) noticeData.get("isFinish");
+        if ("1".equals(isFinish)) {
+            holder.tv_dday.setText("마감");
+        }
 
     }
 

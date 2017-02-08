@@ -44,6 +44,13 @@
                     android:textColor="@color/dark_gray"
                     />
 
+                <TextView
+                    android:id="@+id/contact"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="contact"
+                    android:textColor="@color/dark_gray" />
+
             </LinearLayout>
 
 

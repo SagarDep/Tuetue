@@ -19,6 +19,9 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.akexorcist.roundcornerprogressbar.TextRoundCornerProgressBar;
+import com.flyco.animation.FadeEnter.FadeEnter;
+import com.flyco.dialog.listener.OnBtnClickL;
+import com.flyco.dialog.widget.MaterialDialog;
 import com.getbase.floatingactionbutton.FloatingActionButton;
 import com.squareup.picasso.MemoryPolicy;
 import com.squareup.picasso.Picasso;
@@ -40,6 +43,7 @@ public class ShowTuetueActivity extends AppCompatActivity {
     private final int MSG_MESSAGE_SET_BUTTON_TRUE = 503;
     private final int MSG_MESSAGE_SET_BUTTON_FALSE = 504;
     private final int MSG_MESSAGE_REFRESH_PROGRESS = 1001;
+    private final int MSG_MESSAGE_REFRESHVIEW = 1002;
 
     public final static int EDIT_CONTENTS = 1;
 
@@ -50,6 +54,7 @@ public class ShowTuetueActivity extends AppCompatActivity {
 
     private Toolbar toolbar;
     private RelativeLayout rl_profile;
+    private RelativeLayout rl_finish;
     private ImageView profileImg;
     private TextView tv_nickname;
     private TextView tv_email;
@@ -74,6 +79,8 @@ public class ShowTuetueActivity extends AppCompatActivity {
 
     private int index;
     private String id;
+    private boolean isFinishArticle;
+    private boolean isMyArticle;
 
     private boolean isFinishLoading;
 
@@ -148,6 +155,7 @@ public class ShowTuetueActivity extends AppCompatActivity {
         }
 
         toolbar = (Toolbar)findViewById(R.id.toolbar);
+        rl_finish = (RelativeLayout) findViewById(R.id.rl_finish);
         rl_profile = (RelativeLayout)findViewById(R.id.rl_profile);
         profileImg = (ImageView)findViewById(R.id.profileImg);
         tv_nickname = (TextView)findViewById(R.id.tv_nickname);
@@ -228,6 +236,25 @@ public class ShowTuetueActivity extends AppCompatActivity {
         System.out.println("onHide");
     }
 
+    private void checkData() {
+
+        isMyArticle = StartActivity.USER_ID.equals((String) item.get("userid"));
+
+        int dday = AdditionalFunc.getDday((Long) item.get("limit"));
+        if (dday < 0) {
+            isFinishArticle = true;
+            return;
+        }
+
+        if ("1".equals((String) item.get("isFinish"))) {
+            isFinishArticle = true;
+            return;
+        }
+
+        isFinishArticle = false;
+
+    }
+
     private class MyHandler extends Handler {
 
         public void handleMessage(Message msg)
@@ -235,8 +262,10 @@ public class ShowTuetueActivity extends AppCompatActivity {
             switch (msg.what)
             {
                 case MSG_MESSAGE_MAKE_LIST:
+                    checkData();
                     setProfile();
                     refreshView();
+                    setFinishUI();
                     break;
                 case MSG_MESSAGE_PROGRESS_HIDE:
                     progressDialog.hide();
@@ -255,6 +284,9 @@ public class ShowTuetueActivity extends AppCompatActivity {
                     float percent = ((float)participant.size()/count)*100;
                     progressBar.setProgress(percent);
                     progressBar.setProgressText(participant.size() + "/" + count);
+                    break;
+                case MSG_MESSAGE_REFRESHVIEW:
+                    refreshView();
                     break;
                 default:
                     break;
@@ -306,6 +338,25 @@ public class ShowTuetueActivity extends AppCompatActivity {
 
     }
 
+    private void setFinishUI() {
+        if (isFinishArticle) {
+            tv_dday.setText("마감");
+            rl_finish.setVisibility(View.VISIBLE);
+            joinBtn.setVisibility(View.GONE);
+        } else {
+            int dday = AdditionalFunc.getDday((Long) item.get("limit"));
+            if (dday < 0) {
+//            tv_dday.setText("D+"+Math.abs(dday));
+            } else if (dday == 0) {
+                tv_dday.setText("D-day");
+            } else {
+                tv_dday.setText("D-" + dday);
+            }
+            rl_finish.setVisibility(View.GONE);
+            joinBtn.setVisibility(View.VISIBLE);
+        }
+    }
+
     private void setProfile(){
 
         // 프로필 이미지 설정
@@ -319,7 +370,6 @@ public class ShowTuetueActivity extends AppCompatActivity {
         int dday = AdditionalFunc.getDday((Long)item.get("limit"));
         if(dday < 0){
 //            tv_dday.setText("D+"+Math.abs(dday));
-            tv_dday.setText("마감");
         }else if(dday == 0){
             tv_dday.setText("D-day");
         }else{
@@ -380,6 +430,7 @@ public class ShowTuetueActivity extends AppCompatActivity {
                     Intent intent = new Intent(getApplicationContext(), ParticipantListActivity.class);
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     intent.putExtra("participant", (ArrayList<String>)item.get("participant"));
+                    intent.putExtra("email", isMyArticle);
                     startActivity(intent);
                 }
             });
@@ -418,18 +469,15 @@ public class ShowTuetueActivity extends AppCompatActivity {
             }
         });
 
-        if (StartActivity.USER_ID.equals((String) item.get("userid"))) {
+        if (isMyArticle && !"1".equals((String) item.get("isFinish"))) {
             fabEdit.setVisibility(View.VISIBLE);
+        } else {
+            fabEdit.setVisibility(View.GONE);
         }
 
     }
 
     private void setButton(boolean check){
-
-        if("1".equals((String)item.get("isFinish"))){
-            joinBtn.setVisibility(View.GONE);
-            return;
-        }
 
         joinBtn.setVisibility(View.VISIBLE);
         if (((String)item.get("userid")).equals(StartActivity.USER_ID)) {
@@ -440,29 +488,8 @@ public class ShowTuetueActivity extends AppCompatActivity {
                 joinBtn.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        HashMap<String, String> map = new HashMap<String, String>();
-                        map.put("service", "updateFinish");
-                        map.put("id", id);
-                        map.put("type", "tutor");
-                        map.put("table", "tutor");
 
-                        progressDialog.show();
-                        new ParsePHP(Information.MAIN_SERVER_ADDRESS, map){
-
-                            @Override
-                            protected void afterThreadFinish(String data) {
-
-                                handler.sendMessage(handler.obtainMessage(MSG_MESSAGE_SET_BUTTON_FALSE));
-
-                                item.put("isFinish", "1");
-//                            isFinish = "1";
-//                            rl_success.setVisibility(View.VISIBLE);
-
-                                if(index >= 0) {
-                                    TutorListFragment.setRefresh(index);
-                                }
-                            }
-                        }.start();
+                        checkFinish();
 
                     }
                 });
@@ -577,6 +604,61 @@ public class ShowTuetueActivity extends AppCompatActivity {
 
     }
 
+    private void checkFinish() {
+
+        if (item == null) {
+            return;
+        }
+        ArrayList<String> participant = (ArrayList<String>) item.get("participant");
+
+        final MaterialDialog dialog = new MaterialDialog(ShowTuetueActivity.this);
+        dialog.content("현재 " + participant.size() + "명이 참가하였습니다.\n마감하시겠습니까?")
+                .title("확인")
+                .btnText("취소", "확인")
+                .showAnim(new FadeEnter())
+                .show();
+        OnBtnClickL left = new OnBtnClickL() {
+            @Override
+            public void onBtnClick() {
+                dialog.hide();
+                dialog.dismiss();
+            }
+        };
+        OnBtnClickL right = new OnBtnClickL() {
+            @Override
+            public void onBtnClick() {
+                dialog.hide();
+                dialog.dismiss();
+
+                HashMap<String, String> map = new HashMap<String, String>();
+                map.put("service", "updateFinish");
+                map.put("id", id);
+                map.put("type", "tutor");
+                map.put("table", "tutor");
+
+                progressDialog.show();
+                new ParsePHP(Information.MAIN_SERVER_ADDRESS, map) {
+
+                    @Override
+                    protected void afterThreadFinish(String data) {
+
+                        item.put("isFinish", "1");
+
+                        handler.sendMessage(handler.obtainMessage(MSG_MESSAGE_SET_BUTTON_FALSE));
+                        handler.sendMessage(handler.obtainMessage(MSG_MESSAGE_MAKE_LIST));
+
+                        if (index >= 0) {
+                            TutorListFragment.setRefresh(index);
+                        }
+                    }
+                }.start();
+
+            }
+        };
+        dialog.setOnBtnClickL(left, right);
+
+    }
+
     private void updateTutorParticipant(HashMap<String, String> map, final boolean check){
 
         progressDialog.show();
@@ -680,7 +762,8 @@ public class ShowTuetueActivity extends AppCompatActivity {
             case EDIT_CONTENTS:
                 item = (HashMap<String, Object>) data.getSerializableExtra("item");
                 System.out.println(item);
-                refreshView();
+//                refreshView();
+                handler.sendMessage(handler.obtainMessage(MSG_MESSAGE_MAKE_LIST));
                 break;
             default:
                 break;

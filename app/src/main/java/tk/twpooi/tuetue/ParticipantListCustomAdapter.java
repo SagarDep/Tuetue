@@ -59,9 +59,11 @@ public class ParticipantListCustomAdapter extends RecyclerView.Adapter<Participa
         String nickname = (String)noticeData.get("nickname");
         String img = (String)noticeData.get("img");
         String email = (String)noticeData.get("email");
+        String contact = "기타 연락수단 : " + (String) noticeData.get("contact");
 
         holder.tv_nickname.setText(nickname);
         holder.tv_email.setText(email);
+        holder.tv_contact.setText(contact);
         Picasso.with(context)
                 .load(img)
                 .transform(new CropCircleTransformation())
@@ -140,6 +142,7 @@ public class ParticipantListCustomAdapter extends RecyclerView.Adapter<Participa
         ImageView img_profile;
         TextView tv_nickname;
         TextView tv_email;
+        TextView tv_contact;
 
 
         public ViewHolder(View v) {
@@ -148,6 +151,7 @@ public class ParticipantListCustomAdapter extends RecyclerView.Adapter<Participa
             img_profile = (ImageView)v.findViewById(R.id.rl_profile_img);
             tv_nickname = (TextView) v.findViewById(R.id.nickname);
             tv_email = (TextView) v.findViewById(R.id.email);
+            tv_contact = (TextView) v.findViewById(R.id.contact);
         }
     }
 

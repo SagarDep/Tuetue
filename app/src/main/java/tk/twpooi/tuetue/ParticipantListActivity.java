@@ -1,6 +1,7 @@
 package tk.twpooi.tuetue;
 
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -10,7 +11,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
+import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,10 +31,15 @@ public class ParticipantListActivity extends AppCompatActivity {
     private LinearLayoutManager mLinearLayoutManager;
     private ParticipantListCustomAdapter adapter;
 
+    // UI
     private FrameLayout root;
+    private TextView tv_noParticipant;
+    private Button sendEmailBtn;
 
+    // DATA
     private ArrayList<String> participantList;
     private ArrayList<HashMap<String, Object>> participantInfoList;
+    private boolean isEnableEmail;
 
     private ProgressDialog progressDialog;
 
@@ -42,8 +50,11 @@ public class ParticipantListActivity extends AppCompatActivity {
 
         progressDialog = new ProgressDialog(this);
 
+        isEnableEmail = getIntent().getBooleanExtra("email", false);
         participantList = (ArrayList<String>)getIntent().getSerializableExtra("participant");
         participantInfoList = new ArrayList<>();
+
+        init();
 
         progressDialog.show();
         for(String s : participantList){
@@ -65,6 +76,21 @@ public class ParticipantListActivity extends AppCompatActivity {
 
     }
 
+    private void sendEmail(String[] list) {
+
+        Intent i = new Intent(Intent.ACTION_SEND);
+        i.setType("message/rfc822");
+        i.putExtra(Intent.EXTRA_EMAIL, list);
+        i.putExtra(Intent.EXTRA_SUBJECT, "튜튜에서 보냅니다.");
+        i.putExtra(Intent.EXTRA_TEXT, "내용을 입력해주세요.");
+        try {
+            startActivity(Intent.createChooser(i, "Send mail..."));
+        } catch (android.content.ActivityNotFoundException ex) {
+            showSnackbar("설치된 이메일 클라이언트가 존재하지 않습니다.");
+        }
+
+    }
+
     private void init(){
 
         root = (FrameLayout)findViewById(R.id.activity_participant_list);
@@ -74,6 +100,32 @@ public class ParticipantListActivity extends AppCompatActivity {
                 onBackPressed();
             }
         });
+        sendEmailBtn = (Button) findViewById(R.id.send_email_btn);
+        sendEmailBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String[] emailList = new String[participantInfoList.size()];
+                for (int i = 0; i < participantInfoList.size(); i++) {
+                    HashMap<String, Object> h = participantInfoList.get(i);
+                    String email = (String) h.get("email");
+                    emailList[i] = email;
+                }
+                sendEmail(emailList);
+
+            }
+        });
+        if (isEnableEmail) {
+            sendEmailBtn.setVisibility(View.VISIBLE);
+        } else {
+            sendEmailBtn.setVisibility(View.GONE);
+        }
+        tv_noParticipant = (TextView) findViewById(R.id.tv_no_participant);
+        tv_noParticipant.setVisibility(View.GONE);
+
+        if (participantList.size() <= 0) {
+            tv_noParticipant.setVisibility(View.VISIBLE);
+            sendEmailBtn.setVisibility(View.GONE);
+        }
 
         mLinearLayoutManager = new LinearLayoutManager(getApplicationContext());
         mLinearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
@@ -108,7 +160,8 @@ public class ParticipantListActivity extends AppCompatActivity {
             {
                 case MSG_MESSAGE_MAKE_LIST:
                     if(participantInfoList.size() == participantList.size()) {
-                        init();
+//                        init();
+                        makeList();
                         progressDialog.hide();
                     }
                     break;
@@ -117,120 +170,6 @@ public class ParticipantListActivity extends AppCompatActivity {
             }
         }
     }
-
-//    private class GetUserInfo extends Thread{
-//
-//        private boolean result;
-//        private HashMap<String, String> map;
-//        private ArrayList<HashMap<String, String>> returnList;
-//
-//        public GetUserInfo(HashMap<String, String> map){
-//            this.map = map;
-//            result = false;
-//        }
-//
-//        public void run(){
-//
-//            String addr = Information.MAIN_SERVER_ADDRESS + "getUser.php";
-//            String response = new String();
-//
-//            try {
-//                URL url = new URL(addr);
-//                HttpURLConnection conn = (HttpURLConnection) url.openConnection(); // 해당 URL에 연결
-//
-//                conn.setConnectTimeout(10000); // 타임아웃: 10초
-//                conn.setUseCaches(false); // 캐시 사용 안 함
-//                conn.setRequestMethod("POST"); // POST로 연결
-//                conn.setDoInput(true);
-//                conn.setDoOutput(true);
-//
-//                if (map != null) { // 웹 서버로 보낼 매개변수가 있는 경우우
-//                    OutputStream os = conn.getOutputStream(); // 서버로 보내기 위한 출력 스트림
-//                    BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os, "UTF-8")); // UTF-8로 전송
-//                    bw.write(getPostString(map)); // 매개변수 전송
-//                    bw.flush();
-//                    bw.close();
-//                    os.close();
-//                }
-//
-//                if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) { // 연결에 성공한 경우
-//                    String line;
-//                    BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream())); // 서버의 응답을 읽기 위한 입력 스트림
-//
-//                    while ((line = br.readLine()) != null) // 서버의 응답을 읽어옴
-//                        response += line;
-//                }
-//
-//                conn.disconnect();
-//            } catch (MalformedURLException me) {
-//                me.printStackTrace();
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//            }
-//
-//            String str = response.toString();
-//            returnList = new ArrayList<>();
-//            try {
-//                // PHP에서 받아온 JSON 데이터를 JSON오브젝트로 변환
-//                JSONObject jObject = new JSONObject(str);
-//                // results라는 key는 JSON배열로 되어있다.
-//                JSONArray results = jObject.getJSONArray("result");
-//                String countTemp = (String)jObject.get("num_result");
-//                int count = Integer.parseInt(countTemp);
-//
-////                HashMap<String, String> hashTemp = new HashMap<>();
-//                for ( int i = 0; i < count; ++i ) {
-//                    JSONObject temp = results.getJSONObject(i);
-//
-//                    HashMap<String, String> hashTemp = new HashMap<>();
-//                    hashTemp.put("userId", (String)temp.get("id"));
-//                    hashTemp.put("intro", (String)temp.get("intro"));
-//                    hashTemp.put("img", (String)temp.get("img"));
-//                    hashTemp.put("nickname", (String)temp.get("nickname"));
-//
-//                    returnList.add(hashTemp);
-//
-//                }
-//
-//            } catch (JSONException e) {
-//                e.printStackTrace();
-//            }
-//
-//        }
-//
-//        private String getPostString(HashMap<String, String> map) {
-//            StringBuilder result = new StringBuilder();
-//            boolean first = true; // 첫 번째 매개변수 여부
-//
-//            for (Map.Entry<String, String> entry : map.entrySet()) {
-//                if (first)
-//                    first = false;
-//                else // 첫 번째 매개변수가 아닌 경우엔 앞에 &를 붙임
-//                    result.append("&");
-//
-//                try { // UTF-8로 주소에 키와 값을 붙임
-//                    result.append(URLEncoder.encode(entry.getKey(), "UTF-8"));
-//                    result.append("=");
-//                    result.append(URLEncoder.encode(entry.getValue(), "UTF-8"));
-//                } catch (UnsupportedEncodingException ue) {
-//                    ue.printStackTrace();
-//                } catch (Exception e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//
-//            return result.toString();
-//        }
-//
-//        public boolean getResult(){
-//            return result;
-//        }
-//
-//        public ArrayList<HashMap<String, String>> getReturnList(){
-//            return returnList;
-//        }
-//
-//    }
 
 
 
