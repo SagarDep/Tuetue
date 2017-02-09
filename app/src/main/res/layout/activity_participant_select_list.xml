@@ -13,14 +13,14 @@
         android:layout_width="320dp"
         android:layout_height="500dp"
         android:layout_gravity="center"
-        android:background="@drawable/profile_background"
+        android:background="@color/background_color"
         >
 
         <RelativeLayout
             android:id="@+id/topbar"
             android:layout_width="match_parent"
-            android:layout_height="20dp"
-            android:background="@drawable/profile_top_background"
+            android:layout_height="30dp"
+            android:background="@color/colorPrimary"
             >
 
         </RelativeLayout>
@@ -28,41 +28,38 @@
         <RelativeLayout
             android:id="@+id/rv_root"
             android:layout_below="@+id/topbar"
-            android:layout_above="@+id/rl_completeBtn"
+            android:layout_above="@+id/completeBtn"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             >
 
-            <android.support.v7.widget.RecyclerView
-                android:layout_height="match_parent"
+            <ScrollView
                 android:layout_width="match_parent"
-                android:id="@+id/rv"
-                >
-            </android.support.v7.widget.RecyclerView>
+                android:layout_height="match_parent">
+
+                <LinearLayout
+                    android:id="@+id/li_content_field"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+
+                </LinearLayout>
+
+
+            </ScrollView>
 
 
         </RelativeLayout>
 
-        <RelativeLayout
-            android:id="@+id/rl_completeBtn"
+        <Button
+            android:id="@+id/completeBtn"
             android:layout_width="match_parent"
             android:layout_height="30dp"
             android:layout_alignParentBottom="true"
-            android:background="@drawable/profile_bottom_background"
-            >
-
-            <Button
-                android:id="@+id/completeBtn"
-                android:layout_centerInParent="true"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="선택하기"
-                android:gravity="center"
-                android:textColor="@color/white"
-                android:background="@color/transparency"
-                />
-
-        </RelativeLayout>
+            android:text="선택하기"
+            android:textColor="@color/white"
+            android:background="@color/pastel_blue" />
 
     </RelativeLayout>
 

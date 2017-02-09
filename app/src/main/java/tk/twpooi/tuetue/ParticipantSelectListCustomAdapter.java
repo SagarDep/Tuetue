@@ -157,7 +157,7 @@ public class ParticipantSelectListCustomAdapter extends RecyclerView.Adapter<Par
         ImageView img_profile;
         TextView tv_nickname;
         TextView tv_email;
-        RelativeLayout showInfoBtn;
+        ImageView showInfoBtn;
 
 
         public ViewHolder(View v) {
@@ -166,7 +166,7 @@ public class ParticipantSelectListCustomAdapter extends RecyclerView.Adapter<Par
             img_profile = (ImageView)v.findViewById(R.id.rl_profile_img);
             tv_nickname = (TextView) v.findViewById(R.id.nickname);
             tv_email = (TextView) v.findViewById(R.id.email);
-            showInfoBtn = (RelativeLayout)v.findViewById(R.id.showInfoBtn);
+            showInfoBtn = (ImageView) v.findViewById(R.id.check_btn);
         }
     }
 

@@ -37,6 +37,8 @@ import tk.twpooi.tuetue.util.ParsePHP;
 
 public class ShowTuetueActivity extends AppCompatActivity {
 
+    public static final int SELECT_TUTOR = 30;
+
     private MyHandler handler = new MyHandler();
     private final int MSG_MESSAGE_MAKE_LIST = 500;
     private final int MSG_MESSAGE_PROGRESS_HIDE = 502;
@@ -44,17 +46,18 @@ public class ShowTuetueActivity extends AppCompatActivity {
     private final int MSG_MESSAGE_SET_BUTTON_FALSE = 504;
     private final int MSG_MESSAGE_REFRESH_PROGRESS = 1001;
     private final int MSG_MESSAGE_REFRESHVIEW = 1002;
+    private final int MSG_MESSAGE_SHOW_ERROR_MESSAGE = 1003;
 
     public final static int EDIT_CONTENTS = 1;
 
     private HashMap<String, Object> item;
     private HashMap<String, View> svItem;
 
-    private FrameLayout fm_progress;
+    private RelativeLayout rl_progress;
 
     private Toolbar toolbar;
     private RelativeLayout rl_profile;
-    private RelativeLayout rl_finish;
+    private TextView tv_finish;
     private ImageView profileImg;
     private TextView tv_nickname;
     private TextView tv_email;
@@ -132,9 +135,6 @@ public class ShowTuetueActivity extends AppCompatActivity {
             }.start();
         }
 
-//        progressDialog.show();
-
-
         makeScrollView();
 
     }
@@ -149,13 +149,13 @@ public class ShowTuetueActivity extends AppCompatActivity {
 
     private void init(){
 
-        fm_progress = (FrameLayout)findViewById(R.id.fm_progress);
+        rl_progress = (RelativeLayout) findViewById(R.id.rl_progress);
         if (!isTutorContents()) {
-            fm_progress.setVisibility(View.GONE);
+            rl_progress.setVisibility(View.GONE);
         }
 
         toolbar = (Toolbar)findViewById(R.id.toolbar);
-        rl_finish = (RelativeLayout) findViewById(R.id.rl_finish);
+        tv_finish = (TextView) findViewById(R.id.tv_finish);
         rl_profile = (RelativeLayout)findViewById(R.id.rl_profile);
         profileImg = (ImageView)findViewById(R.id.profileImg);
         tv_nickname = (TextView)findViewById(R.id.tv_nickname);
@@ -224,15 +224,11 @@ public class ShowTuetueActivity extends AppCompatActivity {
     private void onShow(){
 //        toolbar.animate().translationY(0).setInterpolator(new DecelerateInterpolator(2));
         toolbar.setVisibility(View.VISIBLE);
-//        if(type){
-//            fm_progress.setVisibility(View.VISIBLE);
-//        }
         System.out.println("onShow");
     }
     private void onHide(){
 //        toolbar.animate().translationY(-toolbar.getHeight()).setInterpolator(new AccelerateInterpolator(2));
         toolbar.setVisibility(View.GONE);
-//        fm_progress.setVisibility(View.GONE);
         System.out.println("onHide");
     }
 
@@ -272,10 +268,16 @@ public class ShowTuetueActivity extends AppCompatActivity {
                     break;
                 case MSG_MESSAGE_SET_BUTTON_FALSE:
                     progressDialog.hide();
+                    checkData();
+                    refreshView();
+                    setFinishUI();
                     setButton(false);
                     break;
                 case MSG_MESSAGE_SET_BUTTON_TRUE:
                     progressDialog.hide();
+                    checkData();
+                    refreshView();
+                    setFinishUI();
                     setButton(true);
                     break;
                 case MSG_MESSAGE_REFRESH_PROGRESS:
@@ -286,7 +288,28 @@ public class ShowTuetueActivity extends AppCompatActivity {
                     progressBar.setProgressText(participant.size() + "/" + count);
                     break;
                 case MSG_MESSAGE_REFRESHVIEW:
+                    progressDialog.hide();
+                    checkData();
+                    setProfile();
                     refreshView();
+                    setFinishUI();
+                    break;
+                case MSG_MESSAGE_SHOW_ERROR_MESSAGE:
+                    progressDialog.hide();
+                    final MaterialDialog dialog = new MaterialDialog(ShowTuetueActivity.this);
+                    dialog.content("잠시 후 다시 시도해주세요.")
+                            .title("에러")
+                            .btnText("확인")
+                            .btnNum(1)
+                            .showAnim(new FadeEnter())
+                            .show();
+                    dialog.setOnBtnClickL(new OnBtnClickL() {
+                        @Override
+                        public void onBtnClick() {
+                            dialog.hide();
+                            dialog.dismiss();
+                        }
+                    });
                     break;
                 default:
                     break;
@@ -341,7 +364,7 @@ public class ShowTuetueActivity extends AppCompatActivity {
     private void setFinishUI() {
         if (isFinishArticle) {
             tv_dday.setText("마감");
-            rl_finish.setVisibility(View.VISIBLE);
+            tv_finish.setVisibility(View.VISIBLE);
             joinBtn.setVisibility(View.GONE);
         } else {
             int dday = AdditionalFunc.getDday((Long) item.get("limit"));
@@ -352,7 +375,7 @@ public class ShowTuetueActivity extends AppCompatActivity {
             } else {
                 tv_dday.setText("D-" + dday);
             }
-            rl_finish.setVisibility(View.GONE);
+            tv_finish.setVisibility(View.GONE);
             joinBtn.setVisibility(View.VISIBLE);
         }
     }
@@ -424,11 +447,10 @@ public class ShowTuetueActivity extends AppCompatActivity {
 
         if (isTutorContents()) {
 
-            fm_progress.setOnClickListener(new View.OnClickListener() {
+            rl_progress.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     Intent intent = new Intent(getApplicationContext(), ParticipantListActivity.class);
-                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     intent.putExtra("participant", (ArrayList<String>)item.get("participant"));
                     intent.putExtra("email", isMyArticle);
                     startActivity(intent);
@@ -457,6 +479,22 @@ public class ShowTuetueActivity extends AppCompatActivity {
                 setButton(true);
             }
 
+            final String tutorId = (String) item.get("tutorId");
+            if (!"".equals(tutorId) || tutorId != null) {
+                tv_finish.setText("마감(튜터보기)");
+                tv_finish.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Intent intent = new Intent(getApplicationContext(), ProfileActivity.class);
+                        intent.putExtra("userId", tutorId);
+                        startActivity(intent);
+                    }
+                });
+            } else {
+                tv_finish.setText("마감");
+                tv_finish.setOnClickListener(null);
+            }
+
         }
 
         rl_profile.setOnClickListener(new View.OnClickListener() {
@@ -480,7 +518,7 @@ public class ShowTuetueActivity extends AppCompatActivity {
     private void setButton(boolean check){
 
         joinBtn.setVisibility(View.VISIBLE);
-        if (((String)item.get("userid")).equals(StartActivity.USER_ID)) {
+        if (isMyArticle) {
 
             if (isTutorContents()) {
                 joinBtn.setText("마감하기");
@@ -500,10 +538,9 @@ public class ShowTuetueActivity extends AppCompatActivity {
                     @Override
                     public void onClick(View view) {
                         Intent intent = new Intent(getApplicationContext(), ParticipantSelectListActivity.class);
-                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                         intent.putExtra("participant", (ArrayList<String>)item.get("participant"));
                         intent.putExtra("id", id);
-                        startActivity(intent);
+                        startActivityForResult(intent, SELECT_TUTOR);
                     }
                 });
             }
@@ -633,7 +670,6 @@ public class ShowTuetueActivity extends AppCompatActivity {
                 HashMap<String, String> map = new HashMap<String, String>();
                 map.put("service", "updateFinish");
                 map.put("id", id);
-                map.put("type", "tutor");
                 map.put("table", "tutor");
 
                 progressDialog.show();
@@ -723,6 +759,33 @@ public class ShowTuetueActivity extends AppCompatActivity {
 
     }
 
+    private void addTutorIdToTutee(final String tutorId) {
+
+        HashMap<String, String> map = new HashMap<String, String>();
+        map.put("service", "updateFinish");
+        map.put("id", id);
+        map.put("table", "tutee");
+        map.put("tutorId", tutorId);
+
+        progressDialog.show();
+        new ParsePHP(Information.MAIN_SERVER_ADDRESS, map) {
+
+            @Override
+            protected void afterThreadFinish(String data) {
+
+                if ("1".equals(data)) {
+                    item.put("isFinish", "1");
+                    item.put("tutorId", tutorId);
+                    handler.sendMessage(handler.obtainMessage(MSG_MESSAGE_REFRESHVIEW));
+                } else {
+                    handler.sendMessage(handler.obtainMessage(MSG_MESSAGE_SHOW_ERROR_MESSAGE));
+                }
+
+            }
+        }.start();
+
+    }
+
     public void showSnackbar(String msg){
         Snackbar snackbar = Snackbar.make(getWindow().getDecorView().getRootView(), msg, Snackbar.LENGTH_SHORT);
         View view = snackbar.getView();
@@ -761,9 +824,12 @@ public class ShowTuetueActivity extends AppCompatActivity {
         switch (resultCode) {
             case EDIT_CONTENTS:
                 item = (HashMap<String, Object>) data.getSerializableExtra("item");
-                System.out.println(item);
-//                refreshView();
                 handler.sendMessage(handler.obtainMessage(MSG_MESSAGE_MAKE_LIST));
+                break;
+            case SELECT_TUTOR:
+                String userId = data.getStringExtra("userId");
+                addTutorIdToTutee(userId);
+//                showSnackbar(userId);
                 break;
             default:
                 break;

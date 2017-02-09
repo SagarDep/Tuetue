@@ -1,6 +1,7 @@
 package tk.twpooi.tuetue;
 
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -9,13 +10,24 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
+
+import com.flyco.animation.FadeEnter.FadeEnter;
+import com.flyco.dialog.listener.OnBtnClickL;
+import com.flyco.dialog.widget.MaterialDialog;
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import jp.wasabeef.picasso.transformations.CropCircleTransformation;
 import tk.twpooi.tuetue.util.AdditionalFunc;
 import tk.twpooi.tuetue.util.ParsePHP;
 
@@ -25,18 +37,17 @@ public class ParticipantSelectListActivity extends AppCompatActivity {
     private final int MSG_MESSAGE_MAKE_LIST = 500;
     private final int MSG_MESSAGE_FINISH_ACTIVITY = 501;
 
-    // Recycle View
-    private RecyclerView rv;
-    private LinearLayoutManager mLinearLayoutManager;
-    private ParticipantSelectListCustomAdapter adapter;
-
     private FrameLayout root;
     private Button completeBtn;
+    private LinearLayout li_contentField;
 
     private int selectionIndex = -1;
+    private int defaultCheckDrawable = R.drawable.ic_check_grey600_18dp;
+    private int selectCheckDrawable = R.drawable.check;
 
     private ArrayList<String> participantList;
     private ArrayList<HashMap<String, Object>> participantInfoList;
+    private ArrayList<View> participantViewList;
 
     private ProgressDialog progressDialog;
 
@@ -49,24 +60,9 @@ public class ParticipantSelectListActivity extends AppCompatActivity {
 
         participantList = (ArrayList<String>)getIntent().getSerializableExtra("participant");
         participantInfoList = new ArrayList<>();
+        participantViewList = new ArrayList<>();
 
-//        for(String s : participantList){
-//            HashMap<String, String> map = new HashMap<>();
-//            map.put("id", s);
-//
-//            GetUserInfo gui = new GetUserInfo(map);
-//            gui.start();
-//            try{
-//                gui.join();
-//            }catch (Exception e){
-//
-//            }
-//            participantInfoList.add(gui.getReturnList().get(0));
-//            gui.interrupt();
-//
-//        }
-//
-//        init();
+        init();
 
         progressDialog.show();
         for(String s : participantList){
@@ -104,8 +100,8 @@ public class ParticipantSelectListActivity extends AppCompatActivity {
             participantInfoList.set(i, h);
         }
 
-        adapter.list = participantInfoList;
-        adapter.notifyDataSetChanged();
+//        adapter.list = participantInfoList;
+//        adapter.notifyDataSetChanged();
     }
 
     private void init(){
@@ -118,10 +114,62 @@ public class ParticipantSelectListActivity extends AppCompatActivity {
             }
         });
         completeBtn = (Button)findViewById(R.id.completeBtn);
-        completeBtn.setEnabled(false);
         completeBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if (selectionIndex >= 0 && selectionIndex < participantInfoList.size()) {
+
+                    HashMap<String, Object> h = participantInfoList.get(selectionIndex);
+                    final String id = (String) h.get("userId");
+                    String nickname = (String) h.get("nickname");
+                    String email = (String) h.get("email");
+                    String contact = (String) h.get("contact");
+
+                    String text = String.format("정보\n닉네임 : %s\n이메일 : %s\n기타 연락수단 : %s\n\n%s님으로 확정하시겠습니까?", nickname, email, contact, nickname);
+
+                    final MaterialDialog dialog = new MaterialDialog(ParticipantSelectListActivity.this);
+                    dialog.content(text)
+                            .title("확인")
+                            .btnText("취소", "확인")
+                            .showAnim(new FadeEnter())
+                            .show();
+                    OnBtnClickL left = new OnBtnClickL() {
+                        @Override
+                        public void onBtnClick() {
+                            dialog.hide();
+                            dialog.dismiss();
+                        }
+                    };
+                    OnBtnClickL right = new OnBtnClickL() {
+                        @Override
+                        public void onBtnClick() {
+                            dialog.hide();
+                            dialog.dismiss();
+
+                            Intent intent = new Intent();
+                            intent.putExtra("userId", id);
+                            setResult(ShowTuetueActivity.SELECT_TUTOR, intent);
+                            finish();
+                        }
+                    };
+                    dialog.setOnBtnClickL(left, right);
+
+                } else {
+                    final MaterialDialog dialog = new MaterialDialog(ParticipantSelectListActivity.this);
+                    dialog.content("튜터를 선택해주세요.")
+                            .title("경고")
+                            .btnText("확인")
+                            .btnNum(1)
+                            .showAnim(new FadeEnter())
+                            .show();
+                    dialog.setOnBtnClickL(new OnBtnClickL() {
+                        @Override
+                        public void onBtnClick() {
+                            dialog.hide();
+                            dialog.dismiss();
+                        }
+                    });
+                }
 //                String tutorId = participantList.get(selectionIndex);
 //                System.out.println(tutorId);
 //                HashMap<String, String> map = new HashMap<String, String>();
@@ -137,108 +185,13 @@ public class ParticipantSelectListActivity extends AppCompatActivity {
 //                        handler.sendMessage(handler.obtainMessage(MSG_MESSAGE_FINISH_ACTIVITY));
 //                    }
 //                }.start();
-
             }
         });
-        completeBtn.setEnabled(false);
 
-        mLinearLayoutManager = new LinearLayoutManager(getApplicationContext());
-        mLinearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
-        rv = (RecyclerView) findViewById(R.id.rv);
-        rv.setHasFixedSize(true);
-        //rv.addItemDecoration(new DividerItemDecoration(getApplicationContext(), DividerItemDecoration.VERTICAL_LIST));
-        rv.setLayoutManager(mLinearLayoutManager);
-
-        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(rv.getContext(),
-                mLinearLayoutManager.getOrientation());
-        rv.addItemDecoration(dividerItemDecoration);
-
-        makeList();
+        li_contentField = (LinearLayout) findViewById(R.id.li_content_field);
 
     }
 
-//    class UpdateFinish extends Thread {
-//
-//        private boolean result;
-//        private HashMap<String, String> map;
-//
-//        public UpdateFinish(HashMap<String, String> map){
-//            this.map = map;
-//            result = false;
-//        }
-//
-//        public void run(){
-//
-//            String addr = Information.MAIN_SERVER_ADDRESS + "updateFinish.php";
-//            String response = new String();
-//
-//            try {
-//                URL url = new URL(addr);
-//                HttpURLConnection conn = (HttpURLConnection) url.openConnection(); // 해당 URL에 연결
-//
-//                conn.setConnectTimeout(10000); // 타임아웃: 10초
-//                conn.setUseCaches(false); // 캐시 사용 안 함
-//                conn.setRequestMethod("POST"); // POST로 연결
-//                conn.setDoInput(true);
-//                conn.setDoOutput(true);
-//
-//                if (map != null) { // 웹 서버로 보낼 매개변수가 있는 경우우
-//                    OutputStream os = conn.getOutputStream(); // 서버로 보내기 위한 출력 스트림
-//                    BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os, "UTF-8")); // UTF-8로 전송
-//                    bw.write(getPostString(map)); // 매개변수 전송
-//                    bw.flush();
-//                    bw.close();
-//                    os.close();
-//                }
-//
-//                if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) { // 연결에 성공한 경우
-//                    String line;
-//                    BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream())); // 서버의 응답을 읽기 위한 입력 스트림
-//
-//                    while ((line = br.readLine()) != null) // 서버의 응답을 읽어옴
-//                        response += line;
-//                }
-//
-//                System.out.println(response);
-//
-//                conn.disconnect();
-//            } catch (MalformedURLException me) {
-//                me.printStackTrace();
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//            }
-//
-//        }
-//
-//        private String getPostString(HashMap<String, String> map) {
-//            StringBuilder result = new StringBuilder();
-//            boolean first = true; // 첫 번째 매개변수 여부
-//
-//            for (Map.Entry<String, String> entry : map.entrySet()) {
-//                if (first)
-//                    first = false;
-//                else // 첫 번째 매개변수가 아닌 경우엔 앞에 &를 붙임
-//                    result.append("&");
-//
-//                try { // UTF-8로 주소에 키와 값을 붙임
-//                    result.append(URLEncoder.encode(entry.getKey(), "UTF-8"));
-//                    result.append("=");
-//                    result.append(URLEncoder.encode(entry.getValue(), "UTF-8"));
-//                } catch (UnsupportedEncodingException ue) {
-//                    ue.printStackTrace();
-//                } catch (Exception e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//
-//            return result.toString();
-//        }
-//
-//        public boolean getResult(){
-//            return result;
-//        }
-//
-//    }
 
     private class MyHandler extends Handler {
 
@@ -248,7 +201,8 @@ public class ParticipantSelectListActivity extends AppCompatActivity {
             {
                 case MSG_MESSAGE_MAKE_LIST:
                     if(participantInfoList.size() == participantList.size()) {
-                        init();
+//                        init();
+                        makeList();
                         progressDialog.hide();
                     }
                     break;
@@ -267,130 +221,71 @@ public class ParticipantSelectListActivity extends AppCompatActivity {
 
     private void makeList(){
 
-        adapter = new ParticipantSelectListCustomAdapter(getApplicationContext(), participantInfoList, getWindow().getDecorView().getRootView(), this);
+        li_contentField.removeAllViews();
+        participantViewList.clear();
+        for (int i = 0; i < participantInfoList.size(); i++) {
+            HashMap<String, Object> h = participantInfoList.get(i);
 
-        rv.setAdapter(adapter);
+            View v = LayoutInflater.from(getApplicationContext()).inflate(R.layout.participant_select_list_custom_item, null, false);
 
-        adapter.notifyDataSetChanged();
+            final RelativeLayout root = (RelativeLayout) v.findViewById(R.id.root);
+            root.setTag(i);
+            root.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(getApplicationContext(), ProfileActivity.class);
+                    intent.putExtra("userId", (String) participantInfoList.get((int) root.getTag()).get("userId"));
+                    startActivity(intent);
+                }
+            });
+            ImageView img = (ImageView) v.findViewById(R.id.rl_profile_img);
+            TextView tv_nickname = (TextView) v.findViewById(R.id.nickname);
+            TextView tv_email = (TextView) v.findViewById(R.id.email);
+            final RelativeLayout rl_checkField = (RelativeLayout) v.findViewById(R.id.rl_check_field);
+            rl_checkField.setTag(i);
+            ImageView checkBtn = (ImageView) v.findViewById(R.id.check_btn);
+            checkBtn.setTag(i);
+
+            Picasso.with(getApplicationContext())
+                    .load((String) h.get("img"))
+                    .transform(new CropCircleTransformation())
+                    .into(img);
+            tv_nickname.setText((String) h.get("nickname"));
+            tv_email.setText((String) h.get("email"));
+            checkBtn.setImageResource(defaultCheckDrawable);
+            rl_checkField.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    setCheckBtn((int) rl_checkField.getTag());
+                }
+            });
+
+            participantViewList.add(v);
+            li_contentField.addView(v);
+
+        }
 
     }
 
-//    private class GetUserInfo extends Thread{
-//
-//        private boolean result;
-//        private HashMap<String, String> map;
-//        private ArrayList<HashMap<String, String>> returnList;
-//
-//        public GetUserInfo(HashMap<String, String> map){
-//            this.map = map;
-//            result = false;
-//        }
-//
-//        public void run(){
-//
-//            String addr = Information.MAIN_SERVER_ADDRESS + "getUser.php";
-//            String response = new String();
-//
-//            try {
-//                URL url = new URL(addr);
-//                HttpURLConnection conn = (HttpURLConnection) url.openConnection(); // 해당 URL에 연결
-//
-//                conn.setConnectTimeout(10000); // 타임아웃: 10초
-//                conn.setUseCaches(false); // 캐시 사용 안 함
-//                conn.setRequestMethod("POST"); // POST로 연결
-//                conn.setDoInput(true);
-//                conn.setDoOutput(true);
-//
-//                if (map != null) { // 웹 서버로 보낼 매개변수가 있는 경우우
-//                    OutputStream os = conn.getOutputStream(); // 서버로 보내기 위한 출력 스트림
-//                    BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os, "UTF-8")); // UTF-8로 전송
-//                    bw.write(getPostString(map)); // 매개변수 전송
-//                    bw.flush();
-//                    bw.close();
-//                    os.close();
-//                }
-//
-//                if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) { // 연결에 성공한 경우
-//                    String line;
-//                    BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream())); // 서버의 응답을 읽기 위한 입력 스트림
-//
-//                    while ((line = br.readLine()) != null) // 서버의 응답을 읽어옴
-//                        response += line;
-//                }
-//
-//                conn.disconnect();
-//            } catch (MalformedURLException me) {
-//                me.printStackTrace();
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//            }
-//
-//            String str = response.toString();
-//            returnList = new ArrayList<>();
-//            try {
-//                // PHP에서 받아온 JSON 데이터를 JSON오브젝트로 변환
-//                JSONObject jObject = new JSONObject(str);
-//                // results라는 key는 JSON배열로 되어있다.
-//                JSONArray results = jObject.getJSONArray("result");
-//                String countTemp = (String)jObject.get("num_result");
-//                int count = Integer.parseInt(countTemp);
-//
-////                HashMap<String, String> hashTemp = new HashMap<>();
-//                for ( int i = 0; i < count; ++i ) {
-//                    JSONObject temp = results.getJSONObject(i);
-//
-//                    HashMap<String, String> hashTemp = new HashMap<>();
-//                    hashTemp.put("userId", (String)temp.get("id"));
-//                    hashTemp.put("intro", (String)temp.get("intro"));
-//                    hashTemp.put("img", (String)temp.get("img"));
-//                    hashTemp.put("nickname", (String)temp.get("nickname"));
-//                    hashTemp.put("select", "0");
-//
-//                    returnList.add(hashTemp);
-//
-//                }
-//
-//            } catch (JSONException e) {
-//                e.printStackTrace();
-//            }
-//
-//        }
-//
-//        private String getPostString(HashMap<String, String> map) {
-//            StringBuilder result = new StringBuilder();
-//            boolean first = true; // 첫 번째 매개변수 여부
-//
-//            for (Map.Entry<String, String> entry : map.entrySet()) {
-//                if (first)
-//                    first = false;
-//                else // 첫 번째 매개변수가 아닌 경우엔 앞에 &를 붙임
-//                    result.append("&");
-//
-//                try { // UTF-8로 주소에 키와 값을 붙임
-//                    result.append(URLEncoder.encode(entry.getKey(), "UTF-8"));
-//                    result.append("=");
-//                    result.append(URLEncoder.encode(entry.getValue(), "UTF-8"));
-//                } catch (UnsupportedEncodingException ue) {
-//                    ue.printStackTrace();
-//                } catch (Exception e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//
-//            return result.toString();
-//        }
-//
-//        public boolean getResult(){
-//            return result;
-//        }
-//
-//        public ArrayList<HashMap<String, String>> getReturnList(){
-//            return returnList;
-//        }
-//
-//    }
+    private void setCheckBtn(int index) {
 
+        selectionIndex = -1;
 
+        for (int i = 0; i < participantViewList.size(); i++) {
+
+            View v = participantViewList.get(i);
+            ImageView checkBtn = (ImageView) v.findViewById(R.id.check_btn);
+
+            if (index == i) {
+                checkBtn.setImageResource(selectCheckDrawable);
+                selectionIndex = i;
+            } else {
+                checkBtn.setImageResource(defaultCheckDrawable);
+            }
+
+        }
+
+    }
 
     public void showSnackbar(String msg){
         Snackbar snackbar = Snackbar.make(getWindow().getDecorView().getRootView(), msg, Snackbar.LENGTH_SHORT);

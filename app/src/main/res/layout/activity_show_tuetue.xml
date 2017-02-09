@@ -82,47 +82,20 @@
 
         </RelativeLayout>
 
-        <RelativeLayout
-            android:id="@+id/rl_finish"
-            android:visibility="gone"
+        <TextView
+            android:id="@+id/tv_finish"
+            android:layout_centerInParent="true"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@color/transparent"
-            >
-
-            <TextView
-                android:layout_centerInParent="true"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="마감"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="@color/white"
-                android:gravity="center"
-                />
-
-        </RelativeLayout>
-
-        <RelativeLayout
-            android:id="@+id/rl_tutor"
+            android:layout_height="wrap_content"
+            android:text="마감"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/white"
+            android:gravity="center"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp"
             android:visibility="gone"
-            android:layout_width="match_parent"
-            android:layout_height="40dp"
-            android:background="@color/transparent"
-            >
-
-            <TextView
-                android:layout_centerInParent="true"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="마감 (튜터보기)"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:textColor="@color/white"
-                android:gravity="center"
-                />
-
-        </RelativeLayout>
+            android:background="@color/transparent" />
 
     </FrameLayout>
 
