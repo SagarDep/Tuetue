@@ -62,8 +62,6 @@ public static String MAIN_SERVER_ADDRESS = "PLEASE ENTER YOUR SERVER ADDRESS";
 <ul>
   <li>picasso(Square) - <a href=https://github.com/square/picasso>https://github.com/square/picasso</a></li>
   <li>picasso-transformations(Daichi Furiya) - <a href=https://github.com/wasabeef/picasso-transformations>https://github.com/wasabeef/picasso-transformations</a></li>
-  <li>sweet-alert-dialog(书呆子(pedant)) - <a href=https://github.com/pedant/sweet-alert-dialog>https://github.com/pedant/sweet-alert-dialog</a></li>
-  <li>ShineButton(Chad Song) - <a href=https://github.com/ChadCSong/ShineButton>https://github.com/ChadCSong/ShineButton</a></li>
   <li>android-floating-action-button(Base) - <a href=https://github.com/futuresimple/android-floating-action-button>https://github.com/futuresimple/android-floating-action-button</a></li>
   <li>MaterialEditText(Kai Zhu) - <a href=https://github.com/rengwuxian/MaterialEditText>https://github.com/rengwuxian/MaterialEditText</a></li>
   <li>android-Ultra-Pull-To-Refresh(Huqiu Liao) - <a href=https://github.com/liaohuqiu/android-Ultra-Pull-To-Refresh>https://github.com/liaohuqiu/android-Ultra-Pull-To-Refresh</a></li>
@@ -72,6 +70,10 @@ public static String MAIN_SERVER_ADDRESS = "PLEASE ENTER YOUR SERVER ADDRESS";
   <li>KenBurnsView(Flávio Faria) - <a href=https://github.com/flavioarfaria/KenBurnsView>https://github.com/flavioarfaria/KenBurnsView</a></li>
   <li>NotBoringActionBar(flavienlaurent) - <a href=https://github.com/flavienlaurent/NotBoringActionBar>https://github.com/flavienlaurent/NotBoringActionBar</a></li>
   <li>MaterialDateTimePicker(wdullaer) - <a href=https://github.com/wdullaer/MaterialDateTimePicker>https://github.com/wdullaer/MaterialDateTimePicker</a></li>
+  <li>AVLoadingIndicatorView(81813780) - <a href=https://github.com/81813780/AVLoadingIndicatorView>https://github.com/81813780/AVLoadingIndicatorView</a></li>
+  <li>PhotoView(chrisbanes) - <a href=https://github.com/chrisbanes/PhotoView>https://github.com/chrisbanes/PhotoView</a></li>
+  <li>CircleImageView(hdodenhof) - <a href=https://github.com/hdodenhof/CircleImageView>https://github.com/hdodenhof/CircleImageView</a></li>
+  <li>material-dialogs(afollestad) - <a href=https://github.com/afollestad/material-dialogs>https://github.com/afollestad/material-dialogs</a></li>
 </ul>
 
 <br>

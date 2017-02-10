@@ -92,6 +92,7 @@ public class OpenSourceActivity extends Activity {
         list.add(new OpenSourceItem("AVLoadingIndicatorView", "81813780", "https://github.com/81813780/AVLoadingIndicatorView", OpenSourceItem.APACHE2_0));
         list.add(new OpenSourceItem("PhotoView", "chrisbanes", "https://github.com/chrisbanes/PhotoView", OpenSourceItem.APACHE2_0));
         list.add(new OpenSourceItem("CircleImageView", "hdodenhof", "https://github.com/hdodenhof/CircleImageView", OpenSourceItem.APACHE2_0));
+        list.add(new OpenSourceItem("material-dialogs", "afollestad", "https://github.com/afollestad/material-dialogs", OpenSourceItem.MIT));
 
     }
 
