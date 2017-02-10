@@ -7,6 +7,8 @@ import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.DisplayMetrics;
 import android.view.View;
 import android.widget.Button;
@@ -14,6 +16,8 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+
+import com.rengwuxian.materialedittext.MaterialEditText;
 
 import java.util.ArrayList;
 
@@ -24,11 +28,11 @@ public class SelectInterestActivity extends AppCompatActivity {
     private LinearLayout btnField;
     private Button completeBtn;
     private TextView notice;
+    private MaterialEditText editSearch;
 
     // Data
-    private String[] list = {"IT", "Design", "Test", "Min", "Max", "Short"};
-
-    private ArrayList<Integer> selectItemIndex;
+    private String[] list;
+    private ArrayList<String> listTemp;
 
     private ArrayList<String> alreadySetItem;
 
@@ -40,7 +44,15 @@ public class SelectInterestActivity extends AppCompatActivity {
         Intent intent = getIntent();
         alreadySetItem = intent.getStringArrayListExtra("interest");
 
+        if (null == alreadySetItem || alreadySetItem.size() < 0) {
+            alreadySetItem = new ArrayList<>();
+        }
+
         list = StartActivity.CATEGORY_LIST.clone();
+        listTemp = new ArrayList<>();
+        for (String s : list) {
+            listTemp.add(s);
+        }
 //        Random rand = new Random();
 //        list = new String[100];
 //        for(int i=0; i<100; i++){
@@ -69,26 +81,60 @@ public class SelectInterestActivity extends AppCompatActivity {
             }
         });
         notice = (TextView)findViewById(R.id.notice);
+        editSearch = (MaterialEditText) findViewById(R.id.edit_search);
+        editSearch.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
 
-        selectItemIndex = new ArrayList<>();
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                searchList(s.toString());
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
 
         makeList();
         checkConfident();
 
     }
 
-    private void setText(TextView t, boolean type){
-        int index = (int)t.getTag();
+    private void searchList(String sh) {
+
+        listTemp.clear();
+        for (String s : list) {
+            int i = s.indexOf(sh);
+            if (i >= 0) {
+                listTemp.add(s);
+            }
+        }
+        makeList();
+
+    }
+
+    private void setText(TextView t, boolean type, boolean addAble) {
+        String tag = (String) t.getTag();
         if(type){
             t.setBackgroundResource(R.drawable.round_button_gray);
-            selectItemIndex.remove((Integer)index);
+            if (addAble) {
+                alreadySetItem.remove(tag);
+            }
         }else{
             t.setBackgroundResource(R.drawable.round_button_blue);
-            selectItemIndex.add(index);
+            if (addAble) {
+                alreadySetItem.add(tag);
+            }
         }
     }
 
     private void makeList(){
+
+        btnField.removeAllViews();
 
         final float scale =getResources().getDisplayMetrics().density;
         int dp5 = (int) (5 * scale + 0.5f);
@@ -101,19 +147,19 @@ public class SelectInterestActivity extends AppCompatActivity {
         float dpHeight = displayMetrics.heightPixels / displayMetrics.density;
         float dpWidth = (int) (320 * scale + 0.5f);//displayMetrics.widthPixels;// / displayMetrics.density;
 
-        if(list != null){
+        if (listTemp != null) {
 
             LinearLayout mNewLayout = new LinearLayout(this); // Horizontal layout which I am using to add my buttons.
             mNewLayout.setOrientation(LinearLayout.HORIZONTAL);
             int mButtonsSize = 0;
             Rect bounds = new Rect();
 
-            for(int i = 0; i < list.length; i++){
+            for (int i = 0; i < listTemp.size(); i++) {
 
-                String mButtonTitle = list[i];
+                String mButtonTitle = listTemp.get(i);
                 final TextView mBtn = new TextView(this);
                 mBtn.setPadding(dp5*2, dp5, dp5*2, dp5);
-                mBtn.setTag(i);
+                mBtn.setTag(mButtonTitle);
                 mBtn.setBackgroundResource(R.drawable.round_button_gray);
                 mBtn.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.white));
                 mBtn.setText(mButtonTitle);
@@ -121,12 +167,12 @@ public class SelectInterestActivity extends AppCompatActivity {
                 mBtn.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        int index = (int)mBtn.getTag();
-                        setText(mBtn, selectItemIndex.contains(index));
+                        String tag = (String) mBtn.getTag();
+                        setText(mBtn, alreadySetItem.contains(tag), true);
                         checkConfident();
                     }
                 });
-                setText(mBtn, !alreadySetItem.contains(mButtonTitle));
+                setText(mBtn, !alreadySetItem.contains(mButtonTitle), false);
 
 //                paint.getTextBounds(buttonText, 0, buttonText.length(), bounds);
 //                int textWidth = bounds.width();
@@ -156,7 +202,7 @@ public class SelectInterestActivity extends AppCompatActivity {
 
     private void checkConfident(){
 
-        if(selectItemIndex.size() >= 3){
+        if (alreadySetItem.size() >= 3) {
             completeBtn.setEnabled(true);
             completeBtn.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.colorPrimary));
             notice.setVisibility(View.GONE);
@@ -170,13 +216,13 @@ public class SelectInterestActivity extends AppCompatActivity {
 
     private void complete(){
 
-        ArrayList<String> in = new ArrayList<>();
-        for(int i : selectItemIndex){
-            in.add(list[i]);
-        }
+//        ArrayList<String> in = new ArrayList<>();
+//        for(int i : selectItemIndex){
+//            in.add(list[i]);
+//        }
 
         Intent intent = new Intent();
-        intent.putExtra("interest", in);
+        intent.putExtra("interest", alreadySetItem);
         setResult(1, intent);
         finish();
 

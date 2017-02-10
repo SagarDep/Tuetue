@@ -41,10 +41,41 @@
             android:paddingTop="3dp"
             />
 
+        <LinearLayout
+            android:id="@+id/li_search_field"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_below="@+id/notice"
+            android:layout_marginLeft="5dp"
+            android:layout_marginRight="5dp">
+
+            <TextView
+                android:id="@+id/tv_search"
+                android:layout_width="60dp"
+                android:layout_height="wrap_content"
+                android:text="검색"
+                android:textSize="12sp"
+                android:textColor="@color/profile_title"
+                android:gravity="right"
+                android:paddingRight="5dp" />
+
+            <com.rengwuxian.materialedittext.MaterialEditText
+                android:id="@+id/edit_search"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="검색어를 입력해주세요."
+                android:textSize="12sp"
+                android:textColor="@color/profile_content"
+                app:met_singleLineEllipsis="true"
+                app:met_primaryColor="@color/profile_content" />
+
+        </LinearLayout>
+
         <ScrollView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_below="@+id/notice"
+            android:layout_below="@+id/li_search_field"
             android:layout_above="@+id/completeBtn"
             >
             <LinearLayout

@@ -1,6 +1,5 @@
 package tk.twpooi.tuetue;
 
-import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -8,16 +7,22 @@ import android.os.Message;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
+
+import com.squareup.picasso.Picasso;
+import com.wang.avi.AVLoadingIndicatorView;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import jp.wasabeef.picasso.transformations.CropCircleTransformation;
 import tk.twpooi.tuetue.util.AdditionalFunc;
 import tk.twpooi.tuetue.util.ParsePHP;
 
@@ -26,37 +31,31 @@ public class ParticipantListActivity extends AppCompatActivity {
     private MyHandler handler = new MyHandler();
     private final int MSG_MESSAGE_MAKE_LIST = 500;
 
-    // Recycle View
-    private RecyclerView rv;
-    private LinearLayoutManager mLinearLayoutManager;
-    private ParticipantListCustomAdapter adapter;
-
     // UI
     private FrameLayout root;
+    private AVLoadingIndicatorView loading;
     private TextView tv_noParticipant;
+    private LinearLayout li_contentField;
     private Button sendEmailBtn;
 
     // DATA
     private ArrayList<String> participantList;
     private ArrayList<HashMap<String, Object>> participantInfoList;
+    private ArrayList<View> participantViewList;
     private boolean isEnableEmail;
-
-    private ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_participant_list);
 
-        progressDialog = new ProgressDialog(this);
-
         isEnableEmail = getIntent().getBooleanExtra("email", false);
         participantList = (ArrayList<String>)getIntent().getSerializableExtra("participant");
         participantInfoList = new ArrayList<>();
+        participantViewList = new ArrayList<>();
 
         init();
 
-        progressDialog.show();
         for(String s : participantList){
             HashMap<String, String> map = new HashMap<>();
             map.put("id", s);
@@ -100,6 +99,9 @@ public class ParticipantListActivity extends AppCompatActivity {
                 onBackPressed();
             }
         });
+        loading = (AVLoadingIndicatorView) findViewById(R.id.loading);
+        loading.show();
+        li_contentField = (LinearLayout) findViewById(R.id.li_content_field);
         sendEmailBtn = (Button) findViewById(R.id.send_email_btn);
         sendEmailBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -125,18 +127,8 @@ public class ParticipantListActivity extends AppCompatActivity {
         if (participantList.size() <= 0) {
             tv_noParticipant.setVisibility(View.VISIBLE);
             sendEmailBtn.setVisibility(View.GONE);
+            loading.hide();
         }
-
-        mLinearLayoutManager = new LinearLayoutManager(getApplicationContext());
-        mLinearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
-        rv = (RecyclerView) findViewById(R.id.rv);
-        rv.setHasFixedSize(true);
-        //rv.addItemDecoration(new DividerItemDecoration(getApplicationContext(), DividerItemDecoration.VERTICAL_LIST));
-        rv.setLayoutManager(mLinearLayoutManager);
-
-        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(rv.getContext(),
-                mLinearLayoutManager.getOrientation());
-        rv.addItemDecoration(dividerItemDecoration);
 
         makeList();
 
@@ -144,11 +136,40 @@ public class ParticipantListActivity extends AppCompatActivity {
 
     private void makeList(){
 
-        adapter = new ParticipantListCustomAdapter(getApplicationContext(), participantInfoList, getWindow().getDecorView().getRootView());
+        li_contentField.removeAllViews();
+        participantViewList.clear();
+        for (int i = 0; i < participantInfoList.size(); i++) {
+            HashMap<String, Object> h = participantInfoList.get(i);
 
-        rv.setAdapter(adapter);
+            View v = LayoutInflater.from(getApplicationContext()).inflate(R.layout.participant_list_custom_item, null, false);
 
-        adapter.notifyDataSetChanged();
+            final RelativeLayout root = (RelativeLayout) v.findViewById(R.id.root);
+            root.setTag(i);
+            root.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(getApplicationContext(), ProfileActivity.class);
+                    intent.putExtra("userId", (String) participantInfoList.get((int) root.getTag()).get("userId"));
+                    startActivity(intent);
+                }
+            });
+            ImageView img = (ImageView) v.findViewById(R.id.rl_profile_img);
+            TextView tv_nickname = (TextView) v.findViewById(R.id.nickname);
+            TextView tv_email = (TextView) v.findViewById(R.id.email);
+            TextView tv_contact = (TextView) v.findViewById(R.id.contact);
+
+            Picasso.with(getApplicationContext())
+                    .load((String) h.get("img"))
+                    .transform(new CropCircleTransformation())
+                    .into(img);
+            tv_nickname.setText((String) h.get("nickname"));
+            tv_email.setText((String) h.get("email"));
+            tv_contact.setText((String) h.get("contact"));
+
+            participantViewList.add(v);
+            li_contentField.addView(v);
+
+        }
 
     }
 
@@ -162,7 +183,7 @@ public class ParticipantListActivity extends AppCompatActivity {
                     if(participantInfoList.size() == participantList.size()) {
 //                        init();
                         makeList();
-                        progressDialog.hide();
+                        loading.hide();
                     }
                     break;
                 default:
@@ -183,9 +204,6 @@ public class ParticipantListActivity extends AppCompatActivity {
     @Override
     public void onDestroy(){
         super.onDestroy();
-        if(progressDialog != null){
-            progressDialog.dismiss();
-        }
     }
 
 }

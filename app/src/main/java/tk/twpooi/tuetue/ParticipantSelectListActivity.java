@@ -1,6 +1,5 @@
 package tk.twpooi.tuetue;
 
-import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -8,8 +7,6 @@ import android.os.Message;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
@@ -23,6 +20,7 @@ import com.flyco.animation.FadeEnter.FadeEnter;
 import com.flyco.dialog.listener.OnBtnClickL;
 import com.flyco.dialog.widget.MaterialDialog;
 import com.squareup.picasso.Picasso;
+import com.wang.avi.AVLoadingIndicatorView;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -38,6 +36,8 @@ public class ParticipantSelectListActivity extends AppCompatActivity {
     private final int MSG_MESSAGE_FINISH_ACTIVITY = 501;
 
     private FrameLayout root;
+    private AVLoadingIndicatorView loading;
+    private TextView tv_noParticipant;
     private Button completeBtn;
     private LinearLayout li_contentField;
 
@@ -49,14 +49,10 @@ public class ParticipantSelectListActivity extends AppCompatActivity {
     private ArrayList<HashMap<String, Object>> participantInfoList;
     private ArrayList<View> participantViewList;
 
-    private ProgressDialog progressDialog;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_participant_select_list);
-
-        progressDialog = new ProgressDialog(this);
 
         participantList = (ArrayList<String>)getIntent().getSerializableExtra("participant");
         participantInfoList = new ArrayList<>();
@@ -64,7 +60,6 @@ public class ParticipantSelectListActivity extends AppCompatActivity {
 
         init();
 
-        progressDialog.show();
         for(String s : participantList){
             HashMap<String, String> map = new HashMap<>();
             map.put("id", s);
@@ -113,6 +108,8 @@ public class ParticipantSelectListActivity extends AppCompatActivity {
                 onBackPressed();
             }
         });
+        loading = (AVLoadingIndicatorView) findViewById(R.id.loading);
+        loading.show();
         completeBtn = (Button)findViewById(R.id.completeBtn);
         completeBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -170,23 +167,16 @@ public class ParticipantSelectListActivity extends AppCompatActivity {
                         }
                     });
                 }
-//                String tutorId = participantList.get(selectionIndex);
-//                System.out.println(tutorId);
-//                HashMap<String, String> map = new HashMap<String, String>();
-//                map.put("id", ShowTuteeActivity.id);
-//                map.put("type", "tutee");
-//                map.put("tutorId", tutorId);
-//                map.put("service", "updateFinish");
-//
-//                progressDialog.show();
-//                new ParsePHP(Information.MAIN_SERVER_ADDRESS, map){
-//                    @Override
-//                    protected void afterThreadFinish(String data) {
-//                        handler.sendMessage(handler.obtainMessage(MSG_MESSAGE_FINISH_ACTIVITY));
-//                    }
-//                }.start();
             }
         });
+
+        tv_noParticipant = (TextView) findViewById(R.id.tv_no_participant);
+        tv_noParticipant.setVisibility(View.GONE);
+
+        if (participantList.size() <= 0) {
+            tv_noParticipant.setVisibility(View.VISIBLE);
+            loading.hide();
+        }
 
         li_contentField = (LinearLayout) findViewById(R.id.li_content_field);
 
@@ -201,16 +191,11 @@ public class ParticipantSelectListActivity extends AppCompatActivity {
             {
                 case MSG_MESSAGE_MAKE_LIST:
                     if(participantInfoList.size() == participantList.size()) {
-//                        init();
                         makeList();
-                        progressDialog.hide();
+                        loading.hide();
                     }
                     break;
                 case MSG_MESSAGE_FINISH_ACTIVITY:
-                    String tutorId = participantList.get(selectionIndex);
-//                    ShowTuteeActivity.isUpdate = true;
-//                    ShowTuteeActivity.setTutorId(tutorId);
-//                    TuteeListFragment.setTuteeUpdate(ShowTuteeActivity.id);
                     finish();
                     break;
                 default:
@@ -297,9 +282,6 @@ public class ParticipantSelectListActivity extends AppCompatActivity {
     @Override
     public void onDestroy(){
         super.onDestroy();
-        if(progressDialog != null){
-            progressDialog.dismiss();
-        }
     }
 
 }

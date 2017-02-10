@@ -21,8 +21,6 @@ import com.facebook.FacebookException;
 import com.facebook.Profile;
 import com.flaviofaria.kenburnsview.KenBurnsView;
 import com.nhn.android.naverlogin.ui.view.OAuthLoginButton;
-import com.squareup.picasso.MemoryPolicy;
-import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;
 import org.json.JSONException;

@@ -1,20 +1,26 @@
 package tk.twpooi.tuetue;
 
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
 
+import com.afollestad.materialdialogs.DialogAction;
+import com.afollestad.materialdialogs.MaterialDialog;
+import com.afollestad.materialdialogs.Theme;
 import com.getbase.floatingactionbutton.FloatingActionButton;
 import com.getbase.floatingactionbutton.FloatingActionsMenu;
 import com.wang.avi.AVLoadingIndicatorView;
@@ -41,7 +47,7 @@ public class UserTuetueListFragment extends Fragment implements OnAdapterSupport
     private final int MSG_MESSAGE_MAKE_LIST = 500;
     private final int MSG_MESSAGE_PROGRESS_HIDE = 502;
 
-    private ProgressDialog progressDialog;
+    private MaterialDialog progressDialog;
     private AVLoadingIndicatorView loading;
 
     // UI
@@ -50,11 +56,13 @@ public class UserTuetueListFragment extends Fragment implements OnAdapterSupport
     private FloatingActionsMenu menu;
     private FloatingActionButton addTutor;
     private FloatingActionButton orderCategory;
+    private FloatingActionButton searchBtn;
     protected PtrFrameLayout mPtrFrameLayout;
 
 
     private boolean type; // true : tutor, false : tutee
     private ArrayList<HashMap<String, Object>> list;
+    private String search;
 
     // Recycle View
     private RecyclerView rv;
@@ -111,7 +119,7 @@ public class UserTuetueListFragment extends Fragment implements OnAdapterSupport
             @Override
             public void onRefreshBegin(final PtrFrameLayout frame) {
                 progressDialog.show();
-                getTutorList();
+                getTuetueList();
             }
         });
 
@@ -123,16 +131,22 @@ public class UserTuetueListFragment extends Fragment implements OnAdapterSupport
 
         list = new ArrayList<>();
 
-        progressDialog = new ProgressDialog(context);
-        progressDialog.setMessage("조회 중입니다.");
+        progressDialog = new MaterialDialog.Builder(context)
+                .content("잠시만 기다려주세요.")
+                .progress(true, 0)
+                .progressIndeterminateStyle(true)
+                .theme(Theme.LIGHT)
+                .build();
+//        progressDialog = new ProgressDialog(context);
+//        progressDialog.setMessage("조회 중입니다.");
         loading = (AVLoadingIndicatorView)view.findViewById(R.id.loading);
 
 //        loading.show();
-        getTutorList();
+        getTuetueList();
 
     }
 
-    private void getTutorList(){
+    private void getTuetueList() {
         loading.show();
         HashMap<String, String> map = new HashMap<>();
         if(type) {
@@ -141,6 +155,9 @@ public class UserTuetueListFragment extends Fragment implements OnAdapterSupport
             map.put("service", "getUserTuteeList");
         }
         map.put("id", StartActivity.USER_ID);
+        if (search != null && (!"".equals(search))) {
+            map.put("search", search);
+        }
 
         new ParsePHP(Information.MAIN_SERVER_ADDRESS, map) {
 
@@ -182,6 +199,41 @@ public class UserTuetueListFragment extends Fragment implements OnAdapterSupport
         orderCategory = (FloatingActionButton)view.findViewById(R.id.order_category);
         orderCategory.setVisibility(View.GONE);
 
+        searchBtn = (FloatingActionButton) view.findViewById(R.id.search);
+        searchBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new MaterialDialog.Builder(context)
+                        .title("검색")
+                        .inputType(InputType.TYPE_CLASS_TEXT |
+                                InputType.TYPE_TEXT_VARIATION_PERSON_NAME |
+                                InputType.TYPE_TEXT_FLAG_CAP_WORDS)
+                        .theme(Theme.LIGHT)
+                        .positiveText("검색")
+                        .negativeText("취소")
+                        .neutralText("초기화")
+                        .onNeutral(new MaterialDialog.SingleButtonCallback() {
+                            @Override
+                            public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                                search = "";
+                                progressDialog.show();
+                                getTuetueList();
+                            }
+                        })
+                        .input("검색어를 입력해주세요", search, new MaterialDialog.InputCallback() {
+                            @Override
+                            public void onInput(@NonNull MaterialDialog dialog, CharSequence input) {
+                                search = input.toString();
+                                progressDialog.show();
+                                getTuetueList();
+                            }
+                        })
+                        .show();
+                menu.toggle();
+            }
+        });
+        searchBtn.setTitle("검색");
+
    }
 
     public void makeList(){
@@ -203,11 +255,25 @@ public class UserTuetueListFragment extends Fragment implements OnAdapterSupport
     @Override
     public void showView() {
         menu.setVisibility(View.VISIBLE);
+        setFadeInAnimation(menu);
     }
 
     @Override
     public void hideView() {
         menu.setVisibility(View.INVISIBLE);
+        setFadeOutAnimation(menu);
+    }
+
+    private void setFadeInAnimation(View view) {
+        Animation animation = new AlphaAnimation(0, 1);
+        animation.setDuration(500);
+        view.setAnimation(animation);
+    }
+
+    private void setFadeOutAnimation(View view) {
+        Animation animation = new AlphaAnimation(1, 0);
+        animation.setDuration(500);
+        view.setAnimation(animation);
     }
 
     @Override

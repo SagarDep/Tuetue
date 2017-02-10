@@ -10,7 +10,8 @@
     <RelativeLayout
         android:id="@+id/root"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:background="@color/white">
 
             <ImageView
                 android:id="@+id/rl_profile_img"
@@ -49,7 +50,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="contact"
-                    android:textColor="@color/dark_gray" />
+                    android:textSize="12sp"
+                    android:textColor="@color/gray" />
 
             </LinearLayout>
 

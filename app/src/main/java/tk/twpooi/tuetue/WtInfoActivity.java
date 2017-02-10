@@ -1,7 +1,5 @@
 package tk.twpooi.tuetue;
 
-import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -9,12 +7,10 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Rect;
-import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.provider.MediaStore;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -26,22 +22,21 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
+import com.afollestad.materialdialogs.MaterialDialog;
+import com.afollestad.materialdialogs.Theme;
 import com.rengwuxian.materialedittext.MaterialEditText;
 import com.squareup.picasso.MemoryPolicy;
 import com.squareup.picasso.NetworkPolicy;
 import com.squareup.picasso.Picasso;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 import jp.wasabeef.picasso.transformations.CropCircleTransformation;
 import tk.twpooi.tuetue.image.ShowImageActivity;
-import tk.twpooi.tuetue.image.UploadImage;
 import tk.twpooi.tuetue.image.UploadImageWithThread;
 import tk.twpooi.tuetue.util.AdditionalFunc;
 import tk.twpooi.tuetue.util.ParsePHP;
@@ -81,7 +76,7 @@ public class WtInfoActivity extends AppCompatActivity {
     private String email;
     private ArrayList<String> interest;
 
-    private ProgressDialog progressDialog;
+    private MaterialDialog progressDialog;
 
     private HashMap<String, Object> item;
     private boolean isEditMode;
@@ -99,7 +94,7 @@ public class WtInfoActivity extends AppCompatActivity {
         init();
 
         if (isEditMode) {
-            progressDialog.setMessage("잠시만 기다려주세요.");
+            progressDialog.setContent("잠시만 기다려주세요.");
             progressDialog.show();
 
             HashMap<String, String> map = new HashMap<>();
@@ -222,7 +217,12 @@ public class WtInfoActivity extends AppCompatActivity {
             editContact.setText(email);
         }
 
-        progressDialog = new ProgressDialog(this);
+        progressDialog = new MaterialDialog.Builder(this)
+                .content("잠시만 기다려주세요.")
+                .progress(true, 0)
+                .progressIndeterminateStyle(true)
+                .theme(Theme.LIGHT)
+                .build();
 
     }
 

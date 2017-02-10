@@ -1,6 +1,5 @@
 package tk.twpooi.tuetue;
 
-import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
@@ -16,6 +15,7 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.afollestad.materialdialogs.Theme;
 import com.flyco.dialog.listener.OnBtnClickL;
 import com.flyco.dialog.listener.OnOperItemClickL;
 import com.flyco.dialog.widget.MaterialDialog;
@@ -58,7 +58,7 @@ public class AddTutorActivity extends AppCompatActivity {
     private long ms_start;
     private long ms_finish;
 
-    private ProgressDialog progressDialog;
+    private com.afollestad.materialdialogs.MaterialDialog progressDialog;
 
     private boolean isEditMode;
     private String id;
@@ -76,7 +76,7 @@ public class AddTutorActivity extends AppCompatActivity {
         init();
 
         if (isEditMode) {
-            progressDialog.setMessage("잠시만 기다려주세요.");
+            progressDialog.setContent("잠시만 기다려주세요.");
             progressDialog.show();
             HashMap<String, String> map = new HashMap<>();
             map.put("id", id);
@@ -117,7 +117,12 @@ public class AddTutorActivity extends AppCompatActivity {
     private void init(){
 
         item = new HashMap<>();
-        progressDialog = new ProgressDialog(this);
+        progressDialog = new com.afollestad.materialdialogs.MaterialDialog.Builder(this)
+                .content("잠시만 기다려주세요.")
+                .progress(true, 0)
+                .progressIndeterminateStyle(true)
+                .theme(Theme.LIGHT)
+                .build();
         TextWatcher textWatcher = new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
@@ -272,7 +277,7 @@ public class AddTutorActivity extends AppCompatActivity {
                         item.put("finish", ms_finish);
                     }
 
-                    progressDialog.setMessage("처리 중입니다.\n잠시만 기다려주세요.");
+                    progressDialog.setContent("처리 중입니다.\n잠시만 기다려주세요.");
                     progressDialog.show();
                     new ParsePHP(Information.MAIN_SERVER_ADDRESS, map){
                         @Override

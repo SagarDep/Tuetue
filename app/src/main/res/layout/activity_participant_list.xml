@@ -27,14 +27,25 @@
         <RelativeLayout
             android:id="@+id/rv_root"
             android:layout_below="@+id/topbar"
-                android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-                >
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
 
-            <android.support.v7.widget.RecyclerView
-                android:layout_height="match_parent"
+            <ScrollView
                 android:layout_width="match_parent"
-                android:id="@+id/rv"></android.support.v7.widget.RecyclerView>
+                android:layout_height="match_parent"
+                android:layout_above="@+id/send_email_btn">
+
+                <LinearLayout
+                    android:id="@+id/li_content_field"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+
+                </LinearLayout>
+
+
+            </ScrollView>
 
             <Button
                 android:id="@+id/send_email_btn"
@@ -51,6 +62,15 @@
                 android:layout_height="wrap_content"
                 android:text="참여자가 없습니다."
                 android:textColor="@color/dark_gray"
+                android:layout_centerInParent="true" />
+
+            <com.wang.avi.AVLoadingIndicatorView
+                android:id="@+id/loading"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:indicatorName="LineSpinFadeLoaderIndicator"
+                app:indicatorColor="@color/colorPrimary"
+                style="@style/AVLoadingIndicatorView.Small"
                 android:layout_centerInParent="true" />
 
         </RelativeLayout>

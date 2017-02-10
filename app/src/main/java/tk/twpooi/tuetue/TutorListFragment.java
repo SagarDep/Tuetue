@@ -1,27 +1,27 @@
 package tk.twpooi.tuetue;
 
-import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
-import android.widget.AdapterView;
 
-import com.flyco.dialog.listener.OnOperItemClickL;
-import com.flyco.dialog.widget.NormalListDialog;
+import com.afollestad.materialdialogs.DialogAction;
+import com.afollestad.materialdialogs.MaterialDialog;
+import com.afollestad.materialdialogs.Theme;
 import com.getbase.floatingactionbutton.FloatingActionButton;
 import com.getbase.floatingactionbutton.FloatingActionsMenu;
 import com.wang.avi.AVLoadingIndicatorView;
@@ -49,8 +49,9 @@ public class TutorListFragment extends Fragment implements OnAdapterSupport {
     private final int MSG_MESSAGE_MAKE_ENDLESS_LIST = 501;
     private final int MSG_MESSAGE_PROGRESS_HIDE = 502;
 
-    private ProgressDialog progressDialog;
+    //    private ProgressDialog progressDialog;
     private AVLoadingIndicatorView loading;
+    private MaterialDialog progressDialog;
 
     // UI
     private View view;
@@ -59,6 +60,7 @@ public class TutorListFragment extends Fragment implements OnAdapterSupport {
     private FloatingActionsMenu menu;
     private FloatingActionButton addTutor;
     private FloatingActionButton orderCategory;
+    private FloatingActionButton searchBtn;
 
 
     protected PtrFrameLayout mPtrFrameLayout;
@@ -67,6 +69,7 @@ public class TutorListFragment extends Fragment implements OnAdapterSupport {
     private ArrayList<HashMap<String, Object>> tempList;
     private ArrayList<HashMap<String, Object>> list;
     private String category;
+    private String search;
 
     // Recycle View
     private RecyclerView rv;
@@ -145,8 +148,14 @@ public class TutorListFragment extends Fragment implements OnAdapterSupport {
         tempList = new ArrayList<>();
         category = null;
 
-        progressDialog = new ProgressDialog(context);
-        progressDialog.setMessage("조회 중입니다.");
+        progressDialog = new MaterialDialog.Builder(context)
+                .content("잠시만 기다려주세요.")
+                .progress(true, 0)
+                .progressIndeterminateStyle(true)
+                .theme(Theme.LIGHT)
+                .build();
+//        progressDialog = new ProgressDialog(context);
+//        progressDialog.setMessage("조회 중입니다.");
         loading = (AVLoadingIndicatorView)view.findViewById(R.id.loading);
 
 //        loading.show();
@@ -162,6 +171,9 @@ public class TutorListFragment extends Fragment implements OnAdapterSupport {
             map.put("page", Integer.toString(page));
             if(category != null && (!"".equals(category))){
                 map.put("category", category);
+            }
+            if (search != null && (!"".equals(search))) {
+                map.put("search", search);
             }
             new ParsePHP(Information.MAIN_SERVER_ADDRESS, map) {
 
@@ -225,52 +237,80 @@ public class TutorListFragment extends Fragment implements OnAdapterSupport {
         orderCategory.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(orderCategory.getTitle().equals("카테고리로 조회")){
-                    selectCategory();
-                    orderCategory.setTitle("전체조회");
-                }else{
-                    initLoadValue();
-                    category = null;
-                    progressDialog.show();
-                    getTutorList();
-                    orderCategory.setTitle("카테고리로 조회");
-                }
+                selectCategory();
                 menu.toggle();
             }
         });
         orderCategory.setTitle("카테고리로 조회");
 
+        searchBtn = (FloatingActionButton) view.findViewById(R.id.search);
+        searchBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new MaterialDialog.Builder(context)
+                        .title("검색")
+                        .inputType(InputType.TYPE_CLASS_TEXT |
+                                InputType.TYPE_TEXT_VARIATION_PERSON_NAME |
+                                InputType.TYPE_TEXT_FLAG_CAP_WORDS)
+                        .theme(Theme.LIGHT)
+                        .positiveText("검색")
+                        .negativeText("취소")
+                        .neutralText("초기화")
+                        .onNeutral(new MaterialDialog.SingleButtonCallback() {
+                            @Override
+                            public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                                search = "";
+                                initLoadValue();
+                                progressDialog.show();
+                                getTutorList();
+                            }
+                        })
+                        .input("검색어를 입력해주세요", search, new MaterialDialog.InputCallback() {
+                            @Override
+                            public void onInput(@NonNull MaterialDialog dialog, CharSequence input) {
+                                search = input.toString();
+                                initLoadValue();
+                                progressDialog.show();
+                                getTutorList();
+                            }
+                        })
+                        .show();
+                menu.toggle();
+            }
+        });
+        searchBtn.setTitle("검색");
+
    }
 
     private void selectCategory() {
-        final NormalListDialog dialog = new NormalListDialog(context, StartActivity.CATEGORY_LIST);
-        dialog.title("카테고리 선택")//
-                .titleTextSize_SP(14.5f)//
+        new MaterialDialog.Builder(context).title("카테고리 선택")
+                .items(StartActivity.CATEGORY_LIST)
+                .itemsCallback(new MaterialDialog.ListCallback() {
+                    @Override
+                    public void onSelection(MaterialDialog dialog, View itemView, int position, CharSequence text) {
+                        category = StartActivity.CATEGORY_LIST[position];
+                        initLoadValue();
+                        progressDialog.show();
+                        getTutorList();
+                    }
+                })
+                .positiveText("취소")
+                .neutralText("초기화")
+                .onNeutral(new MaterialDialog.SingleButtonCallback() {
+                    @Override
+                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                        initLoadValue();
+                        category = null;
+                        progressDialog.show();
+                        getTutorList();
+                    }
+                })
+                .theme(Theme.LIGHT)
                 .show();
+    }
 
-        dialog.setOnOperItemClickL(new OnOperItemClickL() {
-            @Override
-            public void onOperItemClick(AdapterView<?> parent, View view, int position, long id) {
-                category = StartActivity.CATEGORY_LIST[position];
-                initLoadValue();
-                progressDialog.show();
-                getTutorList();
-
-                dialog.dismiss();
-            }
-        });
-        dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
-            @Override
-            public void onDismiss(DialogInterface dialog) {
-                orderCategory.setTitle("카테고리로 조회");
-            }
-        });
-        dialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
-            @Override
-            public void onCancel(DialogInterface dialog) {
-                orderCategory.setTitle("카테고리로 조회");
-            }
-        });
+    private void changeBoolean(boolean b, boolean d) {
+        b = d;
     }
 
     private void initLoadValue(){

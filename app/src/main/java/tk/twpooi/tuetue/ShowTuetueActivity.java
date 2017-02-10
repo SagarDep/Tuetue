@@ -1,6 +1,5 @@
 package tk.twpooi.tuetue;
 
-import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -11,13 +10,13 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import com.afollestad.materialdialogs.Theme;
 import com.akexorcist.roundcornerprogressbar.TextRoundCornerProgressBar;
 import com.flyco.animation.FadeEnter.FadeEnter;
 import com.flyco.dialog.listener.OnBtnClickL;
@@ -89,7 +88,7 @@ public class ShowTuetueActivity extends AppCompatActivity {
 
     private TextRoundCornerProgressBar progressBar;
 
-    private ProgressDialog progressDialog;
+    private com.afollestad.materialdialogs.MaterialDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -103,7 +102,12 @@ public class ShowTuetueActivity extends AppCompatActivity {
 
         item = new HashMap<>();
         svItem = new HashMap<>();
-        progressDialog = new ProgressDialog(this);
+        progressDialog = new com.afollestad.materialdialogs.MaterialDialog.Builder(this)
+                .content("잠시만 기다려주세요.")
+                .progress(true, 0)
+                .progressIndeterminateStyle(true)
+                .theme(Theme.LIGHT)
+                .build();
 
         init();
 
@@ -553,7 +557,7 @@ public class ShowTuetueActivity extends AppCompatActivity {
                     ArrayList<String> participant = (ArrayList<String>)item.get("participant");
                     int count = (int)item.get("count");
                     joinBtn.setText("참가하기 (" + participant.size() + "/" + count + ")");
-                    joinBtn.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.red_btn_bg_color));
+                    joinBtn.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.colorPrimary));
                     joinBtn.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
@@ -592,7 +596,7 @@ public class ShowTuetueActivity extends AppCompatActivity {
             }else{
                 if(check){ // 참가하기
                     joinBtn.setText("참가하기");
-                    joinBtn.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.red_btn_bg_color));
+                    joinBtn.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.colorPrimary));
                     joinBtn.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {

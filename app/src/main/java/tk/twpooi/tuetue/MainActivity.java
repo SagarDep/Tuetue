@@ -1,7 +1,5 @@
 package tk.twpooi.tuetue;
 
-import android.app.ActivityOptions;
-import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
@@ -24,6 +22,7 @@ import android.view.MenuItem;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.afollestad.materialdialogs.Theme;
 import com.flyco.animation.FadeEnter.FadeEnter;
 import com.flyco.dialog.listener.OnBtnClickL;
 import com.flyco.dialog.widget.MaterialDialog;
@@ -58,7 +57,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private String[] menuList = {"nav_show_profile", "nav_tutor", "nav_tutee", "nav_my_tutor", "nav_my_tutee", "nav_info", "nav_report", "nav_help", "nav_open_source"};
 
     // Logout
-    private ProgressDialog progressDialog;
+    private com.afollestad.materialdialogs.MaterialDialog progressDialog;
     private FacebookLogin facebookLogin;
     private NaverLogin naverLogin;
     private SharedPreferences setting;
@@ -76,7 +75,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         login = setting.getString("login", null);
 
         naverLogin = new NaverLogin(this, new OAuthLoginButton(this));
-        progressDialog = new ProgressDialog(this);
+        progressDialog = new com.afollestad.materialdialogs.MaterialDialog.Builder(this)
+                .content("잠시만 기다려주세요.")
+                .progress(true, 0)
+                .progressIndeterminateStyle(true)
+                .theme(Theme.LIGHT)
+                .build();
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -308,7 +312,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         map.put("service", "deleteUser");
         map.put("id", userId);
 
-        progressDialog.setMessage("데이터 삭제 중입니다.");
+        progressDialog.setContent("데이터 삭제 중입니다.");
         progressDialog.show();
         new ParsePHP(Information.MAIN_SERVER_ADDRESS, map){
             @Override

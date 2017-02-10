@@ -20,6 +20,8 @@ import android.widget.AdapterView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.afollestad.materialdialogs.MaterialDialog;
+import com.afollestad.materialdialogs.Theme;
 import com.flyco.dialog.listener.OnOperItemClickL;
 import com.flyco.dialog.widget.NormalListDialog;
 import com.squareup.picasso.Picasso;
@@ -56,7 +58,7 @@ public class ShowImageActivity extends AppCompatActivity {
     private Uri imageUri = null;
     private boolean isImageChange;
 
-    private ProgressDialog progressDialog;
+    private MaterialDialog progressDialog;
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -86,7 +88,12 @@ public class ShowImageActivity extends AppCompatActivity {
         code = intent.getIntExtra("code", -1);
         uploadImage = new UploadImage(this);
 
-        progressDialog = new ProgressDialog(this);
+        progressDialog = new MaterialDialog.Builder(this)
+                .content("잠시만 기다려주세요.")
+                .progress(true, 0)
+                .progressIndeterminateStyle(true)
+                .theme(Theme.LIGHT)
+                .build();
     }
 
     private void initUI() {
@@ -158,7 +165,6 @@ public class ShowImageActivity extends AppCompatActivity {
                         break;
                     case 2:
                         if (isProfile) {
-                            progressDialog.setMessage("잠시만 기다려주세요.");
                             progressDialog.show();
                             Picasso.with(getApplicationContext())
                                     .load(defaultProfileImageUrl)
