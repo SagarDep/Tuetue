@@ -44,6 +44,7 @@ public static String MAIN_SERVER_ADDRESS = "PLEASE ENTER YOUR SERVER ADDRESS";
 <img src="https://github.com/pooi/Tuetue/blob/master/image/Screenshot_003.png" width=45%>
 <img src="https://github.com/pooi/Tuetue/blob/master/image/Screenshot_004.png" width=45%>
 <img src="https://github.com/pooi/Tuetue/blob/master/image/Screenshot_005.png" width=45%>
+<img src="https://github.com/pooi/Tuetue/blob/master/image/Screenshot_006.png" width=45%>
 
 <br>
 
