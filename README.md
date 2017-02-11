@@ -75,6 +75,7 @@ public static String MAIN_SERVER_ADDRESS = "PLEASE ENTER YOUR SERVER ADDRESS";
   <li>PhotoView(chrisbanes) - <a href=https://github.com/chrisbanes/PhotoView>https://github.com/chrisbanes/PhotoView</a></li>
   <li>CircleImageView(hdodenhof) - <a href=https://github.com/hdodenhof/CircleImageView>https://github.com/hdodenhof/CircleImageView</a></li>
   <li>material-dialogs(afollestad) - <a href=https://github.com/afollestad/material-dialogs>https://github.com/afollestad/material-dialogs</a></li>
+  <li>SlidingIntroScreen(Matthew Tamlin) - <a href=https://github.com/MatthewTamlin/SlidingIntroScreen>https://github.com/MatthewTamlin/SlidingIntroScreen</a></li>
 </ul>
 
 <br>

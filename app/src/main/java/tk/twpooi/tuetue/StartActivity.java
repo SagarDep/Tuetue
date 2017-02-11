@@ -30,6 +30,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 
+import tk.twpooi.tuetue.sub.IntroduceActivity;
 import tk.twpooi.tuetue.util.AdditionalFunc;
 import tk.twpooi.tuetue.util.FacebookLogin;
 import tk.twpooi.tuetue.util.FacebookLoginSupport;
@@ -38,6 +39,8 @@ import tk.twpooi.tuetue.util.NaverLoginSupport;
 import tk.twpooi.tuetue.util.ParsePHP;
 
 public class StartActivity extends AppCompatActivity implements FacebookLoginSupport, NaverLoginSupport{
+
+    public static final int FIRST_LOADING = 5;
 
     private MyHandler handler = new MyHandler();
     private final int MSG_MESSAGE_SHOW_LOGIN = 500;
@@ -89,7 +92,16 @@ public class StartActivity extends AppCompatActivity implements FacebookLoginSup
 
         init();
 
-        setCategoryList();
+        boolean isFirst = setting.getBoolean("isFirst", true);
+        if (isFirst) {
+            editor.putBoolean("isFirst", false);
+            editor.commit();
+            Intent intent = new Intent(getApplicationContext(), IntroduceActivity.class);
+            intent.putExtra("code", FIRST_LOADING);
+            startActivityForResult(intent, FIRST_LOADING);
+        } else {
+            setCategoryList();
+        }
 
     }
 
@@ -286,6 +298,13 @@ public class StartActivity extends AppCompatActivity implements FacebookLoginSup
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         facebookLogin.onActivityResult(requestCode, resultCode, data);
+        switch (resultCode) {
+            case FIRST_LOADING:
+                setCategoryList();
+                break;
+            default:
+                break;
+        }
     }
 
     @Override

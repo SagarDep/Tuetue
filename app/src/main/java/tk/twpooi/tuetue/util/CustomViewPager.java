@@ -1,4 +1,4 @@
-package tk.twpooi.tuetue;
+package tk.twpooi.tuetue.util;
 
 import android.content.Context;
 import android.support.v4.view.ViewPager;

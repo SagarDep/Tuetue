@@ -57,7 +57,6 @@ dependencies {
     compile 'com.getbase:floatingactionbutton:1.10.1'
     // edit text
     compile 'com.rengwuxian.materialedittext:library:2.1.4'
-
     // refresh
     compile 'in.srain.cube:ultra-ptr:1.0.11'
     // Progressbar
@@ -75,6 +74,8 @@ dependencies {
     compile 'de.hdodenhof:circleimageview:2.1.0'
     // Material Dialog
     compile 'com.afollestad.material-dialogs:core:0.9.3.0'
+    // dotindicator
+    compile 'com.matthew-tamlin:sliding-intro-screen:3.1.0'
     // Facebook
     compile 'com.facebook.android:facebook-android-sdk:[4,5)'
     compile files('libs/3rdparty_login_library_android_4.1.4_source.jar')

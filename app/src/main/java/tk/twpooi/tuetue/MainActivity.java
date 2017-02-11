@@ -34,6 +34,7 @@ import com.squareup.picasso.Picasso;
 import java.util.HashMap;
 
 import jp.wasabeef.picasso.transformations.CropCircleTransformation;
+import tk.twpooi.tuetue.sub.IntroduceActivity;
 import tk.twpooi.tuetue.sub.OpenSourceActivity;
 import tk.twpooi.tuetue.util.AdditionalFunc;
 import tk.twpooi.tuetue.util.FacebookLogin;
@@ -264,7 +265,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
 
         } else if(id == R.id.nav_help){
-            showSnackbar("도움말");
+
+            Intent intent = new Intent(getApplicationContext(), IntroduceActivity.class);
+            startActivity(intent);
+
         } else if(id == R.id.nav_open_source){
             Intent intent = new Intent(getApplicationContext(), OpenSourceActivity.class);
             startActivity(intent);
@@ -402,7 +406,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private void redirectStartPage(){
         Intent intent = new Intent(getApplicationContext(), StartActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         startActivity(intent);
         finish();
     }
