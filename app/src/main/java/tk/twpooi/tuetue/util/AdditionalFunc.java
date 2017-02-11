@@ -165,6 +165,7 @@ public class AdditionalFunc {
                 item.put("nickname", (String)temp.get("nickname"));
                 item.put("contact", (String)temp.get("contact"));
                 item.put("intro", (String)temp.get("intro"));
+                item.put("compliment", Integer.parseInt((String) temp.get("compliment")));
 
                 ArrayList<String> in = new ArrayList<String>();
                 String interest = (String)temp.get("interest");

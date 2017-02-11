@@ -22,7 +22,14 @@ import android.view.WindowManager;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 
+import com.afollestad.materialdialogs.MaterialDialog;
+import com.afollestad.materialdialogs.Theme;
+import com.flyco.animation.FadeEnter.FadeEnter;
+import com.flyco.dialog.listener.OnBtnClickL;
 import com.flyco.dialog.widget.NormalListDialog;
 import com.getbase.floatingactionbutton.FloatingActionButton;
 import com.squareup.picasso.MemoryPolicy;
@@ -45,6 +52,8 @@ public class ProfileActivity extends Activity {
     private final int MSG_MESSAGE_UPDATE_TUTOR_ITEM = 500;
     private final int MSG_MESSAGE_UPDATE_TUTEE_ITEM = 502;
     private final int MSG_MESSAGE_PROGRESS_FINISH = 504;
+    private final int MSG_MESSAGE_COMPLIMENT_FINISH = 505;
+    private final int MSG_MESSAGE_COMPLIMENT_ERROR = 506;
 
     // User Data
     private HashMap<String, Object> item;
@@ -64,13 +73,18 @@ public class ProfileActivity extends Activity {
     private View mHeader;
     private View mPlaceHolderView;
     private AccelerateDecelerateInterpolator mSmoothInterpolator;
+    // Compliment
+    private LinearLayout complimentBtn;
+    private ImageView complimentImg;
+    private TextView tv_compliment;
 
+    private MaterialDialog progressDialog;
+
+    // Profile Image Move
     private RectF mRect1 = new RectF();
     private RectF mRect2 = new RectF();
-
     private AlphaForegroundColorSpan mAlphaForegroundColorSpan;
     private SpannableString mSpannableString;
-
     private TypedValue mTypedValue = new TypedValue();
 
     // RecycleView
@@ -109,6 +123,18 @@ public class ProfileActivity extends Activity {
     private void setBasicUI(){
 
         root = (FrameLayout)findViewById(R.id.root);
+        // Compliment
+        complimentBtn = (LinearLayout) findViewById(R.id.compliment_btn);
+        complimentBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                boolean tag = (boolean) complimentBtn.getTag();
+                updateCompliment(!tag);
+            }
+        });
+        complimentImg = (ImageView) findViewById(R.id.compliment_img);
+        tv_compliment = (TextView) findViewById(R.id.tv_compliment);
+        setComplimentBtn(FileManager.readComplimentListFile(getApplicationContext()).contains(userId));
 
         mSmoothInterpolator = new AccelerateDecelerateInterpolator();
         mHeaderHeight = getResources().getDimensionPixelSize(R.dimen.header_height);
@@ -145,8 +171,56 @@ public class ProfileActivity extends Activity {
             fabEdit.setVisibility(View.GONE);
         }
 
+        progressDialog = new MaterialDialog.Builder(this)
+                .content("잠시만 기다려주세요.")
+                .progress(true, 0)
+                .progressIndeterminateStyle(true)
+                .theme(Theme.LIGHT)
+                .build();
+
         setupActionBar();
         setupListView();
+
+    }
+
+    private void setComplimentBtn(boolean b) {
+        complimentBtn.setTag(b);
+        if (b) {
+            complimentBtn.setBackgroundResource(R.drawable.compliment_background_select);
+            complimentImg.setImageResource(R.drawable.thumb_up_select);
+            tv_compliment.setText("취소");
+            tv_compliment.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.thump_up_color));
+        } else {
+            complimentBtn.setBackgroundResource(R.drawable.compliment_background);
+            complimentImg.setImageResource(R.drawable.thumb_up);
+            tv_compliment.setText("칭찬하기");
+            tv_compliment.setTextColor(ContextCompat.getColor(getApplicationContext(), R.color.gray));
+        }
+    }
+
+    private void updateCompliment(boolean b) { // true면 증가, false면 감소
+
+        HashMap<String, String> map = new HashMap<String, String>();
+        map.put("service", "updateItem");
+        map.put("id", userId);
+        map.put("table", "user");
+        map.put("type", "compliment");
+        if (b)
+            map.put("mode", "1");
+        else
+            map.put("mode", "0");
+
+        progressDialog.show();
+        new ParsePHP(Information.MAIN_SERVER_ADDRESS, map) {
+            @Override
+            protected void afterThreadFinish(String data) {
+                if ("1".equals(data)) {
+                    handler.sendMessage(handler.obtainMessage(MSG_MESSAGE_COMPLIMENT_FINISH));
+                } else {
+                    handler.sendMessage(handler.obtainMessage(MSG_MESSAGE_COMPLIMENT_ERROR));
+                }
+            }
+        }.start();
 
     }
 
@@ -304,6 +378,29 @@ public class ProfileActivity extends Activity {
                     break;
                 case MSG_MESSAGE_PROGRESS_FINISH:
                     setMainUI();
+                    break;
+                case MSG_MESSAGE_COMPLIMENT_FINISH:
+                    progressDialog.hide();
+                    boolean tag = (boolean) complimentBtn.getTag();
+                    setComplimentBtn(!tag);
+                    FileManager.addComplimentList(getApplicationContext(), userId);
+                    break;
+                case MSG_MESSAGE_COMPLIMENT_ERROR:
+                    progressDialog.hide();
+                    final com.flyco.dialog.widget.MaterialDialog dialog = new com.flyco.dialog.widget.MaterialDialog(ProfileActivity.this);
+                    dialog.content("잠시 후 다시 시도해주세요.")
+                            .title("에러")
+                            .btnText("확인")
+                            .btnNum(1)
+                            .showAnim(new FadeEnter())
+                            .show();
+                    dialog.setOnBtnClickL(new OnBtnClickL() {
+                        @Override
+                        public void onBtnClick() {
+                            dialog.hide();
+                            dialog.dismiss();
+                        }
+                    });
                     break;
                 default:
                     break;
@@ -502,7 +599,9 @@ public class ProfileActivity extends Activity {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        AdditionalFunc.clearApplicationCache(getApplicationContext(), null);
+        if (progressDialog != null) {
+            progressDialog.dismiss();
+        }
     }
 
 }

@@ -22,6 +22,7 @@ import com.flyco.animation.FadeEnter.FadeEnter;
 import com.flyco.dialog.listener.OnBtnClickL;
 import com.flyco.dialog.widget.MaterialDialog;
 import com.getbase.floatingactionbutton.FloatingActionButton;
+import com.getbase.floatingactionbutton.FloatingActionsMenu;
 import com.squareup.picasso.MemoryPolicy;
 import com.squareup.picasso.Picasso;
 import com.wang.avi.AVLoadingIndicatorView;
@@ -70,6 +71,8 @@ public class ShowTuetueActivity extends AppCompatActivity {
     private ScrollView sv;
     private LinearLayout infoField;
 
+    private FloatingActionsMenu menu;
+    private FloatingActionButton fabReport;
     private FloatingActionButton fabEdit;
     private TextView joinBtn;
 
@@ -196,6 +199,8 @@ public class ShowTuetueActivity extends AppCompatActivity {
 //        });
         infoField = (LinearLayout)findViewById(R.id.li_info_field);
 
+        menu = (FloatingActionsMenu) findViewById(R.id.multiple_actions);
+
         fabEdit = (FloatingActionButton) findViewById(R.id.fab_edit);
         fabEdit.setTitle("편집");
         fabEdit.setVisibility(View.GONE);
@@ -213,6 +218,43 @@ public class ShowTuetueActivity extends AppCompatActivity {
                     intent.putExtra("id", id);
                     startAddActivity(intent);
                 }
+                menu.toggle();
+            }
+        });
+
+        fabReport = (FloatingActionButton) findViewById(R.id.fab_report);
+        fabReport.setTitle("게시글 신고");
+        fabReport.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (isFinishLoading) {
+                    String type;
+                    if (isTutorContents()) {
+                        type = "재능나눔";
+                    } else {
+                        type = "재능기부";
+                    }
+                    String articleId = (String) item.get("id");
+                    String nickname = (String) item.get("nickname");
+                    String email = (String) item.get("email");
+                    String category = (String) item.get("category");
+                    String contents = (String) item.get("contents");
+
+                    String msg = String.format("신고자 ID : %s\n신고 내용을 입력해주세요 : \n\n\n\n------------------\n게시글 ID : %s\n분류 : %s\n게시자 닉네임 : %s\n게시자 이메일 : %s\n게시글 카테고리 : %s\n게시글 내용\n%s\n", StartActivity.USER_ID, articleId, type, nickname, email, category, contents);
+
+                    Intent i = new Intent(Intent.ACTION_SEND);
+                    i.setType("message/rfc822");
+                    i.putExtra(Intent.EXTRA_EMAIL, new String[]{Information.ADMINISTRATOR_EMAIL});
+                    i.putExtra(Intent.EXTRA_SUBJECT, "튜튜 게시글 신고");
+                    i.putExtra(Intent.EXTRA_TEXT, msg);
+                    try {
+                        startActivity(Intent.createChooser(i, "Send mail..."));
+                    } catch (android.content.ActivityNotFoundException ex) {
+                        showSnackbar("설치된 이메일 클라이언트가 존재하지 않습니다.");
+                    }
+
+                }
+                menu.toggle();
             }
         });
         joinBtn = (TextView)findViewById(R.id.join);

@@ -19,11 +19,8 @@ public class FileManager {
 
     private Context context;
 
-    private static final String favoriteFileName = "favorite.tt";
-    private static final String myCourseFileName = "mycourse.tt";
-    private static final String sharedFileName = "Shared.tt";
-    private static final String courseGameFileName = "coursegame.tt";
     private static final String interestTutorFileName = "interestTutor.tt";
+    private static final String complimentFileName = "compliment.tt";
 
     public FileManager(Context context){
         this.context = context;
@@ -78,4 +75,54 @@ public class FileManager {
         }
 
     }
+
+    public static ArrayList<String> readComplimentListFile(Context context) {
+
+        ArrayList<String> list = new ArrayList<>();
+
+        ObjectInputStream input;
+
+        try {
+            input = new ObjectInputStream(new FileInputStream(new File(new File(context.getFilesDir(), "") + File.separator + complimentFileName)));
+            list = (ArrayList<String>) input.readObject();
+            input.close();
+        } catch (FileNotFoundException e) {
+        } catch (IOException e) {
+        } catch (Exception e) {
+        }
+
+        return list;
+
+    }
+
+    public static void writeComplimentListFile(Context context, ArrayList<String> list) {
+
+        ObjectOutput out = null;
+
+        try {
+            out = new ObjectOutputStream(new FileOutputStream(new File(context.getFilesDir(), "") + File.separator + complimentFileName));
+            out.writeObject(list);
+            out.close();
+        } catch (FileNotFoundException e) {
+        } catch (IOException e) {
+        }
+
+    }
+
+    public static void addComplimentList(Context context, String id) {
+
+        ArrayList<String> list = readComplimentListFile(context);
+        list.add(id);
+        writeComplimentListFile(context, list);
+
+    }
+
+    public static void removeComplimentList(Context context, String id) {
+
+        ArrayList<String> list = readComplimentListFile(context);
+        list.remove(id);
+        writeComplimentListFile(context, list);
+
+    }
+
 }

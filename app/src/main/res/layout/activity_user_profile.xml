@@ -30,15 +30,57 @@
                 android:layout_height="match_parent"
                 android:src="@color/colorPrimary"
                 android:scaleType="centerCrop"
-                android:layout_above="@+id/v_margin"
+                android:layout_above="@+id/extra_view"
                 />
-            <View
-                android:id="@+id/v_margin"
+
+            <RelativeLayout
+                android:id="@+id/extra_view"
                 android:layout_width="match_parent"
-                android:layout_height="70dp"
+                android:layout_height="20dp"
+                android:background="@color/background_color"
+                android:layout_above="@+id/rl_compliment_field">
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/rl_compliment_field"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
                 android:background="@color/profile_background"
-                android:layout_alignParentBottom="true"
-                />
+                android:layout_alignParentBottom="true">
+
+                <LinearLayout
+                    android:id="@+id/compliment_btn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_alignParentRight="true"
+                    android:layout_centerVertical="true"
+                    android:layout_marginRight="10dp"
+                    android:background="@drawable/compliment_background"
+                    android:gravity="center_vertical"
+                    android:padding="5dp">
+
+                    <ImageView
+                        android:id="@+id/compliment_img"
+                        android:layout_width="15dp"
+                        android:layout_height="15dp"
+                        android:src="@drawable/thumb_up"
+                        android:layout_marginLeft="5dp" />
+
+                    <TextView
+                        android:id="@+id/tv_compliment"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="5dp"
+                        android:text="칭찬하기"
+                        android:textSize="12sp"
+                        android:textColor="@color/gray" />
+
+                </LinearLayout>
+
+
+            </RelativeLayout>
 
         </RelativeLayout>
 
