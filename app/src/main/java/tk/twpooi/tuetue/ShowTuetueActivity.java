@@ -1,5 +1,7 @@
 package tk.twpooi.tuetue;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -456,8 +458,8 @@ public class ShowTuetueActivity extends AppCompatActivity {
                 long start = (Long)item.get("start");
                 long finish = (Long)item.get("finish");
 
-                String st = AdditionalFunc.getDateString(start);
-                String fi = AdditionalFunc.getDateString(finish);
+                final String st = AdditionalFunc.getDateString(start);
+                final String fi = AdditionalFunc.getDateString(finish);
 
                 View v = svItem.get(s);
                 TextView content = (TextView)v.findViewById(R.id.content);
@@ -466,12 +468,19 @@ public class ShowTuetueActivity extends AppCompatActivity {
                 content.setText(st + "\n~ " + fi);
                 av.hide();
 
+                content.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        setClipBoardLink(st + "\n~ " + fi);
+                    }
+                });
+
             }else{
 
                 if(item.containsKey(s)){
 
                     View v = svItem.get(s);
-                    TextView content = (TextView)v.findViewById(R.id.content);
+                    final TextView content = (TextView) v.findViewById(R.id.content);
                     AVLoadingIndicatorView av = (AVLoadingIndicatorView)v.findViewById(R.id.loading);
 
                     Object o = item.get(s);
@@ -484,6 +493,13 @@ public class ShowTuetueActivity extends AppCompatActivity {
                         content.setText(c+"명");
                     }
                     av.hide();
+
+                    content.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            setClipBoardLink(content.getText().toString());
+                        }
+                    });
 
                 }
 
@@ -829,6 +845,15 @@ public class ShowTuetueActivity extends AppCompatActivity {
 
             }
         }.start();
+
+    }
+
+    public void setClipBoardLink(String link) {
+
+        ClipboardManager clipboardManager = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+        ClipData clipData = ClipData.newPlainText("label", link);
+        clipboardManager.setPrimaryClip(clipData);
+        showSnackbar("클립보드에 복사하였습니다.");
 
     }
 

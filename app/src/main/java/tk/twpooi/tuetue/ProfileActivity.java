@@ -2,6 +2,9 @@ package tk.twpooi.tuetue;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.RectF;
 import android.os.Build;
@@ -40,6 +43,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import jp.wasabeef.picasso.transformations.CropCircleTransformation;
+import tk.twpooi.tuetue.sub.TuetueListActivity;
 import tk.twpooi.tuetue.util.AdditionalFunc;
 import tk.twpooi.tuetue.util.AlphaForegroundColorSpan;
 import tk.twpooi.tuetue.util.ParsePHP;
@@ -315,6 +319,17 @@ public class ProfileActivity extends Activity {
         }
     }
 
+    public void showTutorList() {
+        if (tutorList.size() <= 0) {
+            showSnackbar("목록이 없습니다.");
+        } else {
+            Intent intent = new Intent(getApplicationContext(), TuetueListActivity.class);
+            intent.putExtra("type", TuetueListActivity.TYPE_TUTOR_LIST);
+            intent.putExtra("list", tutorList);
+            startActivity(intent);
+        }
+    }
+
     private void setTuteeUI() {
         for (int i = 0; i < list.size(); i++) {
             HashMap<String, String> map = list.get(i);
@@ -322,6 +337,17 @@ public class ProfileActivity extends Activity {
                 map.put("content", tuteeList.size() + "개");
                 adapter.updateList(i, tuteeList.size() + "개");
             }
+        }
+    }
+
+    public void showTuteeList() {
+        if (tuteeList.size() <= 0) {
+            showSnackbar("목록이 없습니다.");
+        } else {
+            Intent intent = new Intent(getApplicationContext(), TuetueListActivity.class);
+            intent.putExtra("type", TuetueListActivity.TYPE_TUTEE_LIST);
+            intent.putExtra("list", tuteeList);
+            startActivity(intent);
         }
     }
 
@@ -586,6 +612,15 @@ public class ProfileActivity extends Activity {
         mAlphaForegroundColorSpan.setAlpha(alpha);
         mSpannableString.setSpan(mAlphaForegroundColorSpan, 0, mSpannableString.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         getActionBar().setTitle(mSpannableString);
+    }
+
+    public void setClipBoardLink(String link) {
+
+        ClipboardManager clipboardManager = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+        ClipData clipData = ClipData.newPlainText("label", link);
+        clipboardManager.setPrimaryClip(clipData);
+        showSnackbar("클립보드에 복사하였습니다.");
+
     }
 
     private void setStatusColor(){

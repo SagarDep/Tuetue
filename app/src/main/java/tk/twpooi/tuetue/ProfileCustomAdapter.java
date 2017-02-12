@@ -16,6 +16,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.wang.avi.AVLoadingIndicatorView;
 
@@ -90,7 +91,7 @@ public class ProfileCustomAdapter extends RecyclerView.Adapter<RecyclerView.View
             final int pos = position;
 
             String title = noticeData.get("title");
-            String content = noticeData.get("content");
+            final String content = noticeData.get("content");
 
             if("관심분야".equals(title)){
 
@@ -110,10 +111,50 @@ public class ProfileCustomAdapter extends RecyclerView.Adapter<RecyclerView.View
                     setInterestField(itemHolder.interestField, temp);
                 }
 
+            } else if ("나눔한 재능".equals(title)) {
+
+                itemHolder.title.setText(title);
+                itemHolder.content.setText(content);
+                itemHolder.root.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        ((ProfileActivity) activity).showTutorList();
+                    }
+                });
+
+                if (content == null || "".equals(content)) {
+                } else {
+                    itemHolder.loading.hide();
+                    itemHolder.loading.setVisibility(GONE);
+                }
+
+            } else if ("나눔 받은 재능".equals(title)) {
+
+                itemHolder.title.setText(title);
+                itemHolder.content.setText(content);
+                itemHolder.root.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        ((ProfileActivity) activity).showTuteeList();
+                    }
+                });
+
+                if (content == null || "".equals(content)) {
+                } else {
+                    itemHolder.loading.hide();
+                    itemHolder.loading.setVisibility(GONE);
+                }
+
             }else{
 
                 itemHolder.title.setText(title);
                 itemHolder.content.setText(content);
+                itemHolder.content.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        ((ProfileActivity) activity).setClipBoardLink(content);
+                    }
+                });
 
                 if(content == null ||"".equals(content)){
                 }else{
