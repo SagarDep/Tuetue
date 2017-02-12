@@ -4,6 +4,8 @@ import android.content.Intent;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -18,10 +20,21 @@ import android.widget.TextView;
 
 
 import com.rengwuxian.materialedittext.MaterialEditText;
+import com.wang.avi.AVLoadingIndicatorView;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+
+import tk.twpooi.tuetue.util.ParsePHP;
 
 public class SelectInterestActivity extends AppCompatActivity {
+
+    private MyHandler handler = new MyHandler();
+    private final int MSG_MESSAGE_MAKE_LIST = 500;
 
     // UI
     private FrameLayout root;
@@ -29,6 +42,7 @@ public class SelectInterestActivity extends AppCompatActivity {
     private Button completeBtn;
     private TextView notice;
     private MaterialEditText editSearch;
+    private AVLoadingIndicatorView loading;
 
     // Data
     private String[] list;
@@ -48,18 +62,44 @@ public class SelectInterestActivity extends AppCompatActivity {
             alreadySetItem = new ArrayList<>();
         }
 
-        list = StartActivity.CATEGORY_LIST.clone();
-        listTemp = new ArrayList<>();
-        for (String s : list) {
-            listTemp.add(s);
-        }
-//        Random rand = new Random();
-//        list = new String[100];
-//        for(int i=0; i<100; i++){
-//            list[i] = i + "번";
-//        }
-
         init();
+
+        HashMap<String, String> map = new HashMap<String, String>();
+        map.put("service", "getFieldList");
+
+        loading.show();
+        new ParsePHP(Information.MAIN_SERVER_ADDRESS, map) {
+            @Override
+            protected void afterThreadFinish(String data) {
+
+                try {
+                    // PHP에서 받아온 JSON 데이터를 JSON오브젝트로 변환
+                    JSONObject jObject = new JSONObject(data);
+                    // results라는 key는 JSON배열로 되어있다.
+                    JSONArray results = jObject.getJSONArray("result");
+                    String countTemp = (String) jObject.get("num_result");
+                    int count = Integer.parseInt(countTemp);
+
+                    list = new String[count];
+
+                    for (int i = 0; i < count; ++i) {
+                        JSONObject temp = results.getJSONObject(i);
+                        list[i] = (String) temp.get("field");
+                    }
+
+                    listTemp = new ArrayList<>();
+                    for (String s : list) {
+                        listTemp.add(s);
+                    }
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                handler.sendMessage(handler.obtainMessage(MSG_MESSAGE_MAKE_LIST));
+
+            }
+        }.start();
 
     }
 
@@ -98,11 +138,26 @@ public class SelectInterestActivity extends AppCompatActivity {
 
             }
         });
-
-        makeList();
-        checkConfident();
+        loading = (AVLoadingIndicatorView) findViewById(R.id.loading);
 
     }
+
+
+    private class MyHandler extends Handler {
+
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case MSG_MESSAGE_MAKE_LIST:
+                    loading.hide();
+                    makeList();
+                    checkConfident();
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
 
     private void searchList(String sh) {
 
@@ -145,7 +200,7 @@ public class SelectInterestActivity extends AppCompatActivity {
 
         DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
         float dpHeight = displayMetrics.heightPixels / displayMetrics.density;
-        float dpWidth = (int) (320 * scale + 0.5f);//displayMetrics.widthPixels;// / displayMetrics.density;
+        float dpWidth = (int) (310 * scale + 0.5f);//displayMetrics.widthPixels;// / displayMetrics.density;
 
         if (listTemp != null) {
 

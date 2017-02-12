@@ -83,7 +83,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:orientation="vertical"
-                android:layout_margin="5dp"
+                android:padding="5dp"
                 >
 
             </LinearLayout>
@@ -98,6 +98,15 @@
             android:text="완료"
             android:textColor="@color/white"
             />
+
+        <com.wang.avi.AVLoadingIndicatorView
+            android:id="@+id/loading"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:indicatorName="LineSpinFadeLoaderIndicator"
+            app:indicatorColor="@color/colorPrimary"
+            style="@style/AVLoadingIndicatorView.Small"
+            android:layout_centerInParent="true" />
 
     </RelativeLayout>
 
