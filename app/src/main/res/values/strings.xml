@@ -104,5 +104,6 @@ See the License for the specific language governing permissions and
 limitations under the License."</string>
 
     <string name="facebook_app_id">1815603535383515</string>
+    <string name="kakao_app_key">d8c5212a7c3652cceb4f0fb6f4829782</string>
 
 </resources>

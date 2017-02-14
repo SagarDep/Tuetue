@@ -76,6 +76,8 @@ dependencies {
     compile 'com.afollestad.material-dialogs:core:0.9.3.0'
     // dotindicator
     compile 'com.matthew-tamlin:sliding-intro-screen:3.1.0'
+    // Kakao
+    compile group: project.KAKAO_SDK_GROUP, name: 'usermgmt', version: project.KAKAO_SDK_VERSION
     // Facebook
     compile 'com.facebook.android:facebook-android-sdk:[4,5)'
     compile files('libs/3rdparty_login_library_android_4.1.4_source.jar')

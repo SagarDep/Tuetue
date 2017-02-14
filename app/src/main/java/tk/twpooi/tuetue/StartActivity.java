@@ -20,6 +20,11 @@ import android.widget.RelativeLayout;
 import com.facebook.FacebookException;
 import com.facebook.Profile;
 import com.flaviofaria.kenburnsview.KenBurnsView;
+import com.kakao.auth.Session;
+import com.kakao.network.ErrorResult;
+import com.kakao.usermgmt.LoginButton;
+import com.kakao.usermgmt.response.model.UserProfile;
+import com.kakao.util.exception.KakaoException;
 import com.nhn.android.naverlogin.ui.view.OAuthLoginButton;
 
 import org.json.JSONArray;
@@ -34,21 +39,29 @@ import tk.twpooi.tuetue.sub.IntroduceActivity;
 import tk.twpooi.tuetue.util.AdditionalFunc;
 import tk.twpooi.tuetue.util.FacebookLogin;
 import tk.twpooi.tuetue.util.FacebookLoginSupport;
+import tk.twpooi.tuetue.util.KakaoLogin;
+import tk.twpooi.tuetue.util.KakaoLoginButton;
+import tk.twpooi.tuetue.util.KakaoLoginSupport;
 import tk.twpooi.tuetue.util.NaverLogin;
 import tk.twpooi.tuetue.util.NaverLoginSupport;
 import tk.twpooi.tuetue.util.ParsePHP;
 
-public class StartActivity extends AppCompatActivity implements FacebookLoginSupport, NaverLoginSupport{
+public class StartActivity extends AppCompatActivity implements FacebookLoginSupport, NaverLoginSupport, KakaoLoginSupport {
 
     public static final int FIRST_LOADING = 5;
+    public static final String FACEBOOK_LOGIN = "facebook";
+    public static final String NAVER_LOGIN = "naver";
+    public static final String KAKAO_LOGIN = "kakao";
 
     private MyHandler handler = new MyHandler();
     private final int MSG_MESSAGE_SHOW_LOGIN = 500;
     private final int MSG_MESSAGE_SUCCESS = 501;
     private final int MSG_MESSAGE_FAIL_FB = 502;
     private final int MSG_MESSAGE_FAIL_NAVER = 503;
-    private final int MSG_MESSAGE_FACEBOOK_EMPTY = 504;
-    private final int MSG_MESSAGE_NAVER_EMPTY = 505;
+    private final int MSG_MESSAGE_FAIL_KAKAO = 504;
+    private final int MSG_MESSAGE_FACEBOOK_EMPTY = 505;
+    private final int MSG_MESSAGE_NAVER_EMPTY = 506;
+    private final int MSG_MESSAGE_KAKAO_EMPTY = 507;
 
     private SharedPreferences setting;
     private SharedPreferences.Editor editor;
@@ -60,6 +73,10 @@ public class StartActivity extends AppCompatActivity implements FacebookLoginSup
     // Naver
     private NaverLogin naverLogin;
     private OAuthLoginButton mOAuthLoginButton;
+
+    // Kakao
+    private KakaoLogin kakaoLogin;
+    private KakaoLoginButton kakaoLoginBtn;
 
     // UI
     private KenBurnsView kenBurnsView;
@@ -88,7 +105,7 @@ public class StartActivity extends AppCompatActivity implements FacebookLoginSup
         setting = getSharedPreferences("setting", 0);
         editor = setting.edit();
 
-        //printKeyHash();
+        printKeyHash();
 
         init();
 
@@ -121,7 +138,6 @@ public class StartActivity extends AppCompatActivity implements FacebookLoginSup
 //        li_login.setVisibility(View.GONE);
 
         fbLogin = (ImageView)findViewById(R.id.fb_login);
-
         fbLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -137,6 +153,10 @@ public class StartActivity extends AppCompatActivity implements FacebookLoginSup
                 naverLogin.login();
             }
         });
+
+        kakaoLogin = new KakaoLogin(this);
+        kakaoLoginBtn = (KakaoLoginButton) findViewById(R.id.kakao_login);
+//        kakaoLoginBtn.inflate(getApplicationContext(), R.layout.custom_kakao_login, kakaoLoginBtn);
 
     }
 
@@ -181,28 +201,43 @@ public class StartActivity extends AppCompatActivity implements FacebookLoginSup
 
         if(null != login){
 
-            if("facebook".equals(login)){
+            if (FACEBOOK_LOGIN.equals(login)) {
 
                 if(facebookLogin.isAlreadyLogin()){
 
                     USER_ID = facebookLogin.getID();
-                    checkFBLogin(MSG_MESSAGE_SUCCESS, MSG_MESSAGE_FAIL_FB);
+                    checkLogin(MSG_MESSAGE_SUCCESS, MSG_MESSAGE_FAIL_FB);
 
                     return;
 
                 }
 
-            }else if("naver".equals(login)){
+            } else if (NAVER_LOGIN.equals(login)) {
 
                 HashMap<String, String> data = naverLogin.getUserInformation();
                 if(!data.isEmpty()){
 
                     USER_ID = data.get("id");
-                    checkFBLogin(MSG_MESSAGE_SUCCESS, MSG_MESSAGE_FAIL_NAVER);
+                    checkLogin(MSG_MESSAGE_SUCCESS, MSG_MESSAGE_FAIL_NAVER);
 
                     return;
 
                 }
+
+            } else if (KAKAO_LOGIN.equals(login)) {
+
+                if (kakaoLogin.isAlreadyLogin()) {
+                    kakaoLogin.login();
+                    return;
+                }
+//                if(kakaoLogin.isAlreadyLogin()){
+//
+//                    USER_ID = Long.toString(data.getId());
+//                    checkFBLogin(MSG_MESSAGE_SUCCESS, MSG_MESSAGE_FAIL_KAKAO);
+//
+//                    return;
+//
+//                }
 
             }
 
@@ -212,23 +247,7 @@ public class StartActivity extends AppCompatActivity implements FacebookLoginSup
 
     }
 
-    private void checkFBLogin(final int success, final int fail){
-        HashMap<String, String> map = new HashMap<>();
-        map.put("service", "getUserInfo");
-        map.put("id", USER_ID);
-        new ParsePHP(Information.MAIN_SERVER_ADDRESS, map){
-            @Override
-            protected void afterThreadFinish(String data) {
-                USER_DATA = AdditionalFunc.getUserInfo(data);
-                if(USER_DATA.isEmpty()){
-                    handler.sendMessage(handler.obtainMessage(fail));
-                }else{
-                    handler.sendMessage(handler.obtainMessage(success));
-                }
-            }
-        }.start();
-    }
-    private void checkNaverLogin(final int success, final int fail){
+    private void checkLogin(final int success, final int fail) {
         HashMap<String, String> map = new HashMap<>();
         map.put("service", "getUserInfo");
         map.put("id", USER_ID);
@@ -263,6 +282,7 @@ public class StartActivity extends AppCompatActivity implements FacebookLoginSup
         finish();
     }
 
+
     private class MyHandler extends Handler {
 
         public void handleMessage(Message msg)
@@ -282,10 +302,17 @@ public class StartActivity extends AppCompatActivity implements FacebookLoginSup
                 case MSG_MESSAGE_FAIL_NAVER:
                     naverLogin.login();
                     break;
+                case MSG_MESSAGE_FAIL_KAKAO:
+                    kakaoLogin.setAlreadyLogin(false);
+                    kakaoLogin.login();
+                    break;
                 case MSG_MESSAGE_FACEBOOK_EMPTY:
                     redirectWtInfoActivity();
                     break;
                 case MSG_MESSAGE_NAVER_EMPTY:
+                    redirectWtInfoActivity();
+                    break;
+                case MSG_MESSAGE_KAKAO_EMPTY:
                     redirectWtInfoActivity();
                     break;
                 default:
@@ -298,6 +325,7 @@ public class StartActivity extends AppCompatActivity implements FacebookLoginSup
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         facebookLogin.onActivityResult(requestCode, resultCode, data);
+        kakaoLogin.onActivityResult(requestCode, resultCode, data);
         switch (resultCode) {
             case FIRST_LOADING:
                 setCategoryList();
@@ -307,10 +335,13 @@ public class StartActivity extends AppCompatActivity implements FacebookLoginSup
         }
     }
 
+    // =================== Login Method ============================
+
+    // ================== Facebook ==================
     @Override
     public void afterFBLoginSuccess(Profile profile, HashMap<String, String> data) {
 //        showSnackbar("Facebook 로그인 성공");
-        editor.putString("login", "facebook");
+        editor.putString("login", FACEBOOK_LOGIN);
         editor.commit();
         USER_ID = profile.getId();
 
@@ -319,7 +350,7 @@ public class StartActivity extends AppCompatActivity implements FacebookLoginSup
         wt_email = data.get("email");
         wt_name = profile.getName();
 
-        checkFBLogin(MSG_MESSAGE_SUCCESS, MSG_MESSAGE_FACEBOOK_EMPTY);
+        checkLogin(MSG_MESSAGE_SUCCESS, MSG_MESSAGE_FACEBOOK_EMPTY);
     }
 
     @Override
@@ -337,10 +368,12 @@ public class StartActivity extends AppCompatActivity implements FacebookLoginSup
         showSnackbar("Facebook Logout");
     }
 
+    // ================== Naver ==================
+
     @Override
     public void afterNaverLoginSuccess(HashMap<String, String> data) {
 //        showSnackbar("네이버 로그인 성공");
-        editor.putString("login", "naver");
+        editor.putString("login", NAVER_LOGIN);
         editor.commit();
         USER_ID = data.get("id");
 
@@ -349,12 +382,59 @@ public class StartActivity extends AppCompatActivity implements FacebookLoginSup
         wt_email = data.get("email");
         wt_name = data.get("name");
 
-        checkNaverLogin(MSG_MESSAGE_SUCCESS, MSG_MESSAGE_NAVER_EMPTY);
+        checkLogin(MSG_MESSAGE_SUCCESS, MSG_MESSAGE_NAVER_EMPTY);
     }
 
     @Override
     public void afterNaverLoginFail(String errorCode, String errorDesc) {
         showSnackbar("Naver Login Error : " + errorCode + ", " + errorDesc);
+    }
+
+    // ================== Kakao ==================
+
+    @Override
+    public void kakaoSessionOpenFailed(KakaoException exception) {
+        showSnackbar("Session Open Failed");
+    }
+
+    @Override
+    public void afterKakaoLoginSuccess(UserProfile userProfile) {
+        editor.putString("login", KAKAO_LOGIN);
+        editor.commit();
+        USER_ID = Long.toString(userProfile.getId());
+
+        wt_id = Long.toString(userProfile.getId());
+        wt_img = userProfile.getThumbnailImagePath();
+//        wt_img = profile.getProfilePictureUri(500, 500).toString();
+        wt_email = null;
+        wt_name = userProfile.getNickname();
+
+        checkLogin(MSG_MESSAGE_SUCCESS, MSG_MESSAGE_KAKAO_EMPTY);
+    }
+
+    @Override
+    public void afterKakaoLoginIsAlreadyLogin(UserProfile userProfile) {
+        USER_ID = Long.toString(userProfile.getId());
+        checkLogin(MSG_MESSAGE_SUCCESS, MSG_MESSAGE_FAIL_KAKAO);
+    }
+
+    @Override
+    public void afterKakaoLoginFailed(ErrorResult errorResult) {
+        showSnackbar(errorResult.getErrorMessage());
+    }
+
+    @Override
+    public void afterKakaoLoginSessionClosed(ErrorResult errorResult) {
+    }
+
+    @Override
+    public void afterKakaoLoginNotSignedUp() {
+        showSnackbar("Login not signed up");
+    }
+
+    @Override
+    public void afterKakaoLogout() {
+        showSnackbar("Logout");
     }
 
     @Override
@@ -382,7 +462,7 @@ public class StartActivity extends AppCompatActivity implements FacebookLoginSup
             for (Signature signature : info.signatures) {
                 MessageDigest md = MessageDigest.getInstance("SHA");
                 md.update(signature.toByteArray());
-                showSnackbar(Base64.encodeToString(md.digest(), Base64.DEFAULT));
+//                showSnackbar(Base64.encodeToString(md.digest(), Base64.DEFAULT));
                 Log.d("KeyHash:", Base64.encodeToString(md.digest(), Base64.DEFAULT));
             }
         } catch (PackageManager.NameNotFoundException e) {

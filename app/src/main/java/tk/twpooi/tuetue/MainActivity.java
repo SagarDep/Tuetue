@@ -38,6 +38,7 @@ import tk.twpooi.tuetue.sub.IntroduceActivity;
 import tk.twpooi.tuetue.sub.OpenSourceActivity;
 import tk.twpooi.tuetue.util.AdditionalFunc;
 import tk.twpooi.tuetue.util.FacebookLogin;
+import tk.twpooi.tuetue.util.KakaoLogin;
 import tk.twpooi.tuetue.util.NaverLogin;
 import tk.twpooi.tuetue.util.ParsePHP;
 
@@ -61,6 +62,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private com.afollestad.materialdialogs.MaterialDialog progressDialog;
     private FacebookLogin facebookLogin;
     private NaverLogin naverLogin;
+    private KakaoLogin kakaoLogin;
     private SharedPreferences setting;
     private SharedPreferences.Editor editor;
     private String login;
@@ -76,6 +78,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         login = setting.getString("login", null);
 
         naverLogin = new NaverLogin(this, new OAuthLoginButton(this));
+        kakaoLogin = new KakaoLogin();
+
         progressDialog = new com.afollestad.materialdialogs.MaterialDialog.Builder(this)
                 .content("잠시만 기다려주세요.")
                 .progress(true, 0)
@@ -204,10 +208,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         } else if(id == R.id.nav_logout){
 
-            if("facebook".equals(login)){
+            if (StartActivity.FACEBOOK_LOGIN.equals(login)) {
                 facebookLogin.logout();
-            }else{
+            } else if (StartActivity.NAVER_LOGIN.equals(login)) {
                 naverLogin.logout();
+            } else if (StartActivity.KAKAO_LOGIN.equals(login)) {
+                kakaoLogin.logout();
             }
 
             editor.remove("login");
@@ -216,16 +222,23 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             redirectStartPage();
 
         } else if(id == R.id.nav_logout_delete){
-            if("facebook".equals(login)){
+            if (StartActivity.FACEBOOK_LOGIN.equals(login)) {
 
                 facebookLogin.logout();
                 editor.remove("login");
                 editor.commit();
                 removeUser(StartActivity.USER_ID);
 
-            }else if("naver".equals(login)){
+            } else if (StartActivity.NAVER_LOGIN.equals(login)) {
 
-                naverLogin.logout();
+                naverLogin.deleteToken();
+                editor.remove("login");
+                editor.commit();
+                removeUser(StartActivity.USER_ID);
+
+            } else if (StartActivity.KAKAO_LOGIN.equals(login)) {
+
+                kakaoLogin.unlink();
                 editor.remove("login");
                 editor.commit();
                 removeUser(StartActivity.USER_ID);

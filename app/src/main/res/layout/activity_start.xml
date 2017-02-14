@@ -44,13 +44,22 @@
                 android:layout_height="wrap_content"
                 />
 
-            <ImageView
+            <!--<ImageView-->
+            <!--android:layout_margin="10dp"-->
+            <!--android:id="@+id/kakao_login"-->
+            <!--android:layout_width="wrap_content"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:src="@drawable/ic_login_kakao_ko"-->
+            <!--/>-->
+
+            <tk.twpooi.tuetue.util.KakaoLoginButton
                 android:layout_margin="10dp"
                 android:id="@+id/kakao_login"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/ic_login_kakao_ko"
-                />
+                android:background="@drawable/ic_login_kakao_ko">
+
+            </tk.twpooi.tuetue.util.KakaoLoginButton>
 
         </LinearLayout>
 

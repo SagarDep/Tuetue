@@ -43,15 +43,7 @@ import jp.wasabeef.picasso.transformations.CropCircleTransformation;
 import tk.twpooi.tuetue.Information;
 import tk.twpooi.tuetue.ProfileActivity;
 import tk.twpooi.tuetue.R;
-import tk.twpooi.tuetue.StartActivity;
-import tk.twpooi.tuetue.TuteeListFragment;
-import tk.twpooi.tuetue.TutorListFragment;
-import tk.twpooi.tuetue.UserTuetueListFragment;
-import tk.twpooi.tuetue.util.AdditionalFunc;
 import tk.twpooi.tuetue.util.CustomViewPager;
-import tk.twpooi.tuetue.util.FacebookLogin;
-import tk.twpooi.tuetue.util.NaverLogin;
-import tk.twpooi.tuetue.util.ParsePHP;
 
 
 public class IntroduceActivity extends AppCompatActivity {
