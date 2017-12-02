@@ -8,6 +8,11 @@
 
 <br>
 
+## Overview
+Teutue is an app that helps students to share talent.
+
+<br>
+
 ## Feature
 <ul>
   <li>대학생들이 가지고 있는 다양한 재능을 나누고, 도움을 받을 수 있게끔 중계해주는 어플리케이션이다.</li>
@@ -17,6 +22,16 @@
   <li>생활, IT, 컴퓨터, 학교 단과대 등 다양한 카테고리를 제공하고, 카테고리 별 조회를 제공한다.</li>
   <li>튜터 혹은 튜티가 정한 금액 중 일부 수수료를 책정해 사업성을 도모할 수 있다.</li>
   <li>특정한 기준으로 이 어플을 사용하는 사용자들의 등급을 책정해 다른 사용자들이 참고할 수 있도록 한다.</li>
+</ul>
+<hr>
+<ul>
+  <li>It is an application that allows students to share various talents and relay them for help.</li>
+  <li>People who give talents are called tutors, people who share talents are called tuti.</li>
+  <li>Tutor can post articles about his / her talents that can help people(including time, the number of people, category, and cost.</li>
+  <li>Tuti can also post articles asking people who can help. In other words, it is possible for Tuti to recruit tutors.</li>
+  <li>It provides various categories such as life, IT, computer, and school college, and provides inquiry by category.</li>
+  <li>If you want to have business value, You can charge a portion of the fee set by tutor or tuti.</li>
+  <li>You can set the rating of users who use this application on specific criteria so that others can refer to it.</li>
 </ul>
   
 <br>
@@ -30,7 +45,8 @@
 <br>
 
 ## Usage
->이 프로젝트를 사용하기 위해서는 해당 <a href="https://github.com/pooi/Tuetue/blob/master/app/src/main/java/tk/twpooi/tuetue/Information.java">파일</a>에 개인 서버 주소를 입력해야합니다.
+>이 프로젝트를 사용하기 위해서는 해당 <a href="https://github.com/pooi/Tuetue/blob/master/app/src/main/java/tk/twpooi/tuetue/Information.java">파일</a>에 개인 서버 주소를 입력해야합니다.<br>
+If you want to use this project, please input server address on <a href="https://github.com/pooi/Tuetue/blob/master/app/src/main/java/tk/twpooi/tuetue/Information.java">this</a> file.
 
 ```java
 public static String MAIN_SERVER_ADDRESS = "PLEASE ENTER YOUR SERVER ADDRESS";
@@ -49,16 +65,19 @@ public static String MAIN_SERVER_ADDRESS = "PLEASE ENTER YOUR SERVER ADDRESS";
 <br>
 
 ## Carrer
->이 어플은 세종대학교 제1회 SW 해커톤에서 제작 및 수상하였습니다.
+>이 어플은 세종대학교 제1회 SW 해커톤에서 제작 및 수상하였습니다.<br>
+>This application was produced and awarded at Sejong University 1st SW Hackathon.
 
 <ul>
   <li>세종대학교 제1회 SW 해커톤 (대상)</li>
+  <li>Sejong University 1st hackathon (1st prize)</li>
 </ul>
 
 <br>
 
 ## Using OSS
->튜튜는 다음과 같은 오픈소스 소프트웨어가 사용되었습니다.
+>튜튜는 다음과 같은 오픈소스 소프트웨어가 사용되었습니다.<br>
+Tuetue used the following open source software.
 
 <ul>
   <li>picasso(Square) - <a href=https://github.com/square/picasso>https://github.com/square/picasso</a></li>
